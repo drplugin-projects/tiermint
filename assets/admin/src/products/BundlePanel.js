@@ -91,7 +91,10 @@ export default function BundlePanel( {
 			onClick={ () =>
 				setForm( ( prev ) => ( {
 					...prev,
-					bundle_items: [ ...prev.bundle_items, { product_id: 0 } ],
+					bundle_items: [
+						...prev.bundle_items,
+						{ child_product_id: 0 },
+					],
 				} ) )
 			}
 		>
@@ -129,14 +132,16 @@ export default function BundlePanel( {
 						__next40pxDefaultSize
 						disabled={ pickerUnusable }
 						label={ __( 'Bundled product', 'tiermint' ) }
-						value={ String( item.product_id || '' ) }
-						options={ bundleOptionsFor( item.product_id ) }
+						value={ String( item.child_product_id || '' ) }
+						options={ bundleOptionsFor( item.child_product_id ) }
 						onChange={ ( value ) =>
 							setForm( ( prev ) => {
 								const nextItems = prev.bundle_items.slice();
 								nextItems[ index ] = {
 									...nextItems[ index ],
-									product_id: toInt( value ),
+									child_product_id: toInt( value ),
+									// The old tier belongs to the old product.
+									child_price_id: null,
 								};
 								return { ...prev, bundle_items: nextItems };
 							} )

@@ -909,18 +909,17 @@ function wireForm( form, state ) {
 					.mount( '#tiermint-checkout-payment' );
 
 				showError( form, '' );
-				const hint = form.getAttribute( 'data-msg-continue' );
-				if ( hint ) {
-					const region = form.querySelector(
-						'.tiermint-checkout__errors'
-					);
-					if ( region ) {
-						region.textContent = hint;
-					}
-				}
-
-				// Let total notices replace the general payment hint.
 				reconcileTotal( form, body, state );
+
+				// Show the payment hint only when the total check left nothing to say.
+				const hint = form.getAttribute( 'data-msg-continue' );
+				const region = form.querySelector(
+					'.tiermint-checkout__errors'
+				);
+				if ( hint && region && '' === region.textContent ) {
+					region.textContent = hint;
+					region.classList.add( NOTICE_CLASS );
+				}
 			} )
 			.catch( () =>
 				showError( form, form.getAttribute( 'data-msg-error' ) || '' )

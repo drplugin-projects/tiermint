@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-05T15:18:49+00:00\n"
+"POT-Creation-Date: 2026-10-14T19:19:54+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: tiermint\n"
@@ -27,7 +27,7 @@ msgstr ""
 
 #. Plugin URI of the plugin
 #: tiermint.php
-msgid "https://drplugin.com/tiermint"
+msgid "https://drplugin.com/docs/tiermint"
 msgstr ""
 
 #. Description of the plugin
@@ -46,7 +46,7 @@ msgid "https://drplugin.com"
 msgstr ""
 
 #: patterns/account-page.php:13
-#: src/Admin/SettingsSchema.php:267
+#: src/Admin/SettingsSchema.php:272
 msgid "Account page"
 msgstr ""
 
@@ -55,7 +55,7 @@ msgid "A complete customer account page: purchase receipt (after checkout), purc
 msgstr ""
 
 #: patterns/checkout-page.php:13
-#: src/Admin/SettingsSchema.php:258
+#: src/Admin/SettingsSchema.php:262
 #: src/Frontend/Components/CartSummary.php:115
 msgid "Checkout page"
 msgstr ""
@@ -163,10 +163,10 @@ msgstr ""
 
 #: src/Admin/Menu.php:187
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:1107
-#: assets/admin/src/screens/Settings.js:1222
-#: assets/admin/src/screens/Settings.js:1234
-#: assets/admin/src/screens/Settings.js:1247
+#: assets/admin/src/screens/Settings.js:1137
+#: assets/admin/src/screens/Settings.js:1252
+#: assets/admin/src/screens/Settings.js:1264
+#: assets/admin/src/screens/Settings.js:1277
 #: assets/blocks/build/index.js:1
 #: assets/blocks/src/index.js:550
 msgid "Settings"
@@ -273,473 +273,473 @@ msgstr ""
 msgid "Whether to ask the buyer for a full billing address at checkout."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:231
+#: src/Admin/SettingsSchema.php:232
 msgid "Store currency"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:232
+#: src/Admin/SettingsSchema.php:233
 msgid "The currency used for all prices. Pick it from the list."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:240
+#: src/Admin/SettingsSchema.php:242
 msgid "Store page"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:241
+#: src/Admin/SettingsSchema.php:243
 msgid "The page listing your products. Set automatically when the store is provisioned."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:249
+#: src/Admin/SettingsSchema.php:252
 msgid "Product details page"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:250
+#: src/Admin/SettingsSchema.php:253
 msgid "The page a single product opens on from the store grid."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:259
+#: src/Admin/SettingsSchema.php:263
 msgid "The page carrying the checkout block or shortcode; used for renewal and cart links."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:268
+#: src/Admin/SettingsSchema.php:273
 msgid "Where customers manage their purchases, downloads, and license keys."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:276
+#: src/Admin/SettingsSchema.php:282
 msgid "Sign-in page"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:277
+#: src/Admin/SettingsSchema.php:283
 msgid "The page carrying the sign-in form. Leave unset to use the WordPress login screen."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:285
+#: src/Admin/SettingsSchema.php:292
 msgid "Registration page"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:286
+#: src/Admin/SettingsSchema.php:293
 msgid "The page carrying the account registration form."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:294
+#: src/Admin/SettingsSchema.php:302
 msgid "Password reset page"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:295
+#: src/Admin/SettingsSchema.php:303
 msgid "The page carrying the lost-password and set-new-password form. While it is published, every password email links to it; unset it to use the WordPress screens. wp-login.php?tiermint_wp_login=1 always reaches the WordPress screen."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:303
+#: src/Admin/SettingsSchema.php:312
 msgid "Terms page"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:304
+#: src/Admin/SettingsSchema.php:313
 msgid "Your terms and conditions page, linked from checkout."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:312
+#: src/Admin/SettingsSchema.php:322
 msgid "Privacy policy page"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:313
+#: src/Admin/SettingsSchema.php:323
 msgid "Your privacy policy page. Falls back to the WordPress privacy policy page when left unset."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:321
+#: src/Admin/SettingsSchema.php:332
 msgid "Hide the admin toolbar for customers"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:322
+#: src/Admin/SettingsSchema.php:333
 msgid "Hide the WordPress toolbar on the front end for logged-in users who cannot edit posts. Administrators and editors always keep it."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:330
+#: src/Admin/SettingsSchema.php:342
 msgid "Use the sign-in page instead of wp-login"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:331
+#: src/Admin/SettingsSchema.php:343
 msgid "Redirect front-end sign-in and password-reset requests to your pages. Requires published pages; logout, confirmations and admin logins keep working, and wp-login.php?tiermint_wp_login=1 always shows the WordPress screen."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:339
+#: src/Admin/SettingsSchema.php:352
 msgid "Show buy buttons in the product grid"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:340
+#: src/Admin/SettingsSchema.php:353
 msgid "The store-wide default for add-to-cart buttons on product grid cards. A block or shortcode can still override it."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:348
+#: src/Admin/SettingsSchema.php:362
 msgid "After adding to the cart"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:349
+#: src/Admin/SettingsSchema.php:363
 msgid "What happens after a shopper adds a product to the cart."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:353
+#: src/Admin/SettingsSchema.php:367
 msgid "Stay on the page and show a confirmation"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:357
+#: src/Admin/SettingsSchema.php:371
 msgid "Go straight to the checkout page"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:367
+#: src/Admin/SettingsSchema.php:382
 msgid "Product page heading"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:368
+#: src/Admin/SettingsSchema.php:383
 msgid "Where the product name shows as the heading on the product details page. Show it in the block keeps the theme page title hidden there so the block is the only heading. Use the theme page title puts the product name in the theme title instead (so a Post Title block and breadcrumbs show it), and the block hides its own; pick this only if your theme renders the page title."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:372
+#: src/Admin/SettingsSchema.php:387
 msgid "Show the product name in the block"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:376
+#: src/Admin/SettingsSchema.php:391
 msgid "Use the theme page title for the product name"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:386
+#: src/Admin/SettingsSchema.php:402
 msgid "Require terms acceptance at checkout"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:387
+#: src/Admin/SettingsSchema.php:403
 msgid "Show a checkbox the buyer must tick to accept your terms and privacy policy before paying."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:395
+#: src/Admin/SettingsSchema.php:412
 msgid "Collect a billing country"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:396
+#: src/Admin/SettingsSchema.php:413
 msgid "Ask the buyer for their country at checkout. Always collected when a tax engine is active."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:404
+#: src/Admin/SettingsSchema.php:422
 msgid "Collect a VAT or tax ID"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:405
+#: src/Admin/SettingsSchema.php:423
 msgid "Ask the buyer for a VAT, GST, or tax registration number at checkout."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:413
+#: src/Admin/SettingsSchema.php:432
 msgid "Collect a billing address"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:418
+#: src/Admin/SettingsSchema.php:437
 msgid "Do not collect an address"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:422
+#: src/Admin/SettingsSchema.php:441
 msgid "Collect an optional address"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:426
+#: src/Admin/SettingsSchema.php:445
 msgid "Require an address"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:436
+#: src/Admin/SettingsSchema.php:456
 msgid "Show a login panel at checkout"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:437
+#: src/Admin/SettingsSchema.php:457
 msgid "Let existing customers log in from the checkout page before they pay."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:445
+#: src/Admin/SettingsSchema.php:466
 msgid "Create an account for guests"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:446
+#: src/Admin/SettingsSchema.php:467
 msgid "When a guest completes a purchase, create a WordPress account for them (or link one that already uses their email) so their orders and licenses appear in the account area. They set a password from a link emailed to them."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:454
+#: src/Admin/SettingsSchema.php:476
 msgid "Allow guest checkout"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:455
+#: src/Admin/SettingsSchema.php:477
 msgid "Let buyers check out without an account. Turn this off to require an account, through login, auto-registration, or a registration page. Without a registration page or auto-registration, only existing users can buy."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:463
+#: src/Admin/SettingsSchema.php:486
 msgid "Require a first name at checkout"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:464
+#: src/Admin/SettingsSchema.php:487
 msgid "Make the first name field mandatory. Left off, it is offered but optional."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:472
+#: src/Admin/SettingsSchema.php:496
 msgid "Require a last name at checkout"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:473
+#: src/Admin/SettingsSchema.php:497
 msgid "Make the last name field mandatory. Left off, it is offered but optional."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:481
+#: src/Admin/SettingsSchema.php:506
 msgid "Offer a company purchase option"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:482
+#: src/Admin/SettingsSchema.php:507
 msgid "Show an \"I am buying as a company\" checkbox that reveals a company name field and the tax ID field. Turn off to always show the tax ID field on its own instead."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:490
+#: src/Admin/SettingsSchema.php:516
 msgid "Delete all data on uninstall"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:491
+#: src/Admin/SettingsSchema.php:517
 msgid "When enabled, deleting the plugin removes every TierMint table, option, capability, and stored package file. Leave off to keep customer and license data."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:499
+#: src/Admin/SettingsSchema.php:525
 msgid "Codes and automatic discounts"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:500
+#: src/Admin/SettingsSchema.php:526
 msgid "What happens when a shopper has a discount code and an automatic discount also matches their cart."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:504
+#: src/Admin/SettingsSchema.php:530
 msgid "A discount code replaces automatic discounts"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:508
+#: src/Admin/SettingsSchema.php:534
 msgid "A discount code stacks with automatic discounts"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:518
+#: src/Admin/SettingsSchema.php:544
 msgid "Show the original price struck through"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:519
+#: src/Admin/SettingsSchema.php:545
 msgid "When an automatic discount applies, show the original price struck through with the discounted price next to it on product pages and the store grid."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:527
+#: src/Admin/SettingsSchema.php:553
 #: src/Frontend/Adapters/Elementor/StyleControlMap.php:40
 msgid "Primary color"
 msgstr ""
 
 #. translators: %s: the shipped default colour, a hex code.
-#: src/Admin/SettingsSchema.php:530
+#: src/Admin/SettingsSchema.php:556
 #, php-format
 msgid "The main accent for buttons, links, and selected states. Its hover, soft, and focus shades are derived automatically, so pick a reasonably dark colour for readable button labels. Leave empty for the default (%s)."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:540
+#: src/Admin/SettingsSchema.php:566
 #: src/Frontend/Adapters/Elementor/StyleControlMap.php:45
 msgid "Text color"
 msgstr ""
 
 #. translators: %s: the shipped default colour, a hex code.
-#: src/Admin/SettingsSchema.php:543
+#: src/Admin/SettingsSchema.php:569
 #, php-format
 msgid "The body text colour inside storefront components. Leave empty for the default (%s)."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:553
+#: src/Admin/SettingsSchema.php:579
 #: src/Frontend/Adapters/Elementor/StyleControlMap.php:50
 msgid "Surface color"
 msgstr ""
 
 #. translators: %s: the shipped default colour, a hex code.
-#: src/Admin/SettingsSchema.php:556
+#: src/Admin/SettingsSchema.php:582
 #, php-format
 msgid "The background for cards, panels, and form fields. Leave empty for the default (%s)."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:566
-msgid "Page background"
-msgstr ""
-
-#. translators: %s: the shipped default colour, a hex code.
-#: src/Admin/SettingsSchema.php:569
-#, php-format
-msgid "The page wash behind full-page surfaces such as the checkout and account areas. Leave empty for the default (%s)."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:579
-msgid "Border color"
-msgstr ""
-
-#. translators: %s: the shipped default colour, a hex code.
-#: src/Admin/SettingsSchema.php:582
-#, php-format
-msgid "Borders and dividers. The stronger control border is derived from it. Leave empty for the default (%s)."
-msgstr ""
-
 #: src/Admin/SettingsSchema.php:592
-msgid "Success color"
+msgid "Page background"
 msgstr ""
 
 #. translators: %s: the shipped default colour, a hex code.
 #: src/Admin/SettingsSchema.php:595
 #, php-format
-msgid "The accent for success notices and badges; its tinted background is derived. Leave empty for the default (%s)."
+msgid "The page wash behind full-page surfaces such as the checkout and account areas. Leave empty for the default (%s)."
 msgstr ""
 
 #: src/Admin/SettingsSchema.php:605
-msgid "Error color"
+msgid "Border color"
 msgstr ""
 
 #. translators: %s: the shipped default colour, a hex code.
 #: src/Admin/SettingsSchema.php:608
 #, php-format
-msgid "The accent for error notices and badges; its tinted background is derived. Leave empty for the default (%s)."
+msgid "Borders and dividers. The stronger control border is derived from it. Leave empty for the default (%s)."
 msgstr ""
 
 #: src/Admin/SettingsSchema.php:618
+msgid "Success color"
+msgstr ""
+
+#. translators: %s: the shipped default colour, a hex code.
+#: src/Admin/SettingsSchema.php:621
+#, php-format
+msgid "The accent for success notices and badges; its tinted background is derived. Leave empty for the default (%s)."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:631
+msgid "Error color"
+msgstr ""
+
+#. translators: %s: the shipped default colour, a hex code.
+#: src/Admin/SettingsSchema.php:634
+#, php-format
+msgid "The accent for error notices and badges; its tinted background is derived. Leave empty for the default (%s)."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:644
 #: src/Frontend/Adapters/Elementor/StyleControlMap.php:55
 msgid "Corner radius"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:619
+#: src/Admin/SettingsSchema.php:645
 msgid "How rounded corners are on buttons, inputs, and cards."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:623
+#: src/Admin/SettingsSchema.php:649
 #: src/Frontend/Adapters/Elementor/ControlOptions.php:164
 #: assets/admin/build/index.js:78
-#: assets/admin/src/screens/Settings.js:165
+#: assets/admin/src/screens/Settings.js:166
 #: assets/blocks/build/index.js:1
 #: assets/blocks/src/index.js:296
 msgid "Default"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:627
+#: src/Admin/SettingsSchema.php:653
 msgid "Small"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:631
+#: src/Admin/SettingsSchema.php:657
 msgid "Large"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:641
+#: src/Admin/SettingsSchema.php:667
 msgid "Font family"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:642
+#: src/Admin/SettingsSchema.php:668
 msgid "A CSS font-family stack for every storefront component, for example: Inter, Arial, sans-serif. Leave empty for the built-in system font."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:650
+#: src/Admin/SettingsSchema.php:676
 msgid "From name"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:651
+#: src/Admin/SettingsSchema.php:677
 msgid "The sender name on store emails. Defaults to the site title when empty."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:659
+#: src/Admin/SettingsSchema.php:685
 msgid "From address"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:660
+#: src/Admin/SettingsSchema.php:686
 msgid "The sender address on store emails. Defaults to the site admin address when empty."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:668
+#: src/Admin/SettingsSchema.php:694
 msgid "Send purchase receipts"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:669
+#: src/Admin/SettingsSchema.php:695
 msgid "Email buyers a receipt with their downloads and license keys after a completed purchase."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:677
+#: src/Admin/SettingsSchema.php:703
 msgid "Send license delivery emails"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:678
+#: src/Admin/SettingsSchema.php:704
 msgid "Email keys that are generated after the receipt already went out."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:687
+#: src/Admin/SettingsSchema.php:713
 msgid "Stripe mode"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:688
+#: src/Admin/SettingsSchema.php:714
 msgid "Test mode uses your test keys and charges nothing real."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:692
+#: src/Admin/SettingsSchema.php:718
 msgid "Test"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:696
+#: src/Admin/SettingsSchema.php:722
 msgid "Live"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:708
+#: src/Admin/SettingsSchema.php:734
 #: src/Payments/Stripe/StripeGateway.php:244
 msgid "Test publishable key"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:709
+#: src/Admin/SettingsSchema.php:735
 msgid "Starts with pk_test_."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:719
+#: src/Admin/SettingsSchema.php:745
 #: src/Payments/Stripe/StripeGateway.php:262
 msgid "Live publishable key"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:720
+#: src/Admin/SettingsSchema.php:746
 msgid "Starts with pk_live_."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:730
+#: src/Admin/SettingsSchema.php:756
 #: src/Payments/Stripe/StripeGateway.php:250
 msgid "Test secret key"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:731
+#: src/Admin/SettingsSchema.php:757
 msgid "Starts with sk_test_ or rk_test_. Stored encrypted; only the last characters are ever shown again."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:744
+#: src/Admin/SettingsSchema.php:770
 #: src/Payments/Stripe/StripeGateway.php:268
 msgid "Live secret key"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:745
+#: src/Admin/SettingsSchema.php:771
 msgid "Starts with sk_live_ or rk_live_. Stored encrypted; only the last characters are ever shown again."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:758
+#: src/Admin/SettingsSchema.php:784
 #: src/Payments/Stripe/StripeGateway.php:256
 msgid "Test webhook signing secret"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:759
-#: src/Admin/SettingsSchema.php:773
+#: src/Admin/SettingsSchema.php:785
+#: src/Admin/SettingsSchema.php:799
 msgid "Starts with whsec_. From the Stripe dashboard webhook endpoint."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:772
+#: src/Admin/SettingsSchema.php:798
 #: src/Payments/Stripe/StripeGateway.php:274
 msgid "Live webhook signing secret"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:784
+#: src/Admin/SettingsSchema.php:810
 msgid "Elementor widgets"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:785
+#: src/Admin/SettingsSchema.php:811
 msgid "Add the TierMint widgets, dynamic tags, and display conditions to the Elementor editor. Turn off to remove them without deactivating Elementor."
 msgstr ""
 
-#: src/Admin/SpaController.php:78
+#: src/Admin/SpaController.php:120
 msgid "The TierMint admin requires JavaScript. Please enable it to manage your store."
 msgstr ""
 
-#: src/Admin/SpaController.php:331
+#: src/Admin/SpaController.php:390
 #: src/REST/CatalogController.php:138
 msgid "(no title)"
 msgstr ""
@@ -1977,6 +1977,8 @@ msgid "CFP Franc"
 msgstr ""
 
 #: src/Core/PageProvisioner.php:146
+#: assets/admin/build/index.js:69
+#: assets/admin/src/screens/settings/values.js:214
 msgid "Store"
 msgstr ""
 
@@ -2000,6 +2002,8 @@ msgstr ""
 
 #: src/Core/PageProvisioner.php:154
 #: src/Frontend/Components/Checkout.php:186
+#: assets/admin/build/index.js:69
+#: assets/admin/src/screens/settings/values.js:220
 msgid "Checkout"
 msgstr ""
 
@@ -2579,7 +2583,7 @@ msgstr ""
 #: assets/admin/src/screens/LicenseDetail.js:49
 #: assets/admin/src/screens/Licenses.js:48
 #: assets/admin/src/screens/Licenses.js:59
-#: assets/admin/src/screens/Settings.js:433
+#: assets/admin/src/screens/Settings.js:455
 msgid "Active"
 msgstr ""
 
@@ -3518,7 +3522,7 @@ msgstr ""
 
 #: src/Payments/Stripe/StripeGateway.php:67
 #: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:227
+#: assets/admin/src/screens/settings/values.js:237
 msgid "Stripe"
 msgstr ""
 
@@ -3628,7 +3632,7 @@ msgstr ""
 #: assets/admin/src/screens/Orders.js:336
 #: assets/admin/src/screens/Products.js:423
 #: assets/admin/src/screens/Products.js:560
-#: assets/admin/src/screens/Settings.js:434
+#: assets/admin/src/screens/Settings.js:456
 msgid "Status"
 msgstr ""
 
@@ -4889,6 +4893,128 @@ msgstr ""
 msgid "A valid license is required to receive this update."
 msgstr ""
 
+#: src/Upsell/ProFeatures.php:64
+msgid "Subscriptions and recurring billing"
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:65
+msgid "Sell plans that renew on a schedule, with trials, upgrades, and automatic retries on a failed payment."
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:69
+msgid "EU VAT with VIES and OSS returns"
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:70
+msgid "Charge the right VAT by country, check VAT numbers against VIES, and prepare your OSS return."
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:74
+msgid "PDF invoices"
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:75
+msgid "Issue a numbered PDF invoice for every order and let buyers download it from their account."
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:79
+msgid "PayPal checkout"
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:80
+msgid "Take payments through PayPal alongside Stripe."
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:84
+msgid "Affiliates"
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:85
+msgid "Run an affiliate program with referral tracking, commissions, and payouts."
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:89
+msgid "Cart recovery emails"
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:90
+msgid "Email shoppers who leave without paying, on a schedule you set, each with an optional discount."
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:94
+msgid "Store analytics"
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:95
+msgid "Track recurring revenue, active subscriptions, and customer lifetime value."
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:99
+msgid "Template kits"
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:100
+msgid "Install a ready-made storefront layout as a starting point for your own."
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:104
+msgid "Store migration"
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:105
+msgid "Import products and customers from another platform."
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:109
+msgid "Elementor account widgets"
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:110
+msgid "Add the account widgets to Elementor: Licenses, Downloads, Subscriptions, and Invoices."
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:114
+msgid "Conditional Content block"
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:115
+msgid "Show inner blocks only to visitors who match a licence, subscription, purchase, or activation rule."
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:128
+msgid "TierMint Pro is a separate add-on that extends this plugin. It adds recurring billing, EU VAT handling, PDF invoices, PayPal, affiliates, cart recovery, and store analytics. The free plugin keeps working as it is."
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:139
+msgid "TierMint Pro adds subscriptions, EU VAT, PDF invoices, PayPal, affiliates, and cart recovery."
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:150
+#: assets/admin/build/index.js:81
+#: assets/admin/build/index.js:84
+#: assets/admin/src/app/UpsellBanner.js:79
+#: assets/admin/src/screens/Settings.js:261
+#: assets/admin/src/screens/Upgrade.js:37
+msgid "See TierMint Pro"
+msgstr ""
+
+#: src/Upsell/ProFeatures.php:161
+msgid "View TierMint Pro features"
+msgstr ""
+
+#: src/Upsell/SettingsTeaser.php:87
+#: src/Upsell/SettingsTeaser.php:111
+#: src/Upsell/UpgradeAdminIntegration.php:87
+#: assets/admin/build/index.js:84
+#: assets/admin/src/screens/Upgrade.js:42
+#: assets/admin/src/screens/Upgrade.js:75
+msgid "TierMint Pro"
+msgstr ""
+
+#: src/Upsell/UpsellController.php:66
+msgid "The upsell notice to dismiss."
+msgstr ""
+
 #: src/Webhooks/WebhookEndpoints.php:316
 msgid "The webhook URL must be a valid http or https URL."
 msgstr ""
@@ -4973,7 +5099,7 @@ msgstr ""
 #: assets/admin/src/screens/Customers.js:719
 #: assets/admin/src/screens/Discounts.js:1331
 #: assets/admin/src/screens/LicenseDetail.js:286
-#: assets/admin/src/screens/Settings.js:435
+#: assets/admin/src/screens/Settings.js:457
 msgid "Actions"
 msgstr ""
 
@@ -5032,7 +5158,7 @@ msgid "Something went wrong. Please check your details and try again."
 msgstr ""
 
 #: templates/components/checkout.php:121
-msgid "Enter your payment details below to finish."
+msgid "Enter your payment details above to finish."
 msgstr ""
 
 #: templates/components/checkout.php:122
@@ -5372,7 +5498,7 @@ msgstr ""
 #: assets/admin/build/index.js:8
 #: assets/admin/build/index.js:81
 #: assets/admin/src/components/BulkActionsBar.js:436
-#: assets/admin/src/screens/Settings.js:181
+#: assets/admin/src/screens/Settings.js:182
 #, php-format,js-format
 msgid "%1$s: %2$s"
 msgstr ""
@@ -5519,7 +5645,7 @@ msgstr ""
 #: assets/admin/build/index.js:72
 #: assets/admin/src/api/client.js:115
 #: assets/admin/src/products/ReleasesPanel.js:54
-#: assets/admin/src/screens/settings/values.js:322
+#: assets/admin/src/screens/settings/values.js:332
 msgid "Something went wrong."
 msgstr ""
 
@@ -5796,8 +5922,8 @@ msgstr ""
 #: assets/admin/src/screens/Discounts.js:1459
 #: assets/admin/src/screens/LicenseDetail.js:365
 #: assets/admin/src/screens/OrderDetail.js:270
-#: assets/admin/src/screens/Settings.js:498
-#: assets/admin/src/screens/Settings.js:677
+#: assets/admin/src/screens/Settings.js:520
+#: assets/admin/src/screens/Settings.js:699
 #: assets/admin/src/screens/Terms.js:590
 #: assets/admin/src/screens/Terms.js:773
 msgid "Cancel"
@@ -6021,7 +6147,7 @@ msgstr ""
 #: assets/admin/src/screens/Discounts.js:294
 #: assets/admin/src/screens/Discounts.js:1412
 #: assets/admin/src/screens/Products.js:125
-#: assets/admin/src/screens/Settings.js:515
+#: assets/admin/src/screens/Settings.js:537
 #: assets/admin/src/screens/Terms.js:624
 #: assets/admin/src/screens/Terms.js:802
 msgid "Delete"
@@ -6040,7 +6166,7 @@ msgstr ""
 #: assets/admin/build/index.js:30
 #: assets/admin/build/index.js:32
 #: assets/admin/src/products/PublishSidebar.js:97
-#: assets/admin/src/screens/ProductEdit.js:489
+#: assets/admin/src/screens/ProductEdit.js:492
 #: assets/admin/src/screens/Products.js:91
 msgid "Bundle"
 msgstr ""
@@ -6129,17 +6255,17 @@ msgid "Select a product"
 msgstr ""
 
 #: assets/admin/build/index.js:21
-#: assets/admin/src/products/BundlePanel.js:98
+#: assets/admin/src/products/BundlePanel.js:101
 msgid "Add bundle item"
 msgstr ""
 
 #: assets/admin/build/index.js:21
-#: assets/admin/src/products/BundlePanel.js:118
+#: assets/admin/src/products/BundlePanel.js:121
 msgid "No bundled products yet. Add the products a buyer gets with this bundle."
 msgstr ""
 
 #: assets/admin/build/index.js:21
-#: assets/admin/src/products/BundlePanel.js:131
+#: assets/admin/src/products/BundlePanel.js:134
 msgid "Bundled product"
 msgstr ""
 
@@ -6151,7 +6277,7 @@ msgid "Product #%d"
 msgstr ""
 
 #: assets/admin/build/index.js:23
-#: assets/admin/src/products/BundlePanel.js:159
+#: assets/admin/src/products/BundlePanel.js:164
 msgid "Remove item"
 msgstr ""
 
@@ -6558,7 +6684,7 @@ msgstr ""
 #: assets/admin/build/index.js:30
 #: assets/admin/build/index.js:32
 #: assets/admin/src/products/ReleasesPanel.js:628
-#: assets/admin/src/screens/ProductEdit.js:491
+#: assets/admin/src/screens/ProductEdit.js:494
 msgid "Releases"
 msgstr ""
 
@@ -6635,45 +6761,45 @@ msgstr ""
 #: assets/admin/build/index.js:31
 #: assets/admin/build/index.js:84
 #: assets/admin/src/products/ReleasesPanel.js:1021
-#: assets/admin/src/screens/Settings.js:1190
+#: assets/admin/src/screens/Settings.js:1220
 msgid "Save changes"
 msgstr ""
 
 #. translators: %s: the field label.
 #: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:275
+#: assets/admin/src/screens/ProductEdit.js:278
 #, js-format
 msgid "The \"%s\" field needs an extension that is not active."
 msgstr ""
 
 #: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:613
-#: assets/admin/src/screens/ProductEdit.js:691
+#: assets/admin/src/screens/ProductEdit.js:616
+#: assets/admin/src/screens/ProductEdit.js:694
 msgid "Edit product"
 msgstr ""
 
 #: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:487
+#: assets/admin/src/screens/ProductEdit.js:490
 msgid "Pricing"
 msgstr ""
 
 #: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:595
+#: assets/admin/src/screens/ProductEdit.js:598
 msgid "Save the product before you can manage releases."
 msgstr ""
 
 #: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:612
+#: assets/admin/src/screens/ProductEdit.js:615
 msgid "Add product"
 msgstr ""
 
 #: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:617
+#: assets/admin/src/screens/ProductEdit.js:620
 msgid "Back to products"
 msgstr ""
 
 #: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:634
+#: assets/admin/src/screens/ProductEdit.js:637
 msgid "Please fix the errors below."
 msgstr ""
 
@@ -7452,7 +7578,7 @@ msgstr ""
 #: assets/admin/build/index.js:67
 #: assets/admin/build/index.js:84
 #: assets/admin/src/screens/Discounts.js:1471
-#: assets/admin/src/screens/Settings.js:487
+#: assets/admin/src/screens/Settings.js:509
 msgid "Confirm delete"
 msgstr ""
 
@@ -7554,23 +7680,38 @@ msgid "Live mode"
 msgstr ""
 
 #: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:229
+#: assets/admin/src/screens/settings/values.js:216
+msgid "Pages"
+msgstr ""
+
+#: assets/admin/build/index.js:69
+#: assets/admin/src/screens/settings/values.js:218
+msgid "Front end"
+msgstr ""
+
+#: assets/admin/build/index.js:69
+#: assets/admin/src/screens/settings/values.js:222
+msgid "Advanced"
+msgstr ""
+
+#: assets/admin/build/index.js:69
+#: assets/admin/src/screens/settings/values.js:239
 msgid "PayPal"
 msgstr ""
 
 #: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:231
+#: assets/admin/src/screens/settings/values.js:241
 msgid "Other"
 msgstr ""
 
 #: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:280
+#: assets/admin/src/screens/settings/values.js:290
 msgid "No events"
 msgstr ""
 
 #. translators: %d is the number of subscribed webhook events.
 #: assets/admin/build/index.js:72
-#: assets/admin/src/screens/settings/values.js:285
+#: assets/admin/src/screens/settings/values.js:295
 #, js-format
 msgid "%d event"
 msgid_plural "%d events"
@@ -7579,128 +7720,128 @@ msgstr[1] ""
 
 #. translators: %s is the human-readable field label.
 #: assets/admin/build/index.js:75
-#: assets/admin/src/screens/Settings.js:106
+#: assets/admin/src/screens/Settings.js:107
 #, js-format
 msgid "The \"%s\" secret will be removed when you save."
 msgstr ""
 
 #: assets/admin/build/index.js:75
-#: assets/admin/src/screens/Settings.js:114
+#: assets/admin/src/screens/Settings.js:115
 msgid "Undo"
 msgstr ""
 
 #. translators: %s is the human-readable field label.
 #: assets/admin/build/index.js:78
-#: assets/admin/src/screens/Settings.js:123
+#: assets/admin/src/screens/Settings.js:124
 #, js-format
 msgid "%s (enter a new value to replace)"
 msgstr ""
 
 #: assets/admin/build/index.js:78
 #: assets/admin/build/index.js:81
-#: assets/admin/src/screens/Settings.js:146
-#: assets/admin/src/screens/Settings.js:212
+#: assets/admin/src/screens/Settings.js:147
+#: assets/admin/src/screens/Settings.js:213
 msgid "Clear"
 msgstr ""
 
 #: assets/admin/build/index.js:81
-#: assets/admin/src/screens/Settings.js:268
+#: assets/admin/src/screens/Settings.js:290
 msgid "This setting is provided by an extension that is not loaded."
 msgstr ""
 
 #: assets/admin/build/index.js:81
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:421
-#: assets/admin/src/screens/Settings.js:631
+#: assets/admin/src/screens/Settings.js:443
+#: assets/admin/src/screens/Settings.js:653
 msgid "Add endpoint"
 msgstr ""
 
 #: assets/admin/build/index.js:81
-#: assets/admin/src/screens/Settings.js:426
+#: assets/admin/src/screens/Settings.js:448
 msgid "No webhook endpoints yet."
 msgstr ""
 
 #: assets/admin/build/index.js:81
-#: assets/admin/src/screens/Settings.js:431
+#: assets/admin/src/screens/Settings.js:453
 msgid "URL"
 msgstr ""
 
 #: assets/admin/build/index.js:81
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:432
-#: assets/admin/src/screens/Settings.js:653
+#: assets/admin/src/screens/Settings.js:454
+#: assets/admin/src/screens/Settings.js:675
 msgid "Events"
 msgstr ""
 
 #. translators: %s is the endpoint URL.
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:452
+#: assets/admin/src/screens/Settings.js:474
 #, js-format
 msgid "Active for %s"
 msgstr ""
 
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:465
+#: assets/admin/src/screens/Settings.js:487
 msgid "Every retry to this endpoint failed, so TierMint stopped sending to it. Check that the URL is reachable and returns a 2xx response, then switch the endpoint back to active."
 msgstr ""
 
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:471
+#: assets/admin/src/screens/Settings.js:493
 msgid "Failing"
 msgstr ""
 
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:579
+#: assets/admin/src/screens/Settings.js:601
 msgid "Endpoint created"
 msgstr ""
 
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:584
+#: assets/admin/src/screens/Settings.js:606
 msgid "Copy this signing secret now. For your security it is shown once and can never be retrieved again."
 msgstr ""
 
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:593
+#: assets/admin/src/screens/Settings.js:615
 msgid "Signing secret"
 msgstr ""
 
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:600
+#: assets/admin/src/screens/Settings.js:622
 msgid "Copy secret"
 msgstr ""
 
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:604
+#: assets/admin/src/screens/Settings.js:626
 msgid "Copied."
 msgstr ""
 
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:608
+#: assets/admin/src/screens/Settings.js:630
 msgid "Done"
 msgstr ""
 
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:648
+#: assets/admin/src/screens/Settings.js:670
 msgid "Endpoint URL"
 msgstr ""
 
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:674
+#: assets/admin/src/screens/Settings.js:696
 msgid "Create endpoint"
 msgstr ""
 
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:1057
+#: assets/admin/src/screens/Settings.js:1087
 msgid "Payment gateways"
 msgstr ""
 
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:1120
+#: assets/admin/src/screens/Settings.js:1150
 msgid "Settings saved."
 msgstr ""
 
 #: assets/admin/build/index.js:84
-#: assets/admin/src/screens/Settings.js:1137
+#: assets/admin/src/screens/Settings.js:1167
 msgid "Settings sections"
 msgstr ""
 
@@ -7727,6 +7868,11 @@ msgstr ""
 #: assets/admin/build/index.js:84
 #: assets/admin/src/app/AccessDenied.js:22
 msgid "You do not have permission to view this screen."
+msgstr ""
+
+#: assets/admin/build/index.js:84
+#: assets/admin/src/app/UpsellBanner.js:87
+msgid "Dismiss"
 msgstr ""
 
 #: assets/admin/build/index.js:84

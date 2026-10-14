@@ -194,8 +194,11 @@ function buildBody( form, currency ) {
 		} ),
 		bundle_items:
 			form.type === 'bundle'
-				? form.bundle_items.map( ( item ) => ( {
-						product_id: Number( item.product_id ) || 0,
+				? form.bundle_items.map( ( item, index ) => ( {
+						child_product_id: Number( item.child_product_id ) || 0,
+						// Keep a tier set through the API. This tab cannot set one.
+						child_price_id: item.child_price_id ?? null,
+						sort_order: index,
 				  } ) )
 				: [],
 		categories: form.categories,

@@ -118,7 +118,7 @@ defined( 'ABSPATH' ) || exit;
 				method="post"
 				action="<?php echo esc_url( $data['action_url'] ?? '' ); ?>"
 				data-msg-error="<?php esc_attr_e( 'Something went wrong. Please check your details and try again.', 'tiermint' ); ?>"
-				data-msg-continue="<?php esc_attr_e( 'Enter your payment details below to finish.', 'tiermint' ); ?>"
+				data-msg-continue="<?php esc_attr_e( 'Enter your payment details above to finish.', 'tiermint' ); ?>"
 				data-msg-reload="<?php esc_attr_e( 'Reload the page to sign in.', 'tiermint' ); ?>"
 				<?php
 				/* The checkout code knows the total changed, not why. */
