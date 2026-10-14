@@ -1,0 +1,15 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tiermint/downloads-list",
+	"title": "Downloads List",
+	"category": "tiermint",
+	"icon": "download",
+	"description": "The logged-in customer's purchased files and licensed update packages.",
+	"keywords": [ "downloads", "files", "updates", "tiermint" ],
+	"textdomain": "tiermint",
+	"supports": {
+		"html": false
+	},
+	"render": "file:./render.php"
+}

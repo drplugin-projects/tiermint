@@ -1,0 +1,149 @@
+/* Purchase confirmation styles use shared design tokens. */
+
+.tiermint-purchase-confirmation {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-5);
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-base);
+}
+
+.tiermint-purchase-confirmation__title {
+	margin: 0;
+	font-size: var(--tiermint-font-size-xl);
+	font-weight: var(--tiermint-font-weight-semibold);
+	line-height: var(--tiermint-line-height-tight);
+}
+
+.tiermint-purchase-confirmation__editor,
+.tiermint-purchase-confirmation__notice,
+.tiermint-purchase-confirmation__sign-in,
+.tiermint-purchase-confirmation__processing,
+.tiermint-purchase-confirmation__refunded {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+	padding: var(--tiermint-space-4);
+	border: 1px solid var(--tiermint-color-border);
+	border-radius: var(--tiermint-radius);
+	background-color: var(--tiermint-color-surface-alt);
+}
+
+.tiermint-purchase-confirmation__editor-note,
+.tiermint-purchase-confirmation__noscript {
+	margin: 0;
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-purchase-confirmation__notice {
+	color: var(--tiermint-color-error);
+}
+
+/* The link carries the primary-button primitive, which paints it; only the
+   layout is component business. */
+.tiermint-purchase-confirmation__login {
+	align-self: flex-start;
+}
+
+.tiermint-purchase-confirmation__processing-message {
+	margin: 0;
+}
+
+/* The receipt carries the tiermint-card primitive; here it only stacks its
+   sections. */
+.tiermint-purchase-confirmation__receipt {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-6);
+}
+
+.tiermint-purchase-confirmation__summary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-space-2) var(--tiermint-space-5);
+	margin: 0;
+}
+
+.tiermint-purchase-confirmation__summary-item {
+	display: flex;
+	gap: var(--tiermint-space-2);
+}
+
+.tiermint-purchase-confirmation__summary-item dt {
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-purchase-confirmation__summary-item dd {
+	margin: 0;
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+/* Override table alignment for numeric values and the total row. */
+.tiermint-purchase-confirmation__items td.tiermint-purchase-confirmation__item-qty,
+.tiermint-purchase-confirmation__items td.tiermint-purchase-confirmation__item-total,
+.tiermint-purchase-confirmation__items td.tiermint-purchase-confirmation__total {
+	text-align: right;
+}
+
+.tiermint-purchase-confirmation__total-row th,
+.tiermint-purchase-confirmation__total {
+	font-weight: var(--tiermint-font-weight-bold);
+}
+
+.tiermint-purchase-confirmation__licenses,
+.tiermint-purchase-confirmation__downloads {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+}
+
+.tiermint-purchase-confirmation__licenses-title,
+.tiermint-purchase-confirmation__downloads-title {
+	margin: 0;
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+.tiermint-purchase-confirmation__license-list,
+.tiermint-purchase-confirmation__download-products,
+.tiermint-purchase-confirmation__files {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tiermint-purchase-confirmation__license-list,
+.tiermint-purchase-confirmation__download-products {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+}
+
+.tiermint-purchase-confirmation__license {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--tiermint-space-2) var(--tiermint-space-3);
+}
+
+.tiermint-purchase-confirmation__license-key {
+	padding: var(--tiermint-space-1) var(--tiermint-space-2);
+	border-radius: var(--tiermint-radius);
+	background-color: var(--tiermint-color-surface-alt);
+}
+
+.tiermint-purchase-confirmation__download-product {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-2);
+}
+
+.tiermint-purchase-confirmation__files {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-2);
+}
+
+.tiermint-purchase-confirmation__file-link {
+	color: var(--tiermint-color-primary);
+}

@@ -1,0 +1,25 @@
+{
+	"name": "tiermint",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Build tooling for the TierMint WordPress plugin.",
+	"homepage": "https://drplugin.com/docs/tiermint",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/drplugin-projects/tiermint.git"
+	},
+	"license": "GPL-2.0-or-later",
+	"scripts": {
+		"build": "wp-scripts build",
+		"start": "wp-scripts start"
+	},
+	"devDependencies": {
+		"@tanstack/react-query": "5.101.2",
+		"@wordpress/api-fetch": "7.51.0",
+		"@wordpress/components": "37.0.0",
+		"@wordpress/compose": "8.4.0",
+		"@wordpress/element": "8.3.0",
+		"@wordpress/i18n": "6.24.0",
+		"@wordpress/scripts": "32.6.0"
+	}
+}

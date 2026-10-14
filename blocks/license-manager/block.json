@@ -1,0 +1,15 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tiermint/license-manager",
+	"title": "License Manager",
+	"category": "tiermint",
+	"icon": "admin-network",
+	"description": "The logged-in customer's licenses with activation management.",
+	"keywords": [ "license", "activations", "account", "tiermint" ],
+	"textdomain": "tiermint",
+	"supports": {
+		"html": false
+	},
+	"render": "file:./render.php"
+}

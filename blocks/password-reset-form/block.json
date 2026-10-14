@@ -1,0 +1,15 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tiermint/password-reset-form",
+	"title": "Password Reset Form",
+	"category": "tiermint",
+	"icon": "lock",
+	"description": "Lets a customer request a reset link by email and set a new password from it.",
+	"keywords": [ "password", "reset", "lost password", "account", "tiermint" ],
+	"textdomain": "tiermint",
+	"supports": {
+		"html": false
+	},
+	"render": "file:./render.php"
+}

@@ -1,0 +1,209 @@
+/* Product grid styles. Container queries keep cards within their own column. */
+
+.tiermint-product-grid {
+	--tiermint-grid-cols: 3;
+
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-5);
+	container-type: inline-size;
+	color: var(--tiermint-color-text);
+}
+
+.tiermint-product-grid[data-columns="2"] {
+	--tiermint-grid-cols: 2;
+}
+
+.tiermint-product-grid[data-columns="3"] {
+	--tiermint-grid-cols: 3;
+}
+
+.tiermint-product-grid[data-columns="4"] {
+	--tiermint-grid-cols: 4;
+}
+
+/* Filter bar. */
+.tiermint-product-grid__filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: var(--tiermint-space-4);
+	padding: var(--tiermint-space-4);
+	border: 1px solid var(--tiermint-color-border);
+	border-radius: var(--tiermint-radius-lg);
+	background-color: var(--tiermint-color-surface-alt);
+}
+
+.tiermint-product-grid__filter {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-2);
+}
+
+.tiermint-product-grid__filter-label {
+	color: var(--tiermint-color-text-muted);
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-medium);
+}
+
+.tiermint-product-grid__select {
+	min-width: 12rem;
+}
+
+.tiermint-product-grid__tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-space-2) var(--tiermint-space-4);
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.tiermint-product-grid__tag {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--tiermint-space-2);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+/* Product wall. */
+.tiermint-product-grid__items {
+	display: grid;
+	grid-template-columns: repeat(var(--tiermint-grid-cols), minmax(0, 1fr));
+	gap: var(--tiermint-space-5);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tiermint-product-grid__item {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+	padding: var(--tiermint-space-4);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tiermint-product-grid__item:hover {
+	border-color: var(--tiermint-color-border-strong);
+	box-shadow: var(--tiermint-shadow-md);
+}
+
+/* Reserve image space and show a monogram when no image exists. */
+.tiermint-product-grid__media {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	aspect-ratio: 3 / 2;
+	margin-block-end: var(--tiermint-space-1);
+	border-radius: var(--tiermint-radius);
+	background-color: var(--tiermint-color-surface-alt);
+	overflow: hidden;
+}
+
+/* Beat the base link hover rule without underlining the image tile. */
+.tiermint-component a.tiermint-product-grid__media:hover,
+.tiermint-component a.tiermint-product-grid__media:focus-visible {
+	background-color: var(--tiermint-color-border);
+	text-decoration: none;
+}
+
+/* The product image fills the media tile, cropped to the 3:2 ratio. */
+.tiermint-product-grid__image {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.tiermint-product-grid__monogram {
+	color: var(--tiermint-color-text-subtle);
+	font-size: var(--tiermint-font-size-2xl);
+	font-weight: var(--tiermint-font-weight-semibold);
+	line-height: 1;
+}
+
+.tiermint-product-grid__name {
+	display: -webkit-box;
+	overflow: hidden;
+	margin: 0;
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+	line-height: var(--tiermint-line-height-tight);
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+}
+
+.tiermint-product-grid__description {
+	display: -webkit-box;
+	overflow: hidden;
+	color: var(--tiermint-color-text-muted);
+	font-size: var(--tiermint-font-size-sm);
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+}
+
+.tiermint-product-grid__description > :first-child {
+	margin-block-start: 0;
+}
+
+.tiermint-product-grid__description > :last-child {
+	margin-block-end: 0;
+}
+
+.tiermint-product-grid__price {
+	margin: 0;
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+/* Push the buy form to the bottom so cards of different heights align. */
+.tiermint-product-grid__buy {
+	margin: 0;
+	margin-block-start: auto;
+	padding-block-start: var(--tiermint-space-2);
+}
+
+.tiermint-product-grid__empty {
+	margin: 0;
+	padding: var(--tiermint-space-6);
+	border: 1px solid var(--tiermint-color-border);
+	border-radius: var(--tiermint-radius-lg);
+	background-color: var(--tiermint-color-surface-alt);
+	color: var(--tiermint-color-text-muted);
+	text-align: center;
+}
+
+/* Use viewport rules when container queries are unavailable. */
+@container (max-width: 48rem) {
+	.tiermint-product-grid__items {
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+	}
+}
+
+@container (max-width: 30rem) {
+	.tiermint-product-grid__items {
+		grid-template-columns: 1fr;
+	}
+
+	.tiermint-product-grid__buy-button {
+		width: 100%;
+	}
+}
+
+@media (max-width: 782px) {
+	.tiermint-product-grid__items {
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+	}
+}
+
+@media (max-width: 480px) {
+	.tiermint-product-grid__items {
+		grid-template-columns: 1fr;
+	}
+
+	.tiermint-product-grid__buy-button {
+		width: 100%;
+	}
+}

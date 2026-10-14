@@ -1,0 +1,15 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tiermint/login",
+	"title": "Login Form",
+	"category": "tiermint",
+	"icon": "admin-users",
+	"description": "A customer login form with an optional registration link.",
+	"keywords": [ "login", "account", "sign in", "tiermint" ],
+	"textdomain": "tiermint",
+	"supports": {
+		"html": false
+	},
+	"render": "file:./render.php"
+}

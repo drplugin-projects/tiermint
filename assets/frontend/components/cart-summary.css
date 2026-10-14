@@ -1,0 +1,261 @@
+/**
+ * Cart summary styles.
+ */
+
+.tiermint-cart-summary {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-4);
+	container-type: inline-size;
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-base);
+}
+
+.tiermint-cart-summary__panel {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-5);
+}
+
+.tiermint-cart-summary__title {
+	margin: 0;
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+	line-height: var(--tiermint-line-height-tight);
+}
+
+.tiermint-cart-summary__empty {
+	margin: 0;
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-cart-summary__table {
+	margin: 0;
+}
+
+/* Money reads down a right edge; the product column takes the slack. */
+.tiermint-cart-summary__table th:not(:first-child),
+.tiermint-cart-summary__table td:not(:first-child) {
+	text-align: right;
+}
+
+.tiermint-cart-summary__table th:first-child {
+	width: 45%;
+}
+
+.tiermint-cart-summary__table td {
+	vertical-align: middle;
+}
+
+.tiermint-cart-summary__tier {
+	margin-inline-start: var(--tiermint-space-2);
+}
+
+/* Tier details stay below the product name. */
+.tiermint-cart-summary__line-meta {
+	margin: var(--tiermint-space-1) 0 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-1);
+}
+
+.tiermint-cart-summary__line-meta-item {
+	font-size: var(--tiermint-font-size-xs);
+	line-height: var(--tiermint-line-height-tight);
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-cart-summary__totals th,
+.tiermint-cart-summary__totals td {
+	padding-block-start: var(--tiermint-space-4);
+	border-top: 1px solid var(--tiermint-color-border);
+	border-bottom: 0;
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-bold);
+}
+
+/* Align shared line controls at the row end. */
+.tiermint-cart-summary__actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: var(--tiermint-space-3);
+}
+
+.tiermint-cart-summary__checkout {
+	align-self: flex-end;
+}
+
+/* Hide the alignment cell in the totals row. */
+.tiermint-cart-summary__totals td:empty {
+	display: none;
+}
+
+
+/* Stack rows in narrow containers. */
+@container (max-width: 40rem) {
+	.tiermint-cart-summary__table thead {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+	}
+
+	.tiermint-cart-summary__table,
+	.tiermint-cart-summary__table tbody,
+	.tiermint-cart-summary__table tfoot,
+	.tiermint-cart-summary__table th,
+	.tiermint-cart-summary__table td {
+		display: block;
+		width: 100%;
+	}
+
+	/* Stack each cart line. */
+	.tiermint-cart-summary__table tr {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--tiermint-space-1) var(--tiermint-space-4);
+	}
+
+	.tiermint-cart-summary__line {
+		padding-block: var(--tiermint-space-4);
+		border-bottom: 1px solid var(--tiermint-color-border);
+	}
+
+	.tiermint-cart-summary__table td,
+	.tiermint-cart-summary__table th:not(:first-child),
+	.tiermint-cart-summary__table td:not(:first-child) {
+		width: auto;
+		padding: 0;
+		border-bottom: 0;
+		text-align: left;
+	}
+
+	.tiermint-cart-summary__line > td:first-child {
+		flex: 1 0 100%;
+		font-weight: var(--tiermint-font-weight-medium);
+	}
+
+	.tiermint-cart-summary__table td[data-label]:not(:first-child)::before {
+		content: attr(data-label) ": ";
+		display: inline-block;
+		margin-inline-end: var(--tiermint-space-1);
+		color: var(--tiermint-color-text-subtle);
+		font-size: var(--tiermint-font-size-xs);
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	/* Restore the actions row as flex. */
+	.tiermint-cart-summary__table td.tiermint-cart-summary__actions {
+		display: flex;
+		flex: 1 0 100%;
+		justify-content: flex-start;
+		padding-block-start: var(--tiermint-space-2);
+	}
+
+	.tiermint-cart-summary__totals {
+		justify-content: space-between;
+		padding-block-start: var(--tiermint-space-4);
+		border-top: 1px solid var(--tiermint-color-border);
+	}
+
+	.tiermint-cart-summary__totals th,
+	.tiermint-cart-summary__totals td {
+		width: auto;
+		padding: 0;
+		border-top: 0;
+	}
+
+	.tiermint-cart-summary__checkout {
+		align-self: stretch;
+	}
+}
+
+@media (max-width: 40rem) {
+	.tiermint-cart-summary__table thead {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+	}
+
+	.tiermint-cart-summary__table,
+	.tiermint-cart-summary__table tbody,
+	.tiermint-cart-summary__table tfoot,
+	.tiermint-cart-summary__table th,
+	.tiermint-cart-summary__table td {
+		display: block;
+		width: 100%;
+	}
+
+	/* Stack each cart line. */
+	.tiermint-cart-summary__table tr {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--tiermint-space-1) var(--tiermint-space-4);
+	}
+
+	.tiermint-cart-summary__line {
+		padding-block: var(--tiermint-space-4);
+		border-bottom: 1px solid var(--tiermint-color-border);
+	}
+
+	.tiermint-cart-summary__table td,
+	.tiermint-cart-summary__table th:not(:first-child),
+	.tiermint-cart-summary__table td:not(:first-child) {
+		width: auto;
+		padding: 0;
+		border-bottom: 0;
+		text-align: left;
+	}
+
+	.tiermint-cart-summary__line > td:first-child {
+		flex: 1 0 100%;
+		font-weight: var(--tiermint-font-weight-medium);
+	}
+
+	.tiermint-cart-summary__table td[data-label]:not(:first-child)::before {
+		content: attr(data-label) ": ";
+		display: inline-block;
+		margin-inline-end: var(--tiermint-space-1);
+		color: var(--tiermint-color-text-subtle);
+		font-size: var(--tiermint-font-size-xs);
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	/* Restore the actions row as flex. */
+	.tiermint-cart-summary__table td.tiermint-cart-summary__actions {
+		display: flex;
+		flex: 1 0 100%;
+		justify-content: flex-start;
+		padding-block-start: var(--tiermint-space-2);
+	}
+
+	.tiermint-cart-summary__totals {
+		justify-content: space-between;
+		padding-block-start: var(--tiermint-space-4);
+		border-top: 1px solid var(--tiermint-color-border);
+	}
+
+	.tiermint-cart-summary__totals th,
+	.tiermint-cart-summary__totals td {
+		width: auto;
+		padding: 0;
+		border-top: 0;
+	}
+
+	.tiermint-cart-summary__checkout {
+		align-self: stretch;
+	}
+}

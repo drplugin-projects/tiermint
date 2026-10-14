@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tiermint/product-details",
+	"title": "Product Details",
+	"category": "tiermint",
+	"icon": "products",
+	"description": "The full details of a product: image, description, plan selector, and add-to-cart form.",
+	"keywords": [ "product", "details", "single product", "tiermint" ],
+	"textdomain": "tiermint",
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	},
+	"render": "file:./render.php"
+}

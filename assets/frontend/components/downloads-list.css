@@ -1,0 +1,105 @@
+/**
+ * Download list styles.
+ */
+
+.tiermint-downloads-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-5);
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-base);
+}
+
+.tiermint-downloads-list__title {
+	margin: 0;
+	font-size: var(--tiermint-font-size-xl);
+	font-weight: var(--tiermint-font-weight-semibold);
+	line-height: var(--tiermint-line-height-tight);
+}
+
+.tiermint-downloads-list__prompt,
+.tiermint-downloads-list__empty {
+	margin: 0;
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-downloads-list__login {
+	align-self: flex-start;
+	color: var(--tiermint-color-primary);
+}
+
+.tiermint-downloads-list__products,
+.tiermint-downloads-list__files,
+.tiermint-downloads-list__update-items {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tiermint-downloads-list__products {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-4);
+}
+
+.tiermint-downloads-list__product {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+	padding: var(--tiermint-space-5);
+	border: 1px solid var(--tiermint-color-border);
+	border-radius: var(--tiermint-radius-lg);
+	background-color: var(--tiermint-color-surface-raised);
+	box-shadow: var(--tiermint-shadow-sm);
+}
+
+.tiermint-downloads-list__product-name {
+	margin: 0;
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+.tiermint-downloads-list__files {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-2);
+}
+
+.tiermint-downloads-list__file-link,
+.tiermint-downloads-list__update-link {
+	color: var(--tiermint-color-primary);
+}
+
+.tiermint-downloads-list__updates {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+	padding: var(--tiermint-space-5);
+	border: 1px solid var(--tiermint-color-border);
+	border-radius: var(--tiermint-radius-lg);
+	background-color: var(--tiermint-color-surface-alt);
+}
+
+.tiermint-downloads-list__updates-title {
+	margin: 0;
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+.tiermint-downloads-list__update-items {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+}
+
+.tiermint-downloads-list__update {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--tiermint-space-2) var(--tiermint-space-3);
+}
+
+.tiermint-downloads-list__update-version {
+	color: var(--tiermint-color-text-muted);
+	font-size: var(--tiermint-font-size-sm);
+}

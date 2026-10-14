@@ -1,0 +1,2023 @@
+/* TierMint admin SPA styles. Match wp-admin and scope rules to TierMint.
+ * Use logical properties where possible. rtlcss flips physical properties. */
+
+/* Modals render outside the SPA, so they need the same custom properties. */
+.tiermint-admin,
+.components-modal__frame.tiermint-modal {
+	/* Spacing: the WP 4px grid. */
+	--tiermint-admin-space-1: 4px;
+	--tiermint-admin-space-2: 8px;
+	--tiermint-admin-space-3: 12px;
+	--tiermint-admin-space-4: 16px;
+	--tiermint-admin-space-5: 24px;
+	--tiermint-admin-space-6: 32px;
+
+	/* wp-admin colours, including the chosen admin accent. */
+	--tiermint-admin-accent: var(--wp-admin-theme-color, #2271b1);
+	--tiermint-admin-heading: #1d2327;
+	--tiermint-admin-text: #50575e;
+	--tiermint-admin-muted: #646970;
+	--tiermint-admin-border: #c3c4c7;
+	--tiermint-admin-border-subtle: #dcdcde;
+	--tiermint-admin-canvas: #f0f0f1;
+	--tiermint-admin-surface: #fff;
+	--tiermint-admin-radius: 4px;
+
+	/* Reserve loading space. Lists need more height than panels. */
+	--tiermint-admin-loading-list: 240px;
+	--tiermint-admin-loading-panel: 120px;
+
+	/* Limit form width for readable fields. */
+	--tiermint-admin-form-width: 640px;
+}
+
+.tiermint-admin {
+	margin-top: var(--tiermint-admin-space-4);
+	/* The SPA is outside `.wrap`, so restore the core right gutter. */
+	margin-inline-end: 20px;
+	color: var(--tiermint-admin-text);
+}
+
+/* ---------------------------------------------------------------- Shell -- */
+
+/* Let wide tables scroll instead of widening the page. */
+.tiermint-admin-content {
+	min-width: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+
+	.tiermint-pagination__button,
+	.tiermint-pagination__page,
+	.tiermint-badge {
+		transition: background-color 150ms ease-out, color 150ms ease-out,
+			border-color 150ms ease-out;
+	}
+}
+
+/* Give plain controls the same focus ring as WordPress buttons. */
+.tiermint-pagination__button:focus-visible,
+.tiermint-admin .tiermint-empty-state__action :is(button, a):focus-visible {
+	outline: 2px solid transparent;
+	box-shadow: 0 0 0 2px var(--tiermint-admin-accent);
+}
+
+/* Reset core link rings. TierMint controls add their own keyboard focus ring. */
+.tiermint-admin a:focus {
+	box-shadow: none;
+}
+
+/* ------------------------------------------------------------ Typography -- */
+
+/* The SPA is outside `.wrap`, so set wp-admin heading sizes. */
+.tiermint-admin h1 {
+	margin: 0;
+	font-size: 23px;
+	font-weight: 400;
+	line-height: 1.3;
+	color: var(--tiermint-admin-heading);
+}
+
+.tiermint-admin h2 {
+	margin: 0 0 var(--tiermint-admin-space-2);
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1.4;
+	color: var(--tiermint-admin-heading);
+}
+
+.tiermint-admin h3 {
+	margin: 0 0 var(--tiermint-admin-space-2);
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.4;
+	color: var(--tiermint-admin-heading);
+}
+
+/* ---------------------------------------------------------------- Screen -- */
+
+.tiermint-admin-screen>*+* {
+	margin-top: var(--tiermint-admin-space-5);
+}
+
+/* Keep headings with their section. The prefix wins over the base h2 reset. */
+.tiermint-admin .tiermint-admin-screen>*+h2 {
+	margin-top: var(--tiermint-admin-space-5);
+}
+
+.tiermint-admin-screen>h2 {
+	margin-bottom: 0;
+}
+
+.tiermint-admin .tiermint-admin-screen>h2+* {
+	margin-top: var(--tiermint-admin-space-2);
+}
+
+.tiermint-screen-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--tiermint-admin-space-3);
+}
+
+.tiermint-screen-header__description {
+	margin: var(--tiermint-admin-space-1) 0 0;
+	color: var(--tiermint-admin-muted);
+}
+
+/* Keep the back link quieter than the screen title. */
+.tiermint-screen-header__back {
+	display: block;
+	/* Avoid a full-width link target beside the label. */
+	width: fit-content;
+	margin-bottom: var(--tiermint-admin-space-1);
+	font-size: 13px;
+}
+
+/* The back link needs its own focus ring after the shell reset. */
+.tiermint-admin .tiermint-screen-header__back:focus-visible {
+	outline: 2px solid transparent;
+	box-shadow: 0 0 0 2px var(--tiermint-admin-accent);
+	border-radius: 2px;
+}
+
+/* Let long titles wrap before actions move. */
+.tiermint-screen-header__text {
+	min-width: 0;
+}
+
+.tiermint-screen-header__actions {
+	display: flex;
+	gap: var(--tiermint-admin-space-2);
+	flex-wrap: wrap;
+}
+
+/* Give screen notices consistent space below the header. */
+.tiermint-admin-content>.components-notice,
+.tiermint-admin-screen>.components-notice {
+	margin: var(--tiermint-admin-space-4) 0;
+}
+
+/* Core notices have no margin. Space every non-final panel notice. */
+.tiermint-panel>.components-notice:not(:last-child) {
+	margin: 0 0 var(--tiermint-admin-space-4);
+}
+
+/* -------------------------------------------------------------- Controls -- */
+
+/* Containers own field spacing. A base-control margin doubles flex gaps. */
+
+/* Help text follows the field at a fixed gap. */
+.tiermint-admin .components-base-control__help {
+	margin: var(--tiermint-admin-space-1) 0 0;
+	color: var(--tiermint-admin-muted);
+	font-style: normal;
+}
+
+/* Keep input controls at one height. Components keep their own border radius. */
+.tiermint-admin .components-text-control__input,
+.tiermint-admin .components-select-control__input,
+.tiermint-admin .components-search-control__input,
+.tiermint-admin .components-input-control__input {
+	min-height: 40px;
+}
+
+/* ----------------------------------------------------------- Toolbar bar -- */
+
+.tiermint-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: var(--tiermint-admin-space-3);
+}
+
+.tiermint-toolbar .components-base-control {
+	margin-bottom: 0;
+}
+
+/* Toolbar controls share the row without becoming full-width fields. */
+.tiermint-toolbar .components-base-control,
+.tiermint-toolbar .components-input-control {
+	flex: 1 1 180px;
+	min-width: 160px;
+	max-width: 260px;
+}
+
+/* Align inputs when controls have different label heights. */
+.tiermint-toolbar>* {
+	align-self: flex-end;
+}
+
+/* Place toolbar help below the full row. */
+.tiermint-toolbar__help {
+	margin: var(--tiermint-admin-space-2) 0 0;
+	color: var(--tiermint-admin-muted);
+	font-size: 13px;
+	max-width: 60ch;
+}
+
+/* Show a caret on the export menu button. */
+.tiermint-export-menu__toggle::after {
+	content: '';
+	display: inline-block;
+	margin-left: 6px;
+	border: 4px solid transparent;
+	border-top-color: currentColor;
+	border-bottom: 0;
+}
+
+/* The portalled menu cannot inherit the admin custom properties. */
+.tiermint-export-menu__items {
+	display: flex;
+	flex-direction: column;
+	min-width: 240px;
+	padding: 4px;
+}
+
+.tiermint-export-menu__item {
+	justify-content: flex-start;
+	width: 100%;
+	text-align: left;
+}
+
+.tiermint-export-menu__error {
+	margin: 8px 4px 4px;
+	color: #b32d2e;
+	font-size: 13px;
+}
+
+/* ------------------------------------------------------------- Surfaces -- */
+
+/* Use a shared CSS panel surface on detail screens. */
+.tiermint-panel {
+	background: var(--tiermint-admin-surface);
+	border: 1px solid var(--tiermint-admin-border);
+	border-radius: var(--tiermint-admin-radius);
+	padding: var(--tiermint-admin-space-4);
+}
+
+.tiermint-panel+.tiermint-panel {
+	margin-top: var(--tiermint-admin-space-4);
+}
+
+/* --------------------------------------------------------------- Forms -- */
+
+/* Make disabled and read-only fields visibly inactive, including in modals.
+ * Buttons stay out because some aria-disabled buttons remain focusable. */
+.tiermint-admin :is(input, select, textarea):disabled,
+.tiermint-admin :is(input, select, textarea)[aria-disabled="true"],
+.tiermint-admin :is(input, textarea)[readonly],
+.tiermint-modal :is(input, select, textarea):disabled,
+.tiermint-modal :is(input, select, textarea)[aria-disabled="true"],
+.tiermint-modal :is(input, textarea)[readonly] {
+	background-color: var(--tiermint-admin-canvas);
+	color: var(--tiermint-admin-muted);
+	cursor: not-allowed;
+}
+
+/* Form stacks own field spacing through gap. */
+.tiermint-form-stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-4);
+	max-width: var(--tiermint-admin-form-width);
+}
+
+.tiermint-form-actions,
+.tiermint-modal-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-admin-space-2);
+	align-items: center;
+}
+
+/* Block parents add action spacing. Flex stacks already use gap. */
+.tiermint-panel > .tiermint-form-actions,
+.tiermint-price-row > .tiermint-form-actions {
+	margin-top: var(--tiermint-admin-space-4);
+}
+
+/* Remove modal-action margin inside layouts that already use gap. */
+.tiermint-form-stack > .tiermint-modal-actions,
+.tiermint-refund-form > .tiermint-modal-actions,
+.tiermint-refund-confirm > .tiermint-modal-actions {
+	margin-top: 0;
+}
+
+/* Remove paragraph margins where these layouts already supply gap.
+ * Limit the reset to direct children of TierMint containers. */
+:is(
+	.tiermint-form-stack,
+	.tiermint-refund-form,
+	.tiermint-refund-confirm,
+	.tiermint-release-edit,
+	.tiermint-release-head,
+	.tiermint-term-edit,
+	.tiermint-term-add,
+	.tiermint-switch-targets,
+	.tiermint-modal__events,
+	.tiermint-empty-state,
+	.tiermint-settings__panel,
+	.tiermint-order-totals,
+	.tiermint-file-field,
+	.tiermint-secret-field,
+	.tiermint-license-key-field,
+	.tiermint-admin-dashboard-links,
+	.tiermint-admin-reports-summary,
+	.tiermint-terms-columns,
+	.tiermint-toolbar,
+	.tiermint-bundle-row
+) > p {
+	margin-block: 0;
+}
+
+.tiermint-modal-actions {
+	margin-top: var(--tiermint-admin-space-5);
+	justify-content: flex-end;
+}
+
+/* Keep long modal content within the viewport. */
+.components-modal__frame.tiermint-modal {
+	max-width: 640px;
+	max-height: 80vh;
+}
+
+.components-modal__frame.tiermint-modal--confirm {
+	max-width: 480px;
+}
+
+.tiermint-modal .components-modal__content {
+	overflow-y: auto;
+}
+
+/* ------------------------------------------------------------ Detail dl -- */
+
+/* Detail definitions use label and value columns. */
+.tiermint-admin dl {
+	display: grid;
+	/* Permit long values to wrap in the value column. */
+	grid-template-columns: minmax(140px, max-content) minmax(0, 1fr);
+	gap: var(--tiermint-admin-space-2) var(--tiermint-admin-space-5);
+	/* Keep label and value pairs readable on wide screens. */
+	max-width: 720px;
+	margin: 0;
+}
+
+.tiermint-admin dd {
+	overflow-wrap: anywhere;
+}
+
+.tiermint-admin dl>div {
+	display: contents;
+}
+
+.tiermint-admin dt {
+	color: var(--tiermint-admin-muted);
+	font-weight: 400;
+}
+
+.tiermint-admin dd {
+	margin: 0;
+	color: var(--tiermint-admin-heading);
+}
+
+/* --------------------------------------------------------------- Tables -- */
+
+/* List tables use WordPress' `wp-list-table widefat striped` classes. */
+/* Keep core table margins because the screen already owns its rhythm. */
+
+.tiermint-admin table.wp-list-table td {
+	vertical-align: middle;
+}
+
+/* Use monospace for keys and checksums. TextControl needs the input selector. */
+.tiermint-mono,
+.tiermint-mono input {
+	font-family: Menlo, Consolas, monaco, monospace;
+	font-size: 12px;
+}
+
+/* ----------------------------------------------------------- Status pills -- */
+
+.tiermint-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px var(--tiermint-admin-space-2);
+	border-radius: 9999px;
+	font-size: 12px;
+	line-height: 1.6;
+	white-space: nowrap;
+	background: var(--tiermint-admin-canvas);
+	color: var(--tiermint-admin-text);
+}
+
+/* Success and active status values. */
+/* Status modifiers match the values used by StatusBadge and the webhook list. */
+.tiermint-badge--published,
+.tiermint-badge--completed,
+.tiermint-badge--active {
+	background: #edfaef;
+	color: #00450c;
+}
+
+.tiermint-badge--pending,
+.tiermint-badge--draft,
+.tiermint-badge--partially-refunded {
+	background: #fcf9e8;
+	color: #674600;
+}
+
+.tiermint-badge--failed,
+.tiermint-badge--failing,
+.tiermint-badge--disabled,
+.tiermint-badge--expired,
+.tiermint-badge--yanked {
+	background: #fcf0f1;
+	color: #8a2424;
+}
+
+.tiermint-badge--refunded {
+	background: #f0f6fc;
+	color: #0a4b78;
+}
+
+/* Neutral status values use the base badge style. */
+.tiermint-badge--inactive,
+.tiermint-badge--archived,
+.tiermint-badge--abandoned,
+.tiermint-badge--deactivated {
+	background: var(--tiermint-admin-canvas);
+	color: var(--tiermint-admin-text);
+}
+
+/* --------------------------------------------------------- Bulk actions -- */
+
+/* Bulk controls sit directly above their table. */
+.tiermint-bulk-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--tiermint-admin-space-2);
+	margin-bottom: var(--tiermint-admin-space-3);
+}
+
+.tiermint-bulk-actions__select {
+	min-width: 180px;
+}
+
+.tiermint-bulk-actions__count,
+.tiermint-bulk-actions__confirm {
+	color: var(--tiermint-admin-muted);
+	font-size: 13px;
+}
+
+/* Keep the selected count at the end of the bar. */
+.tiermint-bulk-actions__count {
+	margin-left: auto;
+}
+
+/* aria-disabled buttons stay focusable but must look inactive. */
+.wp-core-ui .tiermint-bulk-actions .button[aria-disabled="true"] {
+	color: var(--tiermint-admin-muted);
+	border-color: var(--tiermint-admin-border);
+	background: var(--tiermint-admin-canvas);
+	cursor: default;
+}
+
+/* Show progress while the server processes a batch. */
+.tiermint-bulk-actions__spinner {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	margin-right: var(--tiermint-admin-space-1);
+	vertical-align: -1px;
+	border: 2px solid currentColor;
+	border-top-color: transparent;
+	border-radius: 50%;
+	animation: tiermint-bulk-spin 0.8s linear infinite;
+}
+
+@keyframes tiermint-bulk-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* Keep a non-moving busy marker for reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+	.tiermint-bulk-actions__spinner {
+		animation: none;
+	}
+}
+
+/* ----------------------------------------------------------- Pagination -- */
+
+.tiermint-pagination {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--tiermint-admin-space-2);
+	margin-top: var(--tiermint-admin-space-4);
+}
+
+/* Keep the row count left and page controls together. */
+.tiermint-pagination__count {
+	margin-right: auto;
+	color: var(--tiermint-admin-muted);
+	font-size: 13px;
+}
+
+/* Fixed tabular number width prevents pagination movement. */
+.tiermint-pagination__page,
+.tiermint-pagination__current,
+.tiermint-pagination__gap {
+	min-width: 32px;
+	font-variant-numeric: tabular-nums;
+	text-align: center;
+}
+
+/* Use core button dimensions. Chaining .button outweighs the core button colour. */
+.wp-core-ui .button.tiermint-pagination__current,
+.wp-core-ui .button.tiermint-pagination__current:hover,
+.wp-core-ui .button.tiermint-pagination__current:focus,
+.wp-core-ui .button.tiermint-pagination__current:active {
+	border-color: var(--tiermint-admin-accent);
+	background: var(--tiermint-admin-accent);
+	color: #fff;
+	font-weight: 600;
+	cursor: default;
+}
+
+/* The active page marks itself aria-disabled, which core paints grey with
+   !important. Match that weight at a higher specificity to keep the label white. */
+.wp-core-ui .button.tiermint-pagination__current[aria-disabled="true"] {
+	color: #fff !important;
+}
+
+/* Use a contrasting focus ring on the active page. */
+.wp-core-ui .button.tiermint-pagination__current:focus-visible {
+	outline: 2px solid transparent;
+	box-shadow: 0 0 0 1px #fff, 0 0 0 3px var(--tiermint-admin-text);
+}
+
+.tiermint-pagination__gap {
+	color: var(--tiermint-admin-muted);
+	user-select: none;
+}
+
+.tiermint-pagination__page:focus-visible {
+	outline: 2px solid transparent;
+	box-shadow: 0 0 0 2px var(--tiermint-admin-accent);
+}
+
+/* -------------------------------------------------- Empty and loading -- */
+
+.tiermint-empty-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--tiermint-admin-space-3);
+	min-height: var(--tiermint-admin-loading-list);
+	padding: var(--tiermint-admin-space-6) var(--tiermint-admin-space-4);
+	background: var(--tiermint-admin-surface);
+	border: 1px dashed var(--tiermint-admin-border);
+	border-radius: var(--tiermint-admin-radius);
+	text-align: center;
+}
+
+/* Panel empty states use their parent surface instead of a second box. */
+.tiermint-empty-state--panel {
+	min-height: var(--tiermint-admin-loading-panel);
+	padding: var(--tiermint-admin-space-4) 0;
+	background: none;
+	border: 0;
+}
+
+.tiermint-empty-state__message {
+	margin: 0;
+	color: var(--tiermint-admin-muted);
+	max-width: 46ch;
+}
+
+/* ------------------------------------------------------------ Skeletons -- */
+
+/* Reserve list or panel space while content loads. */
+.tiermint-skeleton {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-3);
+	min-height: var(--tiermint-admin-loading-list);
+	padding: var(--tiermint-admin-space-4) 0;
+}
+
+.tiermint-skeleton--panel {
+	min-height: var(--tiermint-admin-loading-panel);
+	padding: var(--tiermint-admin-space-2) 0;
+}
+
+/* All skeleton bars share one surface and clip their sheen. */
+.tiermint-skeleton__line,
+.tiermint-skeleton__cell,
+.tiermint-skeleton__label,
+.tiermint-skeleton__control,
+.tiermint-skeleton__value {
+	position: relative;
+	overflow: hidden;
+	background: var(--tiermint-admin-border-subtle);
+	border-radius: var(--tiermint-admin-radius);
+}
+
+.tiermint-skeleton__line {
+	height: 14px;
+}
+
+.tiermint-skeleton__line--short {
+	width: 60%;
+}
+
+/* Table skeletons match the list-table surface. Cell widths stay equal. */
+.tiermint-skeleton--table {
+	padding: var(--tiermint-admin-space-4);
+	background: var(--tiermint-admin-surface);
+	border: 1px solid var(--tiermint-admin-border);
+	border-radius: var(--tiermint-admin-radius);
+}
+
+.tiermint-skeleton__row {
+	display: flex;
+	gap: var(--tiermint-admin-space-4);
+	align-items: center;
+}
+
+.tiermint-skeleton__cell {
+	flex: 1;
+	height: 14px;
+}
+
+.tiermint-skeleton__row--head {
+	padding-bottom: var(--tiermint-admin-space-2);
+	border-bottom: 1px solid var(--tiermint-admin-border);
+}
+
+.tiermint-skeleton__row--head .tiermint-skeleton__cell {
+	height: 10px;
+}
+
+/* Form skeletons match a field label and control. */
+.tiermint-skeleton__field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-1);
+	max-width: var(--tiermint-admin-form-width);
+}
+
+.tiermint-skeleton__label {
+	height: 10px;
+	width: 30%;
+}
+
+.tiermint-skeleton__control {
+	height: 32px;
+}
+
+/* Card skeletons match summary tiles. */
+.tiermint-skeleton--cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	align-items: start;
+}
+
+/* Card rows above content do not need the full loading reserve. */
+.tiermint-skeleton--cards-compact {
+	min-height: 0;
+	padding: 0;
+}
+
+.tiermint-skeleton__card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-3);
+	padding: var(--tiermint-admin-space-4);
+	background: var(--tiermint-admin-surface);
+	border: 1px solid var(--tiermint-admin-border-subtle);
+	border-radius: var(--tiermint-admin-radius);
+}
+
+.tiermint-skeleton__value {
+	height: 24px;
+	width: 60%;
+}
+
+/* Show the skeleton sheen only when motion is allowed. Transform keeps it cheap. */
+@media (prefers-reduced-motion: no-preference) {
+
+	.tiermint-skeleton__line::after,
+	.tiermint-skeleton__cell::after,
+	.tiermint-skeleton__label::after,
+	.tiermint-skeleton__control::after,
+	.tiermint-skeleton__value::after {
+		content: "";
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		width: 60%;
+		background-image: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(255, 255, 255, 0.75) 50%,
+			transparent 100%
+		);
+		animation: tiermint-skeleton-sheen 1.6s ease-in-out infinite;
+	}
+}
+
+@keyframes tiermint-skeleton-sheen {
+
+	from {
+		transform: translateX(-100%);
+	}
+
+	to {
+		transform: translateX(266%);
+	}
+}
+
+/* ----------------------------------------------------- Categories/tags -- */
+
+/* Show the independent taxonomy editors side by side. */
+.tiermint-terms-columns {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+	gap: var(--tiermint-admin-space-4);
+	align-items: start;
+}
+
+/* The grid gap replaces the stacked panel margin. */
+.tiermint-terms-columns>.tiermint-panel+.tiermint-panel {
+	margin-top: 0;
+}
+
+.tiermint-term-add {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-3);
+	align-items: flex-start;
+	padding-bottom: var(--tiermint-admin-space-4);
+	border-bottom: 1px solid var(--tiermint-admin-border-subtle);
+}
+
+.tiermint-term-add .components-base-control {
+	align-self: stretch;
+}
+
+.tiermint-term-list {
+	margin: var(--tiermint-admin-space-4) 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Empty term lists need no top margin. */
+.tiermint-term-list:empty {
+	margin-top: 0;
+}
+
+/* Term rows keep their actions at the end and separate each item. */
+.tiermint-term-list>li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--tiermint-admin-space-2);
+	margin: 0;
+	border-bottom: 1px solid var(--tiermint-admin-border-subtle);
+	padding-block: var(--tiermint-admin-space-2);
+	/* Indent categories by tree depth. Tags have no depth. */
+	padding-inline-start: calc(var(--tiermint-term-depth, 0) * 16px);
+}
+
+.tiermint-term-list>li:last-child {
+	border-bottom: 0;
+}
+
+.tiermint-term-name {
+	flex: 1 1 auto;
+	min-width: 0;
+	color: var(--tiermint-admin-heading);
+	font-weight: 600;
+}
+
+/* Truncate slugs before moving row actions to another line. */
+.tiermint-term-slug {
+	flex: 0 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--tiermint-admin-muted);
+	font-family: monospace;
+	font-size: 12px;
+}
+
+/* Keep row actions together at the end. */
+.tiermint-term-actions {
+	display: flex;
+	flex: 0 0 auto;
+	gap: var(--tiermint-admin-space-2);
+	margin-inline-start: auto;
+}
+
+/* Edit rows use a full-width field stack. */
+/* Keep the edited row's tree indentation. */
+.tiermint-term-list>li.tiermint-term-edit {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: var(--tiermint-admin-space-3);
+	padding-block: var(--tiermint-admin-space-3);
+}
+
+/* -------------------------------------------------------- Product edit -- */
+
+/* Product editing uses a main column and a publish sidebar. */
+.tiermint-product-edit__layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 350px;
+	gap: var(--tiermint-admin-space-5);
+	align-items: start;
+}
+
+/* The bounded editor column can use its full width. */
+.tiermint-product-edit__main .tiermint-form-stack,
+.tiermint-product-edit__main .tiermint-releases>.components-base-control,
+.tiermint-product-edit__main .tiermint-releases>.tiermint-file-field {
+	max-width: none;
+}
+
+/* Product permalinks show a link or an editable slug. */
+.tiermint-permalink {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-2);
+}
+
+.tiermint-permalink__line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--tiermint-admin-space-2);
+	margin: 0;
+}
+
+.tiermint-permalink__label {
+	color: var(--tiermint-admin-heading);
+	font-size: 11px;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.tiermint-permalink__url {
+	/* Wrap long URLs inside the column. */
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.tiermint-permalink__note {
+	margin: 0;
+	color: var(--tiermint-admin-muted);
+	font-size: 12px;
+}
+
+.tiermint-product-edit__main,
+.tiermint-product-edit__sidebar {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-4);
+	min-width: 0;
+}
+
+/* The sidebar gap replaces the stacked panel margin. */
+.tiermint-product-edit__sidebar > .tiermint-panel + .tiermint-panel {
+	margin-top: 0;
+}
+
+/* Collapse before the 350px sidebar makes the main column too narrow. */
+@media (max-width: 960px) {
+
+	.tiermint-product-edit__layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+/* The media fieldset uses the product-image box surface and heading style. */
+.tiermint-product-edit__box--media .tiermint-product-fields {
+	margin-top: 0;
+}
+
+.tiermint-product-edit__box--media .tiermint-product-fields__panel {
+	padding: 0;
+	border: 0;
+}
+
+.tiermint-product-edit__box--media .tiermint-product-fields__legend {
+	padding: 0;
+	margin-bottom: var(--tiermint-admin-space-2);
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+/* A bordered price or bundle row groups its fields and Remove button. */
+.tiermint-price-row,
+.tiermint-bundle-row {
+	margin: 0;
+	padding: var(--tiermint-admin-space-4);
+	border: 1px solid var(--tiermint-admin-border-subtle);
+	border-radius: var(--tiermint-admin-radius);
+}
+
+/* Add space only between real rows. */
+.tiermint-price-row+.tiermint-price-row,
+.tiermint-bundle-row+.tiermint-bundle-row {
+	margin-top: var(--tiermint-admin-space-4);
+}
+
+.tiermint-price-row__legend {
+	padding: 0;
+	margin-bottom: var(--tiermint-admin-space-3);
+	color: var(--tiermint-admin-heading);
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.tiermint-bundle-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: var(--tiermint-admin-space-3);
+}
+
+.tiermint-bundle-row .components-base-control {
+	flex: 1 1 320px;
+	margin-bottom: 0;
+}
+
+/* Category and tag fields include a compact Add-new row. */
+
+/* The category tree scrolls so long lists do not push other sidebar fields down. */
+.tiermint-term-tree {
+	max-height: 220px;
+	padding: var(--tiermint-admin-space-2);
+	overflow-y: auto;
+	border: 1px solid var(--tiermint-admin-border);
+	border-radius: var(--tiermint-admin-radius);
+	background: var(--tiermint-admin-surface);
+}
+
+.tiermint-term-tree__row {
+	/* The JavaScript sets the tree depth for each row. */
+	padding-inline-start: calc(var(--tiermint-term-depth, 0) * 16px);
+}
+
+.tiermint-term-tree__row+.tiermint-term-tree__row {
+	margin-top: var(--tiermint-admin-space-1);
+}
+
+.tiermint-term-field__add {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-2);
+	align-items: flex-start;
+	margin-top: var(--tiermint-admin-space-3);
+}
+
+.tiermint-term-field__add .components-base-control {
+	align-self: stretch;
+}
+
+.tiermint-term-field__error {
+	/* Use the standard WordPress admin error red. */
+	margin: var(--tiermint-admin-space-2) 0 0;
+	color: #d63638;
+	font-size: 12px;
+}
+
+/* ------------------------------------------------------------ Releases -- */
+
+/* Separate the release list from the upload fields above it. */
+.tiermint-releases>.components-base-control,
+.tiermint-releases>.tiermint-file-field {
+	max-width: var(--tiermint-admin-form-width);
+	margin-bottom: var(--tiermint-admin-space-4);
+}
+
+.tiermint-releases>h2:not( :first-child) {
+	margin-top: var(--tiermint-admin-space-6);
+	padding-top: var(--tiermint-admin-space-4);
+	border-top: 1px solid var(--tiermint-admin-border-subtle);
+}
+
+/* File inputs need a label style because they have no BaseControl. */
+.tiermint-file-field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-1);
+	align-items: flex-start;
+}
+
+.tiermint-file-field>span {
+	color: var(--tiermint-admin-heading);
+	font-size: 11px;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+/* Match native file controls to wp-admin, including vendor picker buttons. */
+.tiermint-file-field>input[type="file"] {
+	width: 100%;
+	padding: var(--tiermint-admin-space-1);
+	border: 1px solid var(--tiermint-admin-border);
+	border-radius: var(--tiermint-admin-radius);
+	background: var(--tiermint-admin-surface);
+	color: var(--tiermint-admin-text);
+	font-size: 13px;
+	line-height: 2;
+}
+
+.tiermint-file-field>input[type="file"]:focus {
+	border-color: var(--tiermint-admin-accent);
+	box-shadow: 0 0 0 1px var(--tiermint-admin-accent);
+	outline: 2px solid transparent;
+}
+
+.tiermint-file-field>input[type="file"]::file-selector-button {
+	margin-inline-end: var(--tiermint-admin-space-2);
+	padding: 0 10px;
+	border: 1px solid var(--tiermint-admin-accent);
+	border-radius: var(--tiermint-admin-radius);
+	background: var(--tiermint-admin-surface);
+	color: var(--tiermint-admin-accent);
+	font-size: 13px;
+	line-height: 2;
+	cursor: pointer;
+}
+
+.tiermint-file-field>input[type="file"]::-webkit-file-upload-button {
+	margin-inline-end: var(--tiermint-admin-space-2);
+	padding: 0 10px;
+	border: 1px solid var(--tiermint-admin-accent);
+	border-radius: var(--tiermint-admin-radius);
+	background: var(--tiermint-admin-surface);
+	color: var(--tiermint-admin-accent);
+	font-size: 13px;
+	line-height: 2;
+	cursor: pointer;
+}
+
+.tiermint-release-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tiermint-release-row {
+	padding: var(--tiermint-admin-space-3) 0;
+	border-bottom: 1px solid var(--tiermint-admin-border-subtle);
+}
+
+.tiermint-release-row:last-child {
+	border-bottom: 0;
+}
+
+.tiermint-release-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--tiermint-admin-space-2);
+}
+
+.tiermint-release-channel {
+	color: var(--tiermint-admin-muted);
+	font-size: 12px;
+}
+
+.tiermint-release-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-admin-space-2);
+	margin-top: var(--tiermint-admin-space-2);
+}
+
+.tiermint-release-package {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--tiermint-admin-space-2);
+	margin-top: var(--tiermint-admin-space-2);
+	font-size: 12px;
+	color: var(--tiermint-admin-muted);
+}
+
+.tiermint-release-package__name {
+	font-weight: 600;
+	color: var(--tiermint-admin-text);
+}
+
+.tiermint-release-package__checksum-label {
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+/* The shortened checksum is also the copy button. */
+.tiermint-release-package__checksum {
+	max-width: 22ch;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font-family: var(--tiermint-admin-font-mono, monospace);
+	font-size: inherit;
+	line-height: inherit;
+	cursor: pointer;
+}
+
+.tiermint-release-package__checksum:hover,
+.tiermint-release-package__checksum:focus-visible {
+	color: var(--tiermint-admin-text);
+	text-decoration: underline;
+}
+
+.tiermint-release-package__checksum.is-copied {
+	color: #007017;
+}
+
+.tiermint-release-package__copied {
+	color: #007017;
+	font-size: 12px;
+}
+
+.tiermint-release-edit {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-3);
+	max-width: var(--tiermint-admin-form-width);
+	margin-top: var(--tiermint-admin-space-3);
+}
+
+/* --------------------------------------------------------- Plan changes -- */
+
+/* Subscription switch targets use a compact checkbox fieldset. */
+.tiermint-switch-targets {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-1);
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-width: 0;
+}
+
+.tiermint-switch-targets>legend {
+	padding: 0;
+	margin-bottom: var(--tiermint-admin-space-1);
+	color: var(--tiermint-admin-heading);
+	font-size: 11px;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.tiermint-switch-targets__help,
+.tiermint-recurring-pro-hint {
+	margin: 0;
+	color: var(--tiermint-admin-muted);
+	font-size: 13px;
+	max-width: 60ch;
+}
+
+/* License length supports a duration or a read-only legacy value. */
+.tiermint-license-length {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-1);
+}
+
+.tiermint-license-length__duration {
+	display: flex;
+	gap: var(--tiermint-admin-space-1);
+	align-items: flex-end;
+	margin-top: var(--tiermint-admin-space-2);
+}
+
+.tiermint-license-length__label {
+	color: var(--tiermint-admin-heading);
+	font-size: 11px;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.tiermint-license-length__custom {
+	margin: 0;
+	color: var(--tiermint-admin-muted);
+	font-size: 13px;
+}
+
+/* ------------------------------------------------------------- Modals -- */
+
+/* Modal bodies use form stacks. Do not add a field margin here. */
+
+.tiermint-modal .components-base-control__help {
+	margin: var(--tiermint-admin-space-1) 0 0;
+	color: var(--tiermint-admin-muted);
+	font-style: normal;
+}
+
+/* Mark invalid fields with the standard WordPress admin error red. */
+.tiermint-field--invalid .components-base-control__help {
+	color: #d63638;
+}
+
+.tiermint-field--invalid input,
+.tiermint-field--invalid select {
+	border-color: #d63638;
+	box-shadow: 0 0 0 1px #d63638;
+}
+
+.tiermint-modal .components-text-control__input,
+.tiermint-modal .components-select-control__input,
+.tiermint-modal .components-input-control__input {
+	min-height: 40px;
+}
+
+.tiermint-refund-form,
+.tiermint-refund-confirm {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-3);
+}
+
+/* The webhook event list scrolls within the modal. */
+/* Its legend uses the same style as field labels. */
+.tiermint-modal__events>legend {
+	padding: 0;
+	color: var(--tiermint-admin-heading);
+	font-size: 11px;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.tiermint-modal__events {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: var(--tiermint-admin-space-1) var(--tiermint-admin-space-4);
+	max-height: 320px;
+	overflow-y: auto;
+	padding: var(--tiermint-admin-space-2);
+	border: 1px solid var(--tiermint-admin-border-subtle);
+	border-radius: var(--tiermint-admin-radius);
+}
+
+/* ------------------------------------------------------------- Orders -- */
+
+/* Mark refund rows without reducing their readability. */
+.tiermint-order-row--refund>td:first-child {
+	box-shadow: inset 3px 0 0 0 var(--tiermint-admin-muted);
+}
+
+.tiermint-order-total,
+.tiermint-admin th.tiermint-order-total {
+	text-align: end;
+	font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------- Detail screens -- */
+
+/* Keep the read-only key and its Copy button on one line. */
+.tiermint-license-key-field {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: var(--tiermint-admin-space-2);
+	margin-bottom: var(--tiermint-admin-space-4);
+}
+
+.tiermint-license-key-field .components-base-control {
+	flex: 0 1 420px;
+	margin-bottom: 0;
+}
+
+/* Order totals form a narrow, right-aligned summary. */
+.tiermint-order-totals-panel {
+	max-width: 420px;
+	margin-inline-start: auto;
+}
+
+.tiermint-order-totals {
+	grid-template-columns: 1fr max-content;
+	gap: var(--tiermint-admin-space-2) var(--tiermint-admin-space-4);
+}
+
+.tiermint-order-totals dd {
+	text-align: end;
+	font-variant-numeric: tabular-nums;
+}
+
+.tiermint-order-totals>div:last-child dt,
+.tiermint-order-totals>div:last-child dd {
+	font-weight: 600;
+	color: var(--tiermint-admin-heading);
+}
+
+/* Give product names enough table width before they wrap. */
+.tiermint-order-items td:first-child,
+.tiermint-order-items th:first-child {
+	width: 40%;
+}
+
+.tiermint-refund-restate {
+	color: var(--tiermint-admin-heading);
+	font-weight: 600;
+}
+
+/* ---------------------------------------------------------- Dashboard -- */
+
+/* Dashboard cards use a local panel surface. */
+.tiermint-admin-card {
+	background: var(--tiermint-admin-surface);
+	border: 1px solid var(--tiermint-admin-border);
+	border-radius: var(--tiermint-admin-radius);
+	padding: var(--tiermint-admin-space-4);
+}
+
+.tiermint-admin-card> :first-child {
+	margin-top: 0;
+}
+
+.tiermint-admin-card> :last-child {
+	margin-bottom: 0;
+}
+
+.tiermint-admin-dashboard-welcome p {
+	margin: 0;
+	color: var(--tiermint-admin-muted);
+}
+
+.tiermint-admin-dashboard-section-heading {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--tiermint-admin-space-3);
+}
+
+.tiermint-admin-dashboard-section-heading h2 {
+	margin: 0;
+}
+
+.tiermint-admin-dashboard-section-heading p {
+	margin: var(--tiermint-admin-space-1) 0 0;
+	color: var(--tiermint-admin-muted);
+}
+
+.tiermint-admin-dashboard-currency-note {
+	margin: 0;
+	color: var(--tiermint-admin-muted);
+}
+
+/* Keep heading links together at the end. */
+.tiermint-admin-dashboard-heading-links {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--tiermint-admin-space-3);
+}
+
+.tiermint-admin .tiermint-admin-dashboard-section-heading a:focus-visible {
+	outline: 2px solid transparent;
+	box-shadow: 0 0 0 2px var(--tiermint-admin-accent);
+}
+
+.tiermint-admin-dashboard-metrics {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: var(--tiermint-admin-space-3);
+	margin-top: var(--tiermint-admin-space-3);
+}
+
+.tiermint-admin-dashboard-metric {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-2);
+}
+
+.tiermint-admin-dashboard-metric span {
+	color: var(--tiermint-admin-muted);
+}
+
+.tiermint-admin-dashboard-metric strong {
+	color: var(--tiermint-admin-heading);
+	font-size: 24px;
+	line-height: 1.2;
+}
+
+.tiermint-admin-dashboard-metric--loading {
+	min-height: 82px;
+}
+
+/* Let metric skeleton cards remain grid items. */
+.tiermint-skeleton--metrics {
+	display: contents;
+}
+
+.tiermint-admin-dashboard-links {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: var(--tiermint-admin-space-4);
+}
+
+.tiermint-admin-dashboard-links p {
+	margin: var(--tiermint-admin-space-1) 0 0;
+	color: var(--tiermint-admin-muted);
+}
+
+.tiermint-admin-dashboard-latest-orders .tiermint-admin-table {
+	margin-top: var(--tiermint-admin-space-3);
+}
+
+/* ------------------------------------------------ Extension field slot -- */
+
+/* Show unloaded extension fields as muted, non-editable placeholders.
+ * The settings-panel gap supplies their spacing. */
+.tiermint-field--external {
+	opacity: 0.7;
+}
+
+.tiermint-field__label {
+	display: block;
+	font-weight: 600;
+}
+
+.tiermint-field__external-note {
+	margin: var(--tiermint-admin-space-1) 0 0;
+	font-style: italic;
+}
+
+/* ------------------------------------------------------------- 782px -- */
+
+@media (max-width: 782px) {
+	.tiermint-screen-header {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.tiermint-admin-dashboard-section-heading {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.tiermint-admin-dashboard-metrics {
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	}
+
+	/* Hide the secondary Type and Gateway columns on narrow screens. */
+	.tiermint-admin-dashboard-latest-orders th.tiermint-col--secondary,
+	.tiermint-admin-dashboard-latest-orders td.tiermint-col--secondary {
+		display: none;
+	}
+
+	.tiermint-admin dl {
+		grid-template-columns: 1fr;
+		gap: 0;
+	}
+
+	.tiermint-admin dl>div {
+		display: block;
+		margin-bottom: var(--tiermint-admin-space-3);
+	}
+
+	/* These tables lack core's row toggles. Scroll them instead of clipping columns. */
+	.tiermint-admin table.wp-list-table {
+		display: block;
+		overflow-x: auto;
+	}
+}
+
+/* --------------------------------------------------------- Settings tabs -- */
+
+/* Settings use one horizontal tab strip and one active panel. */
+.tiermint-settings__tabs {
+	margin-bottom: var(--tiermint-admin-space-4);
+	border-bottom: 1px solid var(--tiermint-admin-border);
+}
+
+.tiermint-settings__tab-list,
+.tiermint-settings__subtab-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-admin-space-1);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Remove core list spacing from tab items. */
+.tiermint-settings__tab-list li,
+.tiermint-settings__subtab-list li {
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+.tiermint-settings__tab,
+.tiermint-settings__subtab {
+	display: block;
+	padding: var(--tiermint-admin-space-2) var(--tiermint-admin-space-3);
+	text-decoration: none;
+	color: var(--tiermint-admin-text);
+	border-bottom: 2px solid transparent;
+	/* Place the active underline over the strip border. */
+	margin-bottom: -1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+
+	.tiermint-settings__tab,
+	.tiermint-settings__subtab {
+		transition: color 150ms ease-out, border-color 150ms ease-out;
+	}
+}
+
+.tiermint-settings__tab:hover,
+.tiermint-settings__tab:focus,
+.tiermint-settings__subtab:hover,
+.tiermint-settings__subtab:focus {
+	color: var(--tiermint-admin-heading);
+}
+
+.tiermint-settings__tab.is-active,
+.tiermint-settings__subtab.is-active {
+	font-weight: 600;
+	color: var(--tiermint-admin-heading);
+	border-bottom-color: var(--tiermint-admin-accent);
+}
+
+/* The prefix wins over the shell link-focus reset. */
+.tiermint-admin .tiermint-settings__tab:focus-visible,
+.tiermint-admin .tiermint-settings__subtab:focus-visible {
+	outline: 2px solid transparent;
+	box-shadow: 0 0 0 2px var(--tiermint-admin-accent);
+}
+
+/* Active tabs use the same surface as detail panels. */
+.tiermint-settings__panel {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-4);
+	padding: var(--tiermint-admin-space-4);
+	background: var(--tiermint-admin-surface);
+	border: 1px solid var(--tiermint-admin-border);
+	border-radius: var(--tiermint-admin-radius);
+}
+
+/* Repeat the section name as a quiet panel heading. */
+.tiermint-settings__panel-title {
+	margin: 0;
+	padding-bottom: var(--tiermint-admin-space-3);
+	border-bottom: 1px solid var(--tiermint-admin-border-subtle);
+}
+
+/* Gateway sub-tabs sit above the active gateway fields. */
+.tiermint-settings__subtabs {
+	border-bottom: 1px solid var(--tiermint-admin-border-subtle);
+}
+
+/* Limit direct section fields to a readable width. */
+.tiermint-settings__panel>.components-base-control,
+.tiermint-settings__panel>.tiermint-secret-field,
+.tiermint-settings__panel>.tiermint-field {
+	max-width: var(--tiermint-admin-form-width);
+}
+
+/* Group related settings under a legend. Let fieldsets shrink in flex layouts. */
+.tiermint-settings__group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-4);
+	/* Include this bordered fieldset's padding in its width. */
+	box-sizing: border-box;
+	min-width: 0;
+	max-width: var(--tiermint-admin-form-width);
+	margin: 0;
+	padding: var(--tiermint-admin-space-4);
+	border: 1px solid var(--tiermint-admin-border-subtle);
+	border-radius: var(--tiermint-admin-radius);
+}
+
+/* Make live payment credentials more distinct. */
+.tiermint-settings__group--live {
+	border-color: var(--tiermint-admin-border);
+}
+
+.tiermint-settings__group>legend {
+	padding: 0;
+	color: var(--tiermint-admin-heading);
+	font-weight: 600;
+}
+
+/* Stack secret fields with their Clear or Undo controls. */
+.tiermint-secret-field {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--tiermint-admin-space-2);
+}
+
+.tiermint-secret-field .components-base-control {
+	align-self: stretch;
+	margin-bottom: 0;
+}
+
+/* Appearance colour fields show a swatch and a defaultable value. */
+.tiermint-color-field {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--tiermint-admin-space-2);
+}
+
+.tiermint-color-field__label {
+	color: var(--tiermint-admin-heading);
+	font-weight: 600;
+}
+
+.tiermint-color-field__toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--tiermint-admin-space-2);
+}
+
+.tiermint-color-field__swatch {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	border: 1px solid var(--tiermint-admin-border);
+	border-radius: var(--tiermint-admin-radius);
+	/* Show a checkerboard behind a transparent swatch. */
+	background-image:
+		linear-gradient(45deg, var(--tiermint-admin-border-subtle) 25%, transparent 25%),
+		linear-gradient(-45deg, var(--tiermint-admin-border-subtle) 25%, transparent 25%);
+	background-size: 10px 10px;
+	background-position: 0 0, 5px 5px;
+}
+
+.tiermint-color-field__value {
+	font-variant-numeric: tabular-nums;
+}
+
+.tiermint-color-field__content {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--tiermint-admin-space-2);
+	padding: var(--tiermint-admin-space-3);
+}
+
+.tiermint-color-field__help {
+	max-width: var(--tiermint-admin-form-width);
+	margin: 0;
+	color: var(--tiermint-admin-muted);
+	font-size: 12px;
+}
+
+/* ---------------------------------------------------------------- Webhooks -- */
+
+.tiermint-webhooks__toolbar {
+	margin-bottom: var(--tiermint-admin-space-4);
+}
+
+/* Keep each toggle label accessible but hide its repeated visual text. */
+.tiermint-webhooks__table .components-toggle-control__label {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* ---------------------------------------------------------------- Reports -- */
+
+/* Keep report summary figures in a responsive row. */
+.tiermint-admin-reports-summary {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: var(--tiermint-admin-space-4);
+}
+
+.tiermint-admin-reports-summary h2 {
+	font-size: 13px;
+	font-weight: 400;
+	color: var(--tiermint-admin-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.tiermint-admin-reports-summary p {
+	margin: 0;
+	font-size: 24px;
+	line-height: 1.2;
+	color: var(--tiermint-admin-heading);
+	font-variant-numeric: tabular-nums;
+}
+
+/* Right-align money and counts with tabular figures. */
+.tiermint-admin-reports td:not( :first-child),
+.tiermint-admin-reports th:not( :first-child) {
+	text-align: end;
+	font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------- Sortable headers -- */
+
+/* Sort headers look like table headings, not form buttons. */
+.tiermint-admin th>.tiermint-sort {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--tiermint-admin-space-1);
+	padding: 0;
+	border: 0;
+	background: none;
+	font: inherit;
+	color: inherit;
+	cursor: pointer;
+}
+
+.tiermint-admin th>.tiermint-sort:hover {
+	color: var(--tiermint-admin-accent);
+}
+
+.tiermint-admin th>.tiermint-sort:focus-visible {
+	outline: 2px solid transparent;
+	box-shadow: 0 0 0 2px var(--tiermint-admin-accent);
+	border-radius: 2px;
+}
+
+/* Generate the arrow from the same aria-sort value assistive tech reads. */
+.tiermint-admin th[ aria-sort='ascending']>.tiermint-sort::after {
+	content: '\2191';
+}
+
+.tiermint-admin th[ aria-sort='descending']>.tiermint-sort::after {
+	content: '\2193';
+}
+
+.tiermint-admin th[ aria-sort='none']>.tiermint-sort::after {
+	content: '\2195';
+	opacity: 0.35;
+}
+
+/* ------------------------------------------------------------------ Tabs -- */
+
+/* Recolour TabPanel's existing indicator. A weight change would shift tabs. */
+.tiermint-tabs .components-tab-panel__tabs {
+	border-bottom: 1px solid var(--tiermint-admin-border-subtle);
+}
+
+.tiermint-tabs .components-tab-panel__tabs-item::after {
+	background: var(--tiermint-admin-accent);
+}
+
+.tiermint-tabs .components-tab-panel__tabs-item.is-active {
+	color: var(--tiermint-admin-heading);
+	outline: none;
+}
+
+.tiermint-tabs .components-tab-panel__tabs-item.is-active:after {
+	outline: none;
+}
+
+.tiermint-tabs .components-tab-panel__tab-content {
+	padding-top: var(--tiermint-admin-space-5);
+}
+
+/* Separate the settings Save row with a top border. */
+.tiermint-settings .tiermint-form-actions {
+	padding-top: var(--tiermint-admin-space-4);
+	border-top: 1px solid var(--tiermint-admin-border-subtle);
+}
+/* Registered product fields use bordered groups below core fields. */
+.tiermint-product-fields {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-4);
+	margin-top: var(--tiermint-admin-space-5);
+}
+
+.tiermint-product-fields__panel {
+	margin: 0;
+	padding: var(--tiermint-admin-space-4);
+	border: 1px solid var(--tiermint-admin-border-subtle);
+	border-radius: var(--tiermint-admin-radius);
+}
+
+.tiermint-product-fields__legend {
+	padding: 0 var(--tiermint-admin-space-2);
+	font-weight: 600;
+	color: var(--tiermint-admin-heading);
+}
+
+.tiermint-product-field__unsupported {
+	margin: 0;
+	color: var(--tiermint-admin-muted);
+	font-style: italic;
+}
+
+/* Rich text control: the WordPress classic editor mounted over a textarea. */
+.tiermint-rich-text-field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-1);
+}
+
+/* Match custom labels to WordPress component field labels. */
+.tiermint-rich-text-field__label,
+.tiermint-media-field__label,
+.tiermint-media-gallery__label {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	color: var(--tiermint-admin-muted);
+}
+
+/* Remove the unused classic-editor media-button offset. */
+.tiermint-rich-text-field .wp-switch-editor {
+	margin-top: 0;
+}
+
+/* Fill the field width with a monospace source textarea. */
+.tiermint-rich-text-field__textarea {
+	box-sizing: border-box;
+	width: 100%;
+	font-family: Menlo, Consolas, Monaco, monospace;
+}
+
+/* Give both editor tabs the same useful minimum height. */
+.tiermint-rich-text-field .mce-edit-area iframe,
+.tiermint-rich-text-field__textarea {
+	min-height: 200px;
+}
+
+.tiermint-rich-text-field__help {
+	margin: 0;
+	color: var(--tiermint-admin-muted);
+}
+
+/* Single-image and gallery controls. */
+.tiermint-media-field,
+.tiermint-media-gallery {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-2);
+}
+
+.tiermint-media-field__preview {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--tiermint-admin-space-3);
+}
+
+.tiermint-media-field__image {
+	max-width: 160px;
+	height: auto;
+	border: 1px solid var(--tiermint-admin-border-subtle);
+	border-radius: var(--tiermint-admin-radius);
+}
+
+.tiermint-media-field__actions,
+.tiermint-media-gallery__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-admin-space-1);
+}
+
+.tiermint-media-field__chip,
+.tiermint-media-gallery__chip {
+	display: inline-block;
+	padding: var(--tiermint-admin-space-1) var(--tiermint-admin-space-2);
+	background: var(--tiermint-admin-canvas);
+	border-radius: var(--tiermint-admin-radius);
+	color: var(--tiermint-admin-muted);
+}
+
+.tiermint-media-gallery__items {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-admin-space-3);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tiermint-media-gallery__item {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-2);
+	width: 140px;
+}
+
+.tiermint-media-gallery__image {
+	width: 140px;
+	height: 140px;
+	object-fit: cover;
+	border: 1px solid var(--tiermint-admin-border-subtle);
+	border-radius: var(--tiermint-admin-radius);
+}
+
+.tiermint-media-gallery__empty,
+.tiermint-media-gallery__help,
+.tiermint-media-field__help {
+	margin: 0;
+	color: var(--tiermint-admin-muted);
+}
+
+/* Pro upgrade surfaces: the SPA banner, the #/pro screen, and the settings
+ * teaser. Text plus one link each, no remote asset. */
+.tiermint-upsell-banner {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--tiermint-admin-space-3);
+	margin-block-end: var(--tiermint-admin-space-4);
+	padding: var(--tiermint-admin-space-3) var(--tiermint-admin-space-4);
+	border: 1px solid var(--tiermint-admin-border-subtle);
+	border-inline-start: 4px solid var(--tiermint-admin-accent);
+	border-radius: var(--tiermint-admin-radius);
+	background: var(--tiermint-admin-surface);
+}
+
+.tiermint-upsell-banner__text {
+	flex: 1 1 auto;
+	margin: 0;
+	color: var(--tiermint-admin-text);
+}
+
+.tiermint-upsell-banner__dismiss {
+	flex: 0 0 auto;
+	color: var(--tiermint-admin-muted);
+}
+
+.tiermint-upsell__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--tiermint-admin-space-4);
+	flex-wrap: wrap;
+}
+
+.tiermint-upsell__intro {
+	max-width: var(--tiermint-admin-form-width);
+	color: var(--tiermint-admin-text);
+}
+
+.tiermint-upsell__features {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: var(--tiermint-admin-space-4);
+	margin: var(--tiermint-admin-space-5) 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tiermint-upsell__feature {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-admin-space-2);
+	padding: var(--tiermint-admin-space-4);
+	border: 1px solid var(--tiermint-admin-border-subtle);
+	border-radius: var(--tiermint-admin-radius);
+	background: var(--tiermint-admin-surface);
+}
+
+.tiermint-upsell__feature-title {
+	margin: 0;
+	font-size: 14px;
+	color: var(--tiermint-admin-heading);
+}
+
+.tiermint-upsell__feature-blurb {
+	flex: 1 1 auto;
+	margin: 0;
+	color: var(--tiermint-admin-muted);
+}
+
+.tiermint-upsell__feature-link {
+	align-self: flex-start;
+}

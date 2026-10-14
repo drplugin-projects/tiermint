@@ -1,0 +1,24 @@
+/**
+ * Product overview styles.
+ */
+
+.tiermint-product-overview {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+	color: var(--tiermint-color-text);
+}
+
+.tiermint-product-overview__name {
+	margin: 0;
+	font-size: var(--tiermint-font-size-2xl);
+	font-weight: var(--tiermint-font-weight-bold);
+	line-height: var(--tiermint-line-height-tight);
+	color: var(--tiermint-color-text);
+}
+
+.tiermint-product-overview__text {
+	font-size: var(--tiermint-font-size-lg);
+	line-height: var(--tiermint-line-height-base);
+	color: var(--tiermint-color-text-muted);
+}

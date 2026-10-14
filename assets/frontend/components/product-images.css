@@ -1,0 +1,15 @@
+/**
+ * Product image styles.
+ */
+
+.tiermint-product-images {
+	margin: 0;
+}
+
+.tiermint-product-images__img {
+	display: block;
+	width: 100%;
+	height: auto;
+	border: 1px solid var(--tiermint-color-border);
+	border-radius: var(--tiermint-radius-lg);
+}

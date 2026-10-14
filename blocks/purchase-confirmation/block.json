@@ -1,0 +1,15 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tiermint/purchase-confirmation",
+	"title": "Purchase Confirmation",
+	"category": "tiermint",
+	"icon": "yes-alt",
+	"description": "The post-checkout receipt: order summary, license keys, and download links.",
+	"keywords": [ "receipt", "confirmation", "thank you", "tiermint" ],
+	"textdomain": "tiermint",
+	"supports": {
+		"html": false
+	},
+	"render": "file:./render.php"
+}

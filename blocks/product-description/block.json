@@ -1,0 +1,15 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tiermint/product-description",
+	"title": "Product Description",
+	"category": "tiermint",
+	"icon": "text",
+	"description": "A product's full description.",
+	"keywords": [ "product", "description", "details", "tiermint" ],
+	"textdomain": "tiermint",
+	"supports": {
+		"html": false
+	},
+	"render": "file:./render.php"
+}

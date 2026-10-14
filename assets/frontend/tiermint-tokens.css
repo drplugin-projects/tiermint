@@ -1,0 +1,83 @@
+/* Theme tokens for all front-end components. */
+@layer tiermint {
+	:root {
+		/* Color: base surfaces and text */
+		--tiermint-color-page: #f6f7f9;
+		--tiermint-color-surface: #ffffff;
+		--tiermint-color-surface-alt: #f9fafb;
+		--tiermint-color-surface-raised: #ffffff;
+		--tiermint-color-border: #e5e7eb;
+		--tiermint-color-border-strong: #d1d5db;
+		--tiermint-color-text: #111827;
+		--tiermint-color-text-muted: #4b5563;
+		--tiermint-color-text-subtle: #6b7280;
+
+		/* Color: accent */
+		--tiermint-color-primary: #2563eb;
+		--tiermint-color-primary-hover: #1d4ed8;
+		--tiermint-color-primary-contrast: #ffffff;
+		--tiermint-color-primary-soft: #eff6ff;
+		--tiermint-color-focus: #2563eb;
+
+		/* Keep the lightbox scrim dark in every theme. */
+		--tiermint-color-overlay: rgba(17, 24, 39, 0.7);
+
+		/* Semantic colours and notice backgrounds. */
+		--tiermint-color-success: #15803d;
+		--tiermint-color-success-bg: #f0fdf4;
+		--tiermint-color-error: #b91c1c;
+		--tiermint-color-error-bg: #fef2f2;
+		--tiermint-color-warning: #b45309;
+		--tiermint-color-warning-bg: #fffbeb;
+		--tiermint-color-info: #0369a1;
+		--tiermint-color-info-bg: #f0f9ff;
+
+		/* Shape */
+		--tiermint-radius-sm: 6px;
+		--tiermint-radius: 8px;
+		--tiermint-radius-lg: 12px;
+		--tiermint-radius-full: 9999px;
+		--tiermint-border: 1px solid var(--tiermint-color-border);
+
+		/* Elevation */
+		--tiermint-shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06);
+		--tiermint-shadow-md: 0 4px 12px rgba(17, 24, 39, 0.08);
+		--tiermint-shadow-lg: 0 12px 32px rgba(17, 24, 39, 0.12);
+
+		/* Spacing scale */
+		--tiermint-space-1: 0.25rem;
+		--tiermint-space-2: 0.5rem;
+		--tiermint-space-3: 0.75rem;
+		--tiermint-space-4: 1rem;
+		--tiermint-space-5: 1.5rem;
+		--tiermint-space-6: 2rem;
+		--tiermint-space-7: 3rem;
+		--tiermint-space-8: 4rem;
+
+		/* Override this token to use the theme font. */
+		--tiermint-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+		--tiermint-font-size-xs: 0.75rem;
+		--tiermint-font-size-sm: 0.875rem;
+		--tiermint-font-size-base: 1rem;
+		--tiermint-font-size-lg: 1.125rem;
+		--tiermint-font-size-xl: 1.375rem;
+		--tiermint-font-size-2xl: 1.75rem;
+		--tiermint-line-height-tight: 1.25;
+		--tiermint-line-height-base: 1.6;
+		--tiermint-font-weight-medium: 500;
+		--tiermint-font-weight-semibold: 600;
+		--tiermint-font-weight-bold: 700;
+	}
+
+	/* Honor reduced-motion preferences for every component at once. */
+	@media (prefers-reduced-motion: reduce) {
+		.tiermint-component *,
+		.tiermint-component *::before,
+		.tiermint-component *::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
+	}
+}

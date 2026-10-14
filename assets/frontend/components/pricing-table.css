@@ -1,0 +1,116 @@
+/* Pricing table styles use shared design tokens. */
+
+.tiermint-pricing-table {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+	gap: var(--tiermint-space-5);
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-base);
+}
+
+.tiermint-pricing-table__plan {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+	padding: var(--tiermint-space-6);
+	border: 1px solid var(--tiermint-color-border);
+	border-radius: var(--tiermint-radius-lg);
+	background-color: var(--tiermint-color-surface-raised);
+	box-shadow: var(--tiermint-shadow-sm);
+}
+
+.tiermint-pricing-table__plan--highlight {
+	border-color: var(--tiermint-color-primary);
+	box-shadow: var(--tiermint-shadow-md);
+}
+
+.tiermint-pricing-table__badge {
+	align-self: flex-start;
+	padding: var(--tiermint-space-1) var(--tiermint-space-3);
+	border-radius: var(--tiermint-radius-full);
+	background-color: var(--tiermint-color-primary);
+	color: var(--tiermint-color-primary-contrast);
+	font-size: var(--tiermint-font-size-xs);
+	font-weight: var(--tiermint-font-weight-semibold);
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.tiermint-pricing-table__name {
+	margin: 0;
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+.tiermint-pricing-table__price {
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-1);
+}
+
+.tiermint-pricing-table__amount {
+	font-size: var(--tiermint-font-size-2xl);
+	font-weight: var(--tiermint-font-weight-bold);
+	line-height: var(--tiermint-line-height-tight);
+}
+
+.tiermint-pricing-table__tier {
+	color: var(--tiermint-color-text-muted);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+/* Plan details below the price. */
+.tiermint-pricing-table__tier-meta {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-1);
+}
+
+.tiermint-pricing-table__tier-meta-item {
+	font-size: var(--tiermint-font-size-xs);
+	line-height: var(--tiermint-line-height-tight);
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-pricing-table__description {
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-pricing-table__features {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-2);
+}
+
+.tiermint-pricing-table__feature {
+	padding-left: var(--tiermint-space-4);
+	position: relative;
+}
+
+.tiermint-pricing-table__feature::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0.5em;
+	width: var(--tiermint-space-2);
+	height: var(--tiermint-space-2);
+	border-radius: 50%;
+	background-color: var(--tiermint-color-success);
+}
+
+.tiermint-pricing-table__form {
+	margin: var(--tiermint-space-2) 0 0;
+	margin-top: auto;
+}
+
+/* The shared button fills the plan column. */
+.tiermint-pricing-table__button {
+	width: 100%;
+}

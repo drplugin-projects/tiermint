@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tiermint/pricing-table",
+	"title": "Pricing Table",
+	"category": "tiermint",
+	"icon": "editor-table",
+	"description": "A pricing table of a product's tiers with feature lists and buy buttons.",
+	"keywords": [ "pricing", "tiers", "plans", "tiermint" ],
+	"textdomain": "tiermint",
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	},
+	"render": "file:./render.php"
+}

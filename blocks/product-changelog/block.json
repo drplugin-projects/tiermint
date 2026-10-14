@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tiermint/product-changelog",
+	"title": "Product Changelog",
+	"category": "tiermint",
+	"icon": "list-view",
+	"description": "A product's latest release notes, rendered from its changelog.",
+	"keywords": [ "product", "changelog", "releases", "notes", "tiermint" ],
+	"textdomain": "tiermint",
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	},
+	"render": "file:./render.php"
+}

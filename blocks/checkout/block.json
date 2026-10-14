@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tiermint/checkout",
+	"title": "Checkout",
+	"category": "tiermint",
+	"icon": "money-alt",
+	"description": "The TierMint checkout: order summary, buyer details, and card payment.",
+	"keywords": [ "checkout", "payment", "stripe", "tiermint" ],
+	"textdomain": "tiermint",
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	},
+	"render": "file:./render.php"
+}

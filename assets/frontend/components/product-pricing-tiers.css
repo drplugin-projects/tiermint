@@ -1,0 +1,165 @@
+/**
+ * Product tier styles.
+ */
+
+.tiermint-product-pricing-tiers__purchase {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-5);
+	padding: var(--tiermint-space-6);
+	border: 1px solid var(--tiermint-color-border);
+	border-radius: var(--tiermint-radius-lg);
+	background-color: var(--tiermint-color-surface-raised);
+	box-shadow: var(--tiermint-shadow-sm);
+}
+
+.tiermint-product-pricing-tiers__tiers {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.tiermint-product-pricing-tiers__tiers-legend {
+	margin-block-end: var(--tiermint-space-1);
+	padding: 0;
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-medium);
+	color: var(--tiermint-color-text-muted);
+}
+
+/* Highlight the selected tier without script. */
+.tiermint-product-pricing-tiers__tier {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: var(--tiermint-space-1) var(--tiermint-space-3);
+	align-items: center;
+	padding: var(--tiermint-space-4);
+	border: 1px solid var(--tiermint-color-border-strong);
+	border-radius: var(--tiermint-radius);
+	background-color: var(--tiermint-color-surface);
+	cursor: pointer;
+	position: relative;
+	transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.tiermint-product-pricing-tiers__tier:hover {
+	border-color: var(--tiermint-color-primary);
+}
+
+.tiermint-product-pricing-tiers__tier:has(input:checked) {
+	border-color: var(--tiermint-color-primary);
+	background-color: var(--tiermint-color-primary-soft);
+}
+
+/* Keep the radio above the card overlay. */
+.tiermint-product-pricing-tiers__tier > input[type="radio"] {
+	grid-column: 1;
+	grid-row: 1;
+	position: relative;
+	z-index: 1;
+}
+
+/* Extend the label hit area without changing its accessible name. */
+.tiermint-product-pricing-tiers__tier-label {
+	grid-column: 2;
+	grid-row: 1;
+	display: flex;
+	align-items: baseline;
+	gap: var(--tiermint-space-3);
+	cursor: pointer;
+}
+
+.tiermint-product-pricing-tiers__tier-label::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+}
+
+.tiermint-product-pricing-tiers__tier-name {
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+.tiermint-product-pricing-tiers__tier-price {
+	margin-inline-start: auto;
+	font-weight: var(--tiermint-font-weight-semibold);
+	color: var(--tiermint-color-text);
+}
+
+/* Place tier details below the plan name. */
+.tiermint-product-pricing-tiers__tier-meta {
+	grid-column: 2;
+	grid-row: 2;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-1);
+}
+
+.tiermint-product-pricing-tiers__price + .tiermint-product-pricing-tiers__tier-meta {
+	margin-top: calc(var(--tiermint-space-2) - var(--tiermint-space-5));
+}
+
+.tiermint-product-pricing-tiers__tier-meta-item {
+	font-size: var(--tiermint-font-size-xs);
+	line-height: var(--tiermint-line-height-tight);
+	color: var(--tiermint-color-text-muted);
+}
+
+/* Emphasise the single-tier price. */
+.tiermint-product-pricing-tiers__price {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--tiermint-space-3);
+	margin: 0;
+}
+
+.tiermint-product-pricing-tiers__price .tiermint-product-pricing-tiers__tier-name {
+	font-size: var(--tiermint-font-size-base);
+	font-weight: var(--tiermint-font-weight-medium);
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-product-pricing-tiers__price .tiermint-product-pricing-tiers__tier-price {
+	margin-inline-start: 0;
+	font-size: var(--tiermint-font-size-2xl);
+	font-weight: var(--tiermint-font-weight-bold);
+}
+
+.tiermint-product-pricing-tiers__quantity {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-1);
+	max-width: 8rem;
+}
+
+/* Show fixed quantities as text. */
+.tiermint-product-pricing-tiers__quantity-fixed {
+	display: flex;
+	align-items: baseline;
+	gap: var(--tiermint-space-2);
+	margin: 0;
+	font-size: var(--tiermint-font-size-sm);
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-product-pricing-tiers__quantity-fixed-value {
+	font-weight: var(--tiermint-font-weight-semibold);
+	color: var(--tiermint-color-text);
+}
+
+.tiermint-product-pricing-tiers__quantity-label {
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-medium);
+	color: var(--tiermint-color-text-muted);
+}
+
+/* Fill the purchase card with the shared button. */
+.tiermint-product-pricing-tiers__add {
+	align-self: stretch;
+}

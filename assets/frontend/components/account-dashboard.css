@@ -1,0 +1,280 @@
+/* Account dashboard styles. CSS orientation matches the JavaScript tab controls. */
+
+.tiermint-account-dashboard {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-4);
+	container-type: inline-size;
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-base);
+}
+
+.tiermint-account-dashboard__title {
+	margin: 0;
+	font-size: var(--tiermint-font-size-xl);
+	font-weight: var(--tiermint-font-weight-semibold);
+	line-height: var(--tiermint-line-height-tight);
+}
+
+/* Keep the avatar and name on one row. */
+.tiermint-account-dashboard__header {
+	display: flex;
+	align-items: center;
+	gap: var(--tiermint-space-3);
+}
+
+.tiermint-account-dashboard__avatar {
+	display: inline-flex;
+	flex: 0 0 auto;
+}
+
+.tiermint-account-dashboard__avatar img {
+	display: block;
+	width: 48px;
+	height: 48px;
+	border-radius: var(--tiermint-radius-full);
+}
+
+.tiermint-account-dashboard__greeting {
+	margin: 0;
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+	line-height: var(--tiermint-line-height-tight);
+}
+
+.tiermint-account-dashboard__prompt {
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-account-dashboard__tabs {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-5);
+}
+
+.tiermint-account-dashboard__tablist {
+	/* JavaScript reads this layout direction. */
+	--tiermint-account-orientation: horizontal;
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-space-4);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	border-bottom: 1px solid var(--tiermint-color-border);
+}
+
+.tiermint-account-dashboard__tabitem {
+	margin: 0;
+}
+
+/* Align the active underline with the tab-list border. */
+.tiermint-account-dashboard__tab {
+	display: inline-block;
+	padding: var(--tiermint-space-3) var(--tiermint-space-1);
+	margin-block-end: -1px;
+	border-bottom: 2px solid transparent;
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-medium);
+	cursor: pointer;
+	transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Beat theme link rules without changing the tab decoration. */
+.tiermint-component .tiermint-account-dashboard__tab,
+.tiermint-component .tiermint-account-dashboard__tab:visited {
+	color: var(--tiermint-color-text-muted);
+	text-decoration: none;
+}
+
+.tiermint-component .tiermint-account-dashboard__tab:hover,
+.tiermint-component .tiermint-account-dashboard__tab:focus-visible {
+	color: var(--tiermint-color-text);
+	text-decoration: none;
+}
+
+.tiermint-component .tiermint-account-dashboard__tab[aria-selected="true"] {
+	color: var(--tiermint-color-primary);
+	border-bottom-color: var(--tiermint-color-primary);
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+.tiermint-account-dashboard__panel {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+}
+
+.tiermint-account-dashboard__panel-title {
+	margin: 0;
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+.tiermint-account-dashboard__empty {
+	margin: 0;
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-account-dashboard__orders {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-4);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Stack the parts of the shared card. */
+.tiermint-account-dashboard__order {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+}
+
+.tiermint-account-dashboard__order-header {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-space-2) var(--tiermint-space-3);
+	align-items: center;
+}
+
+.tiermint-account-dashboard__order-ref {
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+.tiermint-account-dashboard__order-date {
+	color: var(--tiermint-color-text-muted);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+/* Place the shared status badge at the end of the header. */
+.tiermint-account-dashboard__order-status {
+	margin-inline-start: auto;
+}
+
+.tiermint-account-dashboard__order-status--completed {
+	background-color: var(--tiermint-color-success-bg);
+	color: var(--tiermint-color-success);
+}
+
+.tiermint-account-dashboard__order-status--partially_refunded {
+	background-color: var(--tiermint-color-error-bg);
+	color: var(--tiermint-color-error);
+}
+
+.tiermint-account-dashboard__order-items {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-1);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tiermint-account-dashboard__order-item {
+	display: flex;
+	gap: var(--tiermint-space-2);
+	align-items: baseline;
+	justify-content: space-between;
+}
+
+.tiermint-account-dashboard__order-item-qty {
+	color: var(--tiermint-color-text-muted);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+.tiermint-account-dashboard__order-total {
+	margin: 0;
+	padding-block-start: var(--tiermint-space-3);
+	border-top: 1px solid var(--tiermint-color-border);
+	font-weight: var(--tiermint-font-weight-semibold);
+	text-align: right;
+}
+
+/* Use vertical tabs in narrow containers. */
+@container (max-width: 30rem) {
+	.tiermint-account-dashboard__tablist {
+		--tiermint-account-orientation: vertical;
+		flex-direction: column;
+		gap: 0;
+		border-bottom: 0;
+	}
+
+	.tiermint-account-dashboard__tab {
+		padding: var(--tiermint-space-3) var(--tiermint-space-3);
+		margin-block-end: 0;
+		border-bottom: 0;
+		border-inline-start: 2px solid var(--tiermint-color-border);
+	}
+
+	.tiermint-component .tiermint-account-dashboard__tab[aria-selected="true"] {
+		border-inline-start-color: var(--tiermint-color-primary);
+		background-color: var(--tiermint-color-primary-soft);
+	}
+}
+
+@media (max-width: 30rem) {
+	.tiermint-account-dashboard__tablist {
+		--tiermint-account-orientation: vertical;
+		flex-direction: column;
+		gap: 0;
+		border-bottom: 0;
+	}
+
+	.tiermint-account-dashboard__tab {
+		padding: var(--tiermint-space-3) var(--tiermint-space-3);
+		margin-block-end: 0;
+		border-bottom: 0;
+		border-inline-start: 2px solid var(--tiermint-color-border);
+	}
+
+	.tiermint-component .tiermint-account-dashboard__tab[aria-selected="true"] {
+		border-inline-start-color: var(--tiermint-color-primary);
+		background-color: var(--tiermint-color-primary-soft);
+	}
+}
+
+/* A wide container uses a sidebar. Viewport width is not enough. */
+@container (min-width: 48rem) {
+	.tiermint-account-dashboard__tabs {
+		display: grid;
+		grid-template-columns: 240px minmax(0, 1fr);
+		gap: var(--tiermint-space-6);
+		align-items: start;
+	}
+
+	.tiermint-account-dashboard__tablist {
+		--tiermint-account-orientation: vertical;
+		grid-column: 1;
+		grid-row: 1;
+		align-self: start;
+		position: sticky;
+		top: var(--tiermint-space-5);
+		flex-direction: column;
+		flex-wrap: nowrap;
+		gap: var(--tiermint-space-1);
+		border-bottom: 0;
+	}
+
+	.tiermint-account-dashboard__tab {
+		display: block;
+		padding: var(--tiermint-space-3) var(--tiermint-space-4);
+		margin-block-end: 0;
+		border-bottom: 0;
+		border-inline-start: 2px solid var(--tiermint-color-border);
+		border-start-end-radius: var(--tiermint-radius);
+		border-end-end-radius: var(--tiermint-radius);
+	}
+
+	.tiermint-component .tiermint-account-dashboard__tab[aria-selected="true"] {
+		border-inline-start-color: var(--tiermint-color-primary);
+		background-color: var(--tiermint-color-primary-soft);
+	}
+
+	/* Allow wide child content to shrink inside the grid track. */
+	.tiermint-account-dashboard__panel {
+		grid-column: 2;
+		min-width: 0;
+	}
+}

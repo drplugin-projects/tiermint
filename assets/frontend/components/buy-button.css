@@ -1,0 +1,23 @@
+/**
+ * Buy button styles.
+ */
+
+.tiermint-buy-button {
+	display: inline-block;
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-base);
+}
+
+.tiermint-buy-button__form {
+	margin: 0;
+}
+
+.tiermint-buy-button__button {
+	align-items: baseline;
+}
+
+.tiermint-buy-button__price {
+	font-weight: var(--tiermint-font-weight-medium);
+	font-size: var(--tiermint-font-size-sm);
+	opacity: 0.9;
+}

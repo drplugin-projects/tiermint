@@ -1,0 +1,15 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tiermint/registration-form",
+	"title": "Registration Form",
+	"category": "tiermint",
+	"icon": "id-alt",
+	"description": "An account registration form. Customers set their password from an emailed link.",
+	"keywords": [ "register", "sign up", "account", "tiermint" ],
+	"textdomain": "tiermint",
+	"supports": {
+		"html": false
+	},
+	"render": "file:./render.php"
+}

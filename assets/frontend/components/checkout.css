@@ -1,0 +1,626 @@
+/**
+ * Checkout component styles.
+ */
+
+/* Use container width for the column layout. */
+.tiermint-checkout {
+	container-type: inline-size;
+	color: var(--tiermint-color-text);
+}
+
+/* Centre the checkout cards with a width cap. */
+.tiermint-checkout__inner {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-5);
+	max-width: 40rem;
+	margin-inline: auto;
+}
+
+/* Widen only when both checkout columns render. */
+.tiermint-checkout--two-column .tiermint-checkout__inner:has( .tiermint-checkout__columns ) {
+	max-width: 72rem;
+}
+
+/* Show the summary first on narrow screens. */
+.tiermint-checkout__columns {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-5);
+}
+
+.tiermint-checkout__columns > .tiermint-checkout__aside {
+	order: -1;
+}
+
+/* Keep the form cards evenly spaced. */
+.tiermint-checkout__main {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-5);
+}
+
+/* Keep summary cards evenly spaced. */
+.tiermint-checkout__aside {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-5);
+}
+
+/* Use a fixed, sticky summary column when space allows. */
+@container (min-width: 48rem) {
+	.tiermint-checkout--two-column .tiermint-checkout__columns {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 340px;
+		align-items: start;
+		gap: var(--tiermint-space-6);
+	}
+
+	.tiermint-checkout--two-column .tiermint-checkout__columns > .tiermint-checkout__aside {
+		position: sticky;
+		top: var(--tiermint-space-5);
+		order: 0;
+	}
+
+	.tiermint-checkout--two-column .tiermint-checkout__aside .tiermint-checkout__summary {
+		box-shadow: var(--tiermint-shadow-md);
+	}
+}
+
+.tiermint-checkout__title {
+	margin: 0;
+	font-size: var(--tiermint-font-size-xl);
+	font-weight: var(--tiermint-font-weight-semibold);
+	line-height: var(--tiermint-line-height-tight);
+}
+
+.tiermint-checkout__renewal {
+	display: grid;
+	gap: var(--tiermint-space-2);
+	padding: var(--tiermint-space-4);
+	border: 1px solid var(--tiermint-color-info-bg);
+	border-inline-start: 3px solid var(--tiermint-color-info);
+	border-radius: var(--tiermint-radius);
+	background-color: var(--tiermint-color-info-bg);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+.tiermint-checkout__renewal p {
+	margin: 0;
+}
+
+.tiermint-checkout__renewal form {
+	margin: 0;
+}
+
+/* Order summary ------------------------------------------------------- */
+.tiermint-checkout__summary {
+	padding: 0;
+	overflow: hidden;
+	background-color: var(--tiermint-color-surface-alt);
+}
+
+.tiermint-checkout__summary h3 {
+	margin: 0;
+	padding: var(--tiermint-space-4) var(--tiermint-space-5);
+	border-bottom: 1px solid var(--tiermint-color-border);
+	background-color: var(--tiermint-color-surface);
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+	line-height: var(--tiermint-line-height-tight);
+}
+
+.tiermint-checkout__lines {
+	display: grid;
+	gap: var(--tiermint-space-3);
+	margin: 0;
+	padding: var(--tiermint-space-4) var(--tiermint-space-5) 0;
+	list-style: none;
+}
+
+.tiermint-checkout__line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--tiermint-space-1) var(--tiermint-space-3);
+}
+
+/* Let long product names wrap without moving amounts. */
+.tiermint-checkout__line-name {
+	flex: 1 1 0;
+	min-width: 0;
+	font-weight: var(--tiermint-font-weight-medium);
+}
+
+/* Put tier details below the product line. */
+.tiermint-checkout__line-meta {
+	flex: 1 1 100%;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-1);
+}
+
+.tiermint-checkout__line-meta-item {
+	font-size: var(--tiermint-font-size-xs);
+	line-height: var(--tiermint-line-height-tight);
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-checkout__line-tier {
+	display: block;
+	color: var(--tiermint-color-text-muted);
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-medium);
+}
+
+.tiermint-checkout__line-qty {
+	flex: 0 0 auto;
+}
+
+.tiermint-checkout__line-amount {
+	flex: 0 0 auto;
+	font-weight: var(--tiermint-font-weight-semibold);
+	text-align: right;
+}
+
+/* Put editable line controls below the product details. */
+.tiermint-checkout__line--editable .tiermint-cart-line-controls {
+	flex: 1 1 100%;
+	justify-content: flex-start;
+}
+
+/* Align tax values without adding the total divider. */
+.tiermint-checkout__tax {
+	display: flex;
+	justify-content: space-between;
+	margin: var(--tiermint-space-3) 0 0;
+	padding: 0 var(--tiermint-space-5);
+	color: var(--tiermint-color-text-muted);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+/* Align the applied discount with the tax row. */
+.tiermint-checkout__discount-line {
+	display: flex;
+	justify-content: space-between;
+	margin: var(--tiermint-space-3) 0 0;
+	padding: 0 var(--tiermint-space-5);
+	color: var(--tiermint-color-success);
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+.tiermint-checkout__total {
+	display: flex;
+	justify-content: space-between;
+	margin: var(--tiermint-space-4) 0 0;
+	padding: var(--tiermint-space-4) var(--tiermint-space-5);
+	border-top: 1px solid var(--tiermint-color-border);
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-bold);
+}
+
+/* Keep the total close to the tax row. */
+.tiermint-checkout__tax + .tiermint-checkout__total {
+	margin-top: var(--tiermint-space-3);
+}
+
+/* Discount section ---------------------------------------------------- */
+
+/* Keep the discount card compact. */
+.tiermint-checkout__discount {
+	padding: var(--tiermint-space-5);
+}
+
+/* Keep no-JS discount forms out of layout. */
+.tiermint-checkout__discount-apply-form,
+.tiermint-checkout__discount-remove-form {
+	display: contents;
+}
+
+/* Let the discount input fill the row. */
+.tiermint-checkout__discount-row {
+	display: flex;
+	gap: var(--tiermint-space-2);
+	align-items: stretch;
+}
+
+.tiermint-checkout__discount-row .tiermint-input {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.tiermint-checkout__discount-apply {
+	flex: 0 0 auto;
+}
+
+/* Show the applied code in a compact chip. */
+.tiermint-checkout__discount-chip {
+	display: flex;
+	align-items: center;
+	gap: var(--tiermint-space-3);
+	padding: var(--tiermint-space-2) var(--tiermint-space-2) var(--tiermint-space-2) var(--tiermint-space-4);
+	border: 1px solid var(--tiermint-color-primary);
+	border-radius: var(--tiermint-radius);
+	background-color: var(--tiermint-color-primary-soft);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+.tiermint-checkout__discount-chip-label {
+	flex: 1 1 auto;
+	font-weight: var(--tiermint-font-weight-medium);
+}
+
+.tiermint-checkout__discount-remove {
+	flex: 0 0 auto;
+}
+
+/* Show a busy indicator during discount updates. */
+.tiermint-checkout__discount .tiermint-button.is-busy {
+	position: relative;
+	color: transparent;
+	pointer-events: none;
+}
+
+.tiermint-checkout__discount .tiermint-button.is-busy::after {
+	content: "";
+	position: absolute;
+	inset-block-start: 50%;
+	inset-inline-start: 50%;
+	inline-size: 1rem;
+	block-size: 1rem;
+	margin: -0.5rem 0 0 -0.5rem;
+	border: 2px solid var(--tiermint-color-primary);
+	border-block-start-color: transparent;
+	border-radius: 50%;
+	animation: tiermint-checkout-spin 0.6s linear infinite;
+}
+
+@keyframes tiermint-checkout-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* Show refused-code errors below the input. */
+.tiermint-checkout__discount-error {
+	margin: var(--tiermint-space-2) 0 0;
+	color: var(--tiermint-color-error);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+/* Explain the no-JS discount flow. */
+.tiermint-checkout__discount-note {
+	margin: var(--tiermint-space-3) 0 0;
+	color: var(--tiermint-color-text-muted);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+/* Login panel --------------------------------------------------------- */
+
+/* Style the account disclosure as an information banner. */
+.tiermint-checkout__login {
+	padding: 0;
+	overflow: hidden;
+	border-color: var(--tiermint-color-info-bg);
+	background-color: var(--tiermint-color-info-bg);
+}
+
+.tiermint-checkout__login-toggle {
+	display: flex;
+	align-items: center;
+	gap: var(--tiermint-space-2);
+	padding: var(--tiermint-space-4) var(--tiermint-space-5);
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-medium);
+	list-style: none;
+	cursor: pointer;
+}
+
+/* Replace the browser marker with a CSS caret. */
+.tiermint-checkout__login-toggle::-webkit-details-marker {
+	display: none;
+}
+
+/* Push the login call to action beside the caret. */
+.tiermint-checkout__login-cta {
+	margin-inline-start: auto;
+	color: var(--tiermint-color-primary);
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+.tiermint-checkout__login-toggle::after {
+	content: "";
+	inline-size: 0.5rem;
+	block-size: 0.5rem;
+	border-right: 2px solid var(--tiermint-color-primary);
+	border-bottom: 2px solid var(--tiermint-color-primary);
+	transform: rotate(45deg);
+	transition: transform 0.15s ease;
+}
+
+.tiermint-checkout__login[open] .tiermint-checkout__login-toggle::after {
+	transform: rotate(-135deg);
+}
+
+.tiermint-checkout__login-toggle:focus-visible {
+	outline-offset: -3px;
+}
+
+.tiermint-checkout__login-body {
+	padding: 0 var(--tiermint-space-5) var(--tiermint-space-5);
+}
+
+/* Remove the nested login card frame. */
+.tiermint-checkout__login .tiermint-login-form__card {
+	max-width: none;
+	margin-inline: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background-color: transparent;
+	box-shadow: none;
+}
+
+/* Expand the banner when login is required. */
+.tiermint-checkout__login--required {
+	display: grid;
+	gap: var(--tiermint-space-3);
+	padding: var(--tiermint-space-5);
+}
+
+.tiermint-checkout__login--required p {
+	margin: 0;
+	font-size: var(--tiermint-font-size-sm);
+}
+
+.tiermint-checkout__login-heading {
+	margin: 0;
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+	line-height: var(--tiermint-line-height-tight);
+}
+
+/* Form ---------------------------------------------------------------- */
+.tiermint-checkout__form {
+	display: grid;
+	gap: var(--tiermint-space-6);
+}
+
+.tiermint-checkout__section {
+	display: grid;
+	gap: var(--tiermint-space-5);
+}
+
+.tiermint-checkout__section-label {
+	margin: 0;
+	color: var(--tiermint-color-text-subtle);
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-semibold);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.tiermint-checkout__field {
+	display: grid;
+	gap: var(--tiermint-space-2);
+	margin: 0;
+}
+
+/* Keep checkbox controls at their natural width. */
+.tiermint-checkout__field--extra input[type='checkbox'] {
+	justify-self: start;
+	width: auto;
+	padding: 0;
+}
+
+.tiermint-checkout__help {
+	margin: 0;
+	color: var(--tiermint-color-text-subtle);
+	font-size: var(--tiermint-font-size-xs);
+}
+
+.tiermint-checkout__address {
+	display: grid;
+	gap: var(--tiermint-space-5);
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.tiermint-checkout__address legend {
+	padding: 0;
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-medium);
+}
+
+/* Hide company fields only where :has is supported. */
+.tiermint-checkout__company-check {
+	display: flex;
+	align-items: center;
+	gap: var(--tiermint-space-3);
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-medium);
+}
+
+.tiermint-checkout__company-check input[type='checkbox'] {
+	flex: 0 0 auto;
+	width: auto;
+	margin: 0;
+}
+
+.tiermint-checkout__company-fields {
+	display: grid;
+	gap: var(--tiermint-space-5);
+}
+
+.tiermint-checkout__section:has(#tiermint-checkout-company-toggle:not(:checked)) .tiermint-checkout__company-fields {
+	display: none;
+}
+
+/* Keep terms controls and labels on one line. */
+.tiermint-checkout__terms {
+	display: flex;
+	align-items: center;
+	gap: var(--tiermint-space-3);
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-medium);
+}
+
+.tiermint-checkout__terms input[type='checkbox'] {
+	flex: 0 0 auto;
+	width: auto;
+	margin: 0;
+}
+
+/* Use card-style payment method rows. */
+.tiermint-checkout__gateways {
+	display: grid;
+	gap: var(--tiermint-space-3);
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.tiermint-checkout__gateways legend {
+	margin-block-end: var(--tiermint-space-3);
+	padding: 0;
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-medium);
+}
+
+.tiermint-checkout__gateway-choice {
+	display: flex;
+	align-items: center;
+	gap: var(--tiermint-space-3);
+	padding: var(--tiermint-space-4);
+	border: 1px solid var(--tiermint-color-border-strong);
+	border-radius: var(--tiermint-radius);
+	background-color: var(--tiermint-color-surface);
+	font-size: var(--tiermint-font-size-sm);
+	cursor: pointer;
+}
+
+.tiermint-checkout__gateway-choice:hover {
+	border-color: var(--tiermint-color-primary);
+}
+
+/* Highlight the selected gateway where :has is supported. */
+.tiermint-checkout__gateway-choice:has(input:checked) {
+	border-color: var(--tiermint-color-primary);
+	background-color: var(--tiermint-color-primary-soft);
+}
+
+.tiermint-checkout__gateway-choice input[type='radio'] {
+	accent-color: var(--tiermint-color-primary);
+}
+
+.tiermint-checkout__gateway {
+	display: grid;
+	gap: var(--tiermint-space-4);
+}
+
+.tiermint-checkout__payment {
+	display: block;
+}
+
+.tiermint-checkout__submit {
+	width: 100%;
+	min-height: 3rem;
+	font-size: var(--tiermint-font-size-base);
+}
+
+.tiermint-checkout__secure {
+	margin: 0;
+	color: var(--tiermint-color-text-subtle);
+	font-size: var(--tiermint-font-size-xs);
+	text-align: center;
+}
+
+.tiermint-checkout__form--busy .tiermint-checkout__submit {
+	opacity: 0.6;
+	cursor: wait;
+}
+
+/* Style the message region only when it has content. */
+.tiermint-checkout__errors:not(:empty) {
+	padding: var(--tiermint-space-4);
+	border: 1px solid var(--tiermint-color-error-bg);
+	border-inline-start: 3px solid var(--tiermint-color-error);
+	border-radius: var(--tiermint-radius);
+	background-color: var(--tiermint-color-error-bg);
+	color: var(--tiermint-color-error);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+/* Use information colours for quote notices. */
+.tiermint-checkout__errors--notice:not(:empty) {
+	border-color: var(--tiermint-color-info-bg);
+	border-inline-start-color: var(--tiermint-color-info);
+	background-color: var(--tiermint-color-info-bg);
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-checkout__unavailable,
+.tiermint-checkout__empty {
+	margin: 0;
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-checkout__noscript {
+	margin: 0;
+	padding: var(--tiermint-space-4);
+	border-radius: var(--tiermint-radius);
+	background-color: var(--tiermint-color-warning-bg);
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+/* Mark confirmation as a success state. */
+.tiermint-checkout__confirmation {
+	display: grid;
+	gap: var(--tiermint-space-2);
+	border-inline-start: 3px solid var(--tiermint-color-success);
+}
+
+.tiermint-checkout__confirmation h3 {
+	margin: 0;
+	color: var(--tiermint-color-success);
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+.tiermint-checkout__confirmation-status {
+	margin: 0;
+	color: var(--tiermint-color-text-muted);
+}
+
+/* Remove default margins inside advisory banners. */
+.tiermint-checkout__notice p,
+.tiermint-checkout__account-notice p,
+.tiermint-checkout__cart-error p {
+	margin: 0;
+}
+
+@media (max-width: 480px) {
+	.tiermint-checkout__summary h3,
+	.tiermint-checkout__lines,
+	.tiermint-checkout__tax,
+	.tiermint-checkout__total {
+		padding-inline: var(--tiermint-space-4);
+	}
+
+	.tiermint-checkout__login-toggle {
+		padding-inline: var(--tiermint-space-4);
+	}
+
+	.tiermint-checkout__login-body {
+		padding-inline: var(--tiermint-space-4);
+	}
+}

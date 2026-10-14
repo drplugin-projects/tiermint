@@ -1,0 +1,15 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tiermint/buy-button",
+	"title": "Buy Button",
+	"category": "tiermint",
+	"icon": "products",
+	"description": "A buy-now button for one product tier that adds it to the cart.",
+	"keywords": [ "buy", "purchase", "add to cart", "tiermint" ],
+	"textdomain": "tiermint",
+	"supports": {
+		"html": false
+	},
+	"render": "file:./render.php"
+}

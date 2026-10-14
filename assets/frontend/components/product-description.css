@@ -1,0 +1,8 @@
+/**
+ * Product description styles.
+ */
+
+.tiermint-product-description {
+	font-size: var(--tiermint-font-size-base);
+	color: var(--tiermint-color-text);
+}

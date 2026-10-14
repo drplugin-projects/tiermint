@@ -1,0 +1,15 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tiermint/product-images",
+	"title": "Product Image",
+	"category": "tiermint",
+	"icon": "format-image",
+	"description": "A product's main image, shown at a responsive size.",
+	"keywords": [ "product", "image", "media", "tiermint" ],
+	"textdomain": "tiermint",
+	"supports": {
+		"html": false
+	},
+	"render": "file:./render.php"
+}

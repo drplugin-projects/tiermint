@@ -1,0 +1,275 @@
+/**
+ * Product details styles.
+ */
+
+.tiermint-product-details {
+	container-type: inline-size;
+	color: var(--tiermint-color-text);
+}
+
+/* Keep product sections aligned in the block width. */
+.tiermint-product-details__inner {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-7);
+}
+
+/* Stack media before purchase details by default. */
+.tiermint-product-details__columns {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-6);
+}
+
+.tiermint-product-details__media {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-5);
+	margin: 0;
+}
+
+.tiermint-product-details__buy {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-5);
+}
+
+/* Use two columns only when both tracks fit. */
+@container (min-width: 62rem) {
+	.tiermint-product-details--two-column .tiermint-product-details__columns:has(.tiermint-product-details__media) {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 480px;
+		align-items: start;
+		gap: var(--tiermint-space-6);
+	}
+
+	.tiermint-product-details--two-column .tiermint-product-details__columns:has(.tiermint-product-details__media) > .tiermint-product-details__buy {
+		position: sticky;
+		top: var(--tiermint-space-5);
+	}
+}
+
+/* Keep media thumbnails compact below the main image. */
+.tiermint-product-details__media .tiermint-product-screenshots__grid {
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 8rem), 1fr));
+}
+
+.tiermint-product-details__main-image {
+	margin: 0;
+}
+
+.tiermint-product-details__main-image img {
+	display: block;
+	width: 100%;
+	height: auto;
+	border: 1px solid var(--tiermint-color-border);
+	border-radius: var(--tiermint-radius-lg);
+}
+
+.tiermint-product-details__name {
+	margin: 0;
+	font-size: var(--tiermint-font-size-2xl);
+	font-weight: var(--tiermint-font-weight-bold);
+	line-height: var(--tiermint-line-height-tight);
+	color: var(--tiermint-color-text);
+}
+
+.tiermint-product-details__overview {
+	font-size: var(--tiermint-font-size-lg);
+	line-height: var(--tiermint-line-height-base);
+	color: var(--tiermint-color-text-muted);
+}
+
+/* Group purchase controls in one card. */
+.tiermint-product-details__purchase {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-5);
+	padding: var(--tiermint-space-6);
+	border: 1px solid var(--tiermint-color-border);
+	border-radius: var(--tiermint-radius-lg);
+	background-color: var(--tiermint-color-surface-raised);
+	box-shadow: var(--tiermint-shadow-sm);
+}
+
+.tiermint-product-details__tiers {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.tiermint-product-details__tiers-legend {
+	margin-block-end: var(--tiermint-space-1);
+	padding: 0;
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-medium);
+	color: var(--tiermint-color-text-muted);
+}
+
+/* Highlight the selected tier without script. */
+.tiermint-product-details__tier {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: var(--tiermint-space-1) var(--tiermint-space-3);
+	align-items: center;
+	padding: var(--tiermint-space-4);
+	border: 1px solid var(--tiermint-color-border-strong);
+	border-radius: var(--tiermint-radius);
+	background-color: var(--tiermint-color-surface);
+	cursor: pointer;
+	position: relative;
+	transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.tiermint-product-details__tier:hover {
+	border-color: var(--tiermint-color-primary);
+}
+
+.tiermint-product-details__tier:has(input:checked) {
+	border-color: var(--tiermint-color-primary);
+	background-color: var(--tiermint-color-primary-soft);
+}
+
+/* Keep the radio above the card overlay. */
+.tiermint-product-details__tier > input[type="radio"] {
+	grid-column: 1;
+	grid-row: 1;
+	position: relative;
+	z-index: 1;
+}
+
+/* Extend the label hit area without changing its accessible name. */
+.tiermint-product-details__tier-label {
+	grid-column: 2;
+	grid-row: 1;
+	display: flex;
+	align-items: baseline;
+	gap: var(--tiermint-space-3);
+	cursor: pointer;
+}
+
+.tiermint-product-details__tier-label::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+}
+
+.tiermint-product-details__tier-name {
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+.tiermint-product-details__tier-price {
+	margin-inline-start: auto;
+	font-weight: var(--tiermint-font-weight-semibold);
+	color: var(--tiermint-color-text);
+}
+
+/* Place tier details below the plan name. */
+.tiermint-product-details__tier-meta {
+	grid-column: 2;
+	grid-row: 2;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-1);
+}
+
+.tiermint-product-details__price + .tiermint-product-details__tier-meta {
+	margin-top: calc(var(--tiermint-space-2) - var(--tiermint-space-5));
+}
+
+.tiermint-product-details__tier-meta-item {
+	font-size: var(--tiermint-font-size-xs);
+	line-height: var(--tiermint-line-height-tight);
+	color: var(--tiermint-color-text-muted);
+}
+
+/* Emphasise the single-tier price. */
+.tiermint-product-details__price {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--tiermint-space-3);
+	margin: 0;
+}
+
+.tiermint-product-details__price .tiermint-product-details__tier-name {
+	font-size: var(--tiermint-font-size-base);
+	font-weight: var(--tiermint-font-weight-medium);
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-product-details__price .tiermint-product-details__tier-price {
+	margin-inline-start: 0;
+	font-size: var(--tiermint-font-size-2xl);
+	font-weight: var(--tiermint-font-weight-bold);
+}
+
+.tiermint-product-details__quantity {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-1);
+	max-width: 8rem;
+}
+
+/* Show fixed quantities as text. */
+.tiermint-product-details__quantity-fixed {
+	display: flex;
+	align-items: baseline;
+	gap: var(--tiermint-space-2);
+	margin: 0;
+	font-size: var(--tiermint-font-size-sm);
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-product-details__quantity-fixed-value {
+	font-weight: var(--tiermint-font-weight-semibold);
+	color: var(--tiermint-color-text);
+}
+
+.tiermint-product-details__quantity-label {
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-medium);
+	color: var(--tiermint-color-text-muted);
+}
+
+/* Fill the purchase card with the shared button. */
+.tiermint-product-details__add {
+	align-self: stretch;
+}
+
+.tiermint-product-details__description {
+	font-size: var(--tiermint-font-size-base);
+	line-height: var(--tiermint-line-height-base);
+	color: var(--tiermint-color-text);
+}
+
+/* Keep content headings below the product name. */
+.tiermint-product-details__overview :is(h1, h2, h3, h4, h5, h6),
+.tiermint-product-details__description :is(h1, h2, h3, h4, h5, h6) {
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+	line-height: var(--tiermint-line-height-tight);
+	color: var(--tiermint-color-text);
+	margin: var(--tiermint-space-5) 0 var(--tiermint-space-2);
+}
+
+.tiermint-product-details__overview > :first-child,
+.tiermint-product-details__description > :first-child {
+	margin-top: 0;
+}
+
+.tiermint-product-details--placeholder {
+	display: block;
+	padding: var(--tiermint-space-6);
+	color: var(--tiermint-color-text-muted);
+	text-align: center;
+	background-color: var(--tiermint-color-surface-alt);
+	border: 1px solid var(--tiermint-color-border);
+	border-radius: var(--tiermint-radius-lg);
+}

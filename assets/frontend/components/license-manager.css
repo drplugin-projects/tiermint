@@ -1,0 +1,176 @@
+/**
+ * License manager styles.
+ */
+
+.tiermint-license-manager {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-4);
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-base);
+}
+
+.tiermint-license-manager__title {
+	margin: 0;
+	font-size: var(--tiermint-font-size-xl);
+	font-weight: var(--tiermint-font-weight-semibold);
+	line-height: var(--tiermint-line-height-tight);
+}
+
+.tiermint-license-manager__feedback {
+	color: var(--tiermint-color-error);
+	font-size: var(--tiermint-font-size-sm);
+	min-height: 1.25em;
+}
+
+.tiermint-license-manager__empty,
+.tiermint-license-manager__prompt {
+	color: var(--tiermint-color-text-muted);
+}
+
+.tiermint-license-manager__list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-4);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tiermint-license-manager__card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-4);
+	padding: var(--tiermint-space-5);
+	border: 1px solid var(--tiermint-color-border);
+	border-radius: var(--tiermint-radius-lg);
+	background-color: var(--tiermint-color-surface-raised);
+	box-shadow: var(--tiermint-shadow-sm);
+}
+
+.tiermint-license-manager__header {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-space-2);
+	align-items: center;
+	justify-content: space-between;
+}
+
+.tiermint-license-manager__product {
+	font-size: var(--tiermint-font-size-lg);
+	font-weight: var(--tiermint-font-weight-semibold);
+}
+
+/* Set badge colours for each license state. */
+.tiermint-license-manager__status--active {
+	background-color: var(--tiermint-color-success-bg);
+	color: var(--tiermint-color-success);
+}
+
+.tiermint-license-manager__status--expired,
+.tiermint-license-manager__status--disabled {
+	background-color: var(--tiermint-color-error-bg);
+	color: var(--tiermint-color-error);
+}
+
+.tiermint-license-manager__key-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-space-2);
+	align-items: center;
+	margin: 0;
+}
+
+.tiermint-license-manager__key-label {
+	color: var(--tiermint-color-text-muted);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+.tiermint-license-manager__key {
+	padding: var(--tiermint-space-1) var(--tiermint-space-2);
+	border-radius: var(--tiermint-radius-sm);
+	background-color: var(--tiermint-color-surface-alt);
+	font-family: monospace;
+	word-break: break-all;
+}
+
+.tiermint-license-manager__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-space-5);
+	margin: 0;
+}
+
+.tiermint-license-manager__meta-item dt {
+	color: var(--tiermint-color-text-muted);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+.tiermint-license-manager__meta-item dd {
+	margin: 0;
+	font-weight: var(--tiermint-font-weight-medium);
+}
+
+.tiermint-license-manager__usage {
+	display: inline-flex;
+	gap: var(--tiermint-space-1);
+}
+
+.tiermint-license-manager__activations {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-3);
+	padding-top: var(--tiermint-space-4);
+	border-top: 1px solid var(--tiermint-color-border);
+}
+
+.tiermint-license-manager__sites {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tiermint-space-2);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tiermint-license-manager__site {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-space-2);
+	align-items: center;
+	justify-content: space-between;
+}
+
+.tiermint-license-manager__site-url {
+	word-break: break-all;
+}
+
+.tiermint-license-manager__no-sites {
+	margin: 0;
+	color: var(--tiermint-color-text-muted);
+	font-size: var(--tiermint-font-size-sm);
+}
+
+.tiermint-license-manager__activate-form {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--tiermint-space-2) var(--tiermint-space-3);
+	align-items: flex-end;
+}
+
+.tiermint-license-manager__activate-label {
+	flex-basis: 100%;
+	color: var(--tiermint-color-text);
+	font-size: var(--tiermint-font-size-sm);
+	font-weight: var(--tiermint-font-weight-medium);
+}
+
+.tiermint-license-manager__activate-input {
+	flex: 1 1 16rem;
+}
+
+/* Show progress while the request runs. */
+.tiermint-component .tiermint-license-manager__activate[disabled],
+.tiermint-component .tiermint-license-manager__deactivate[disabled] {
+	cursor: wait;
+}
