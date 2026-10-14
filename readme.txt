@@ -1,4 +1,4 @@
-=== TierMint: Digital Downloads and Software Licensing ===
+=== TierMint ===
 Contributors: drplugin
 Tags: digital downloads, sell digital products, software licensing, license keys, stripe
 Requires at least: 6.6
