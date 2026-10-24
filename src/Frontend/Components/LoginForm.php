@@ -116,6 +116,14 @@ class LoginForm extends AbstractComponent {
 			)
 		);
 
+		// The template's kses pass removes script and style tags but keeps their code as text.
+		$stripped = preg_replace( '#<(script|style)(?=[\s/>])[^>]*>.*?</\1(?=[\s/>])[^>]*>#is', '', $loginForm );
+
+		// On a regex failure keep the form; kses still removes the tags.
+		if ( null !== $stripped ) {
+			$loginForm = $stripped;
+		}
+
 		return $this->renderTemplate(
 			array(
 				'logged_in'        => false,
@@ -161,8 +169,8 @@ class LoginForm extends AbstractComponent {
 			return esc_url_raw( $redirectAttr );
 		}
 
-		$requested = isset( $_GET['redirect_to'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only seed of the login redirect, validated below against the site's own hosts.
-			? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- esc_url_raw sanitizes; wp_validate_redirect rejects foreign hosts.
+		$requested = isset( $_GET['redirect_to'] ) && is_string( $_GET['redirect_to'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only seed of the login redirect, validated below against the site's own hosts.
+			? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- wp_validate_redirect rejects foreign hosts.
 			: '';
 
 		if ( '' !== $requested ) {
@@ -204,7 +212,7 @@ class LoginForm extends AbstractComponent {
 	/**
 	 * The lost-password URL: the branded reset page when published, else wp-login.
 	 *
-	 * Page-gated, not toggle-gated, like the register link.
+	 * It ignores the replace_wp_login toggle.
 	 *
 	 * @return string
 	 */

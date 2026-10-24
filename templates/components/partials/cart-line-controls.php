@@ -52,7 +52,7 @@ $tiermint_lc_id      = (string) ( $tiermint_line_controls['id'] ?? ( $tiermint_l
 					max="<?php echo esc_attr( (string) $tiermint_lc_max ); ?>"
 				<?php endif; ?>
 			>
-			<?php echo wp_nonce_field( \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_ACTION, \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_FIELD, true, false ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_nonce_field() returns escaped markup. ?>
+			<?php wp_nonce_field( \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_ACTION, \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_FIELD ); ?>
 			<button type="submit" class="tiermint-cart-line-controls__update tiermint-button tiermint-button--secondary tiermint-button--small"><?php echo esc_html__( 'Update', 'tiermint' ); ?></button>
 		</form>
 	<?php endif; ?>
@@ -60,7 +60,7 @@ $tiermint_lc_id      = (string) ( $tiermint_line_controls['id'] ?? ( $tiermint_l
 		<input type="hidden" name="tiermint_cart_action" value="remove">
 		<input type="hidden" name="product_id" value="<?php echo esc_attr( (string) $tiermint_lc_product ); ?>">
 		<input type="hidden" name="price_id" value="<?php echo esc_attr( (string) $tiermint_lc_price ); ?>">
-		<?php echo wp_nonce_field( \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_ACTION, \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_FIELD, true, false ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_nonce_field() returns escaped markup. ?>
+		<?php wp_nonce_field( \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_ACTION, \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_FIELD ); ?>
 		<button type="submit" class="tiermint-checkout__line-remove tiermint-button tiermint-button--danger tiermint-button--small"><?php echo esc_html__( 'Remove', 'tiermint' ); ?></button>
 	</form>
 </div>

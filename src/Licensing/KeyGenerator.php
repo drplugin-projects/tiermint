@@ -58,12 +58,12 @@ class KeyGenerator {
 		$key = (string) $key;
 
 		if ( '' === $key ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'A license key cannot be empty.', 'tiermint' ) );
 		}
 
 		if ( strlen( $key ) > self::MAX_KEY_LENGTH ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'A license key cannot be longer than 35 characters.', 'tiermint' ) );
 		}
 

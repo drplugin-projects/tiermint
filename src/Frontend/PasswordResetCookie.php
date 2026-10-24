@@ -136,7 +136,7 @@ class PasswordResetCookie {
 			return null;
 		}
 
-		$raw = (string) $_COOKIE[ $name ]; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Split into key and login below; the key is stripped to alphanumerics and the login is unslashed and then validated by check_password_reset_key.
+		$raw = sanitize_text_field( wp_unslash( $_COOKIE[ $name ] ) );
 
 		if ( false === strpos( $raw, ':' ) ) {
 			return null;
@@ -145,9 +145,19 @@ class PasswordResetCookie {
 		$parts = explode( ':', $raw, 2 );
 
 		return array(
-			'key'   => (string) preg_replace( '/[^A-Za-z0-9]/', '', $parts[0] ),
-			'login' => (string) wp_unslash( $parts[1] ),
+			'key'   => self::cleanKey( $parts[0] ),
+			'login' => $parts[1],
 		);
+	}
+
+	/**
+	 * Strip a reset key to letters and digits, as check_password_reset_key() does.
+	 *
+	 * @param string $key The key as received.
+	 * @return string
+	 */
+	public static function cleanKey( string $key ): string {
+		return (string) preg_replace( '/[^A-Za-z0-9]/', '', $key );
 	}
 
 	/**
@@ -206,7 +216,7 @@ class PasswordResetCookie {
 	 * @return string
 	 */
 	private function path(): string {
-		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Only the URL path is taken, via wp_parse_url, and used as the cookie path.
+		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
 
 		return '' !== $path ? $path : '/';

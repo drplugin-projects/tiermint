@@ -30,11 +30,6 @@ class BlockAttributes {
 		$attributes = array();
 
 		foreach ( $schema as $name => $definition ) {
-			// The reserved Pro gating bucket is not an attribute.
-			if ( 'pro' === $name ) {
-				continue;
-			}
-
 			$attributes[ $name ] = $this->definitionFor( $definition );
 		}
 

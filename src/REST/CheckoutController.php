@@ -118,6 +118,7 @@ final class CheckoutController extends AbstractRestController {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'intent' ),
+					// Public because guests check out; rate limited per client IP.
 					'permission_callback' => '__return_true',
 					'args'                => $this->intentArgs(),
 				),
@@ -131,6 +132,7 @@ final class CheckoutController extends AbstractRestController {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'quote' ),
+					// Public because guests see the totals before they pay; rate limited per client IP.
 					'permission_callback' => '__return_true',
 					'args'                => $this->quoteArgs(),
 				),
@@ -144,6 +146,7 @@ final class CheckoutController extends AbstractRestController {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'status' ),
+					// Public because the payment return page polls it; the order UUID cannot be guessed.
 					'permission_callback' => '__return_true',
 					'args'                => $this->uuidArgs(),
 				),
@@ -251,8 +254,9 @@ final class CheckoutController extends AbstractRestController {
 				// tax line without a second round trip. `amount` stays the grand total
 				// every existing client already reads and every gateway is charged.
 				'subtotal'        => $order->subtotal(),
-				// The shown gross reduction, matching the quote, so checkout.js
-				// reconciles. Not the order row's net share (gross mode).
+				// The reduction the buyer was shown, matching the quote, so checkout.js
+				// reconciles. It can differ from the stored line discounts when an
+				// extension rebased a line.
 				'discount_total'  => $this->displayedDiscountTotal( $breakdown ),
 				// The typed code's landed contribution (`{valid, code, label, amount}` or null)
 				// and the automatic discount's (`{label, amount}` or null), so the module reverts
@@ -270,9 +274,9 @@ final class CheckoutController extends AbstractRestController {
 				'notices'         => $notices,
 				'client_secret'   => $session->clientSecret(),
 				'publishable_key' => $session->publishableKey(),
-				// The gateway-side id (Stripe: the PaymentIntent; PayPal: the order/subscription
-				// id) and, for a redirect-based gateway (PayPal), the approval URL the
-				// browser navigates to. Null for in-page gateways such as Stripe.
+				// The gateway-side id (Stripe: the PaymentIntent) and, for a gateway that
+				// redirects the buyer, the approval URL the browser navigates to. Null for
+				// in-page gateways such as Stripe.
 				'transaction_id'  => $session->transactionId(),
 				'redirect_url'    => $session->redirectUrl(),
 			),
@@ -593,7 +597,7 @@ final class CheckoutController extends AbstractRestController {
 		// Re-assert what core collected, and only that: a country or VAT number
 		// core read from the buyer wins over a filter, but a value core did not
 		// collect (the toggles are off) is left to whatever the filter supplied,
-		// so Pro's tax engine still works on a site with the core toggles off.
+		// so a tax extension still works on a site with the core toggles off.
 		foreach ( array( 'billing_country', 'country', 'vat_number', 'billing_address' ) as $key ) {
 			if ( isset( $collected[ $key ] ) ) {
 				$sanitized[ $key ] = $collected[ $key ];
@@ -779,7 +783,7 @@ final class CheckoutController extends AbstractRestController {
 
 			// The tax ID follows the same rule: written only when the field is
 			// on and the buyer typed one, so an invoice can print a number no
-			// tax engine assessed (a GSTIN, an ABN).
+			// tax extension checked (a GSTIN, an ABN).
 			if ( $this->fields->collectVat() ) {
 				$taxId = $this->normalizeVat( (string) $request->get_param( 'vat_number' ) );
 
@@ -796,9 +800,9 @@ final class CheckoutController extends AbstractRestController {
 	}
 
 	/**
-	 * The gross discount the buyer sees, from the code and automatic amounts.
+	 * The discount the buyer sees, from the code and automatic amounts.
 	 *
-	 * The intent's `discount_total` in both modes, not the ledger's net share.
+	 * The intent's `discount_total`, which a rebased line can book lower.
 	 *
 	 * @since 1.0.0
 	 *
@@ -947,7 +951,7 @@ final class CheckoutController extends AbstractRestController {
 				'type'              => 'string',
 				'required'          => false,
 				// Bounded (a real VAT/tax id is under 20 chars) so an oversized
-				// value cannot bloat the order-meta a tax engine writes from it.
+				// value cannot bloat the order meta a tax extension writes from it.
 				'sanitize_callback' => static fn ( $value ): string => self::boundText( strtoupper( (string) preg_replace( '/[\s.\-]/', '', sanitize_text_field( (string) $value ) ) ), 64 ),
 			);
 		}

@@ -87,7 +87,7 @@ class LicenseValidationService {
 		} catch ( LicensePersistenceException $fault ) {
 			return $this->recallGrace( $licenseKey, $now ) ?? throw $fault;
 		} catch ( \DrPlugin\WP\TierMint\Products\ProductPersistenceException $fault ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			return $this->recallGrace( $licenseKey, $now ) ?? throw new LicensePersistenceException( 'Product read faulted during validation: ' . $fault->getMessage(), 0, $fault );
 		}
 	}

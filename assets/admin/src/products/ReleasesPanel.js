@@ -6,13 +6,12 @@
  * External dependencies
  */
 import { useState, useRef, useEffect } from '@wordpress/element';
-import { __, sprintf } from '@wordpress/i18n';
+import { __ } from '@wordpress/i18n';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
 	Button,
 	TextControl,
 	TextareaControl,
-	SelectControl,
 	Notice,
 } from '@wordpress/components';
 // Multipart uploads use api-fetch, not the JSON client.
@@ -22,12 +21,12 @@ import apiFetch from '@wordpress/api-fetch';
  * Internal dependencies
  */
 import { get, post, put, del, getFile, saveBlob } from '../api/client';
+import { useReleaseRowExtensions } from '../app/releaseRowExtensions';
 import EmptyState from '../components/EmptyState';
 import { SkeletonPanel } from '../components/Skeleton';
 import StatusBadge from '../components/StatusBadge';
 import { firstReadPending } from '../utils/listState';
 import { formatBytes } from '../utils/formatBytes';
-import { toInt } from './productForm';
 
 /**
  * Normalize errors from multipart requests.
@@ -119,31 +118,17 @@ function blankRelease() {
 		requires_wp: '',
 		tested_up_to: '',
 		requires_php: '',
-		channel: 'stable',
-		rollout_percent: 100,
 	};
 }
 
 /**
- * The channels a release may be published on, in containment order.
- *
- * @type {Array<{label: string, value: string}>}
- */
-const CHANNEL_OPTIONS = [
-	{ label: __( 'Stable', 'tiermint' ), value: 'stable' },
-	{ label: __( 'Release candidate', 'tiermint' ), value: 'rc' },
-	{ label: __( 'Beta', 'tiermint' ), value: 'beta' },
-];
-
-/**
  * Append the scalar release fields plus the package file to a FormData body.
  *
- * @param {Object}  form            The release form values.
- * @param {File}    file            The package zip.
- * @param {boolean} channelsEnabled Whether to send the channel and rollout fields.
+ * @param {Object} form The release form values.
+ * @param {File}   file The package zip.
  * @return {FormData} The multipart body.
  */
-function releaseFormData( form, file, channelsEnabled ) {
+function releaseFormData( form, file ) {
 	const body = new FormData();
 	// Let the browser set the multipart boundary.
 	body.append( 'package', file );
@@ -152,23 +137,21 @@ function releaseFormData( form, file, channelsEnabled ) {
 	body.append( 'requires_wp', form.requires_wp );
 	body.append( 'tested_up_to', form.tested_up_to );
 	body.append( 'requires_php', form.requires_php );
-	if ( channelsEnabled ) {
-		body.append( 'channel', form.channel );
-		body.append( 'rollout_percent', String( form.rollout_percent ) );
-	}
 	return body;
 }
 
 /**
  * Render the release list and editor.
  *
- * @param {Object}          props                 Component props.
- * @param {(number|string)} props.productId       The product whose releases to manage.
- * @param {boolean}         props.channelsEnabled Whether the channel/rollout controls show.
+ * Each release row also renders the components extensions registered.
+ *
+ * @param {Object}          props           Component props.
+ * @param {(number|string)} props.productId The product whose releases to manage.
  * @return {Element} The releases panel element.
  */
-export default function ReleasesPanel( { productId, channelsEnabled } ) {
+export default function ReleasesPanel( { productId } ) {
 	const queryClient = useQueryClient();
+	const extensions = useReleaseRowExtensions();
 	const base = `/products/${ productId }/releases`;
 	// apiFetch needs the plugin namespace for multipart requests.
 	const restBase = `/tiermint/v1${ base }`;
@@ -256,11 +239,7 @@ export default function ReleasesPanel( { productId, channelsEnabled } ) {
 				return await apiFetch( {
 					path: restBase,
 					method: 'POST',
-					body: releaseFormData(
-						upload,
-						uploadFile,
-						channelsEnabled
-					),
+					body: releaseFormData( upload, uploadFile ),
 				} );
 			} catch ( error ) {
 				throw readApiError( error );
@@ -289,11 +268,7 @@ export default function ReleasesPanel( { productId, channelsEnabled } ) {
 						path: `${ restBase }/${ editingId }`,
 						method: 'POST',
 						headers: { 'X-HTTP-Method-Override': 'PUT' },
-						body: releaseFormData(
-							editForm,
-							editFile,
-							channelsEnabled
-						),
+						body: releaseFormData( editForm, editFile ),
 					} );
 				} catch ( error ) {
 					throw readApiError( error );
@@ -308,10 +283,6 @@ export default function ReleasesPanel( { productId, channelsEnabled } ) {
 			};
 			if ( fully ) {
 				changes.version = editForm.version;
-			}
-			if ( channelsEnabled ) {
-				changes.channel = editForm.channel;
-				changes.rollout_percent = toInt( editForm.rollout_percent );
 			}
 			return put( `${ base }/${ editingId }`, changes );
 		},
@@ -382,11 +353,6 @@ export default function ReleasesPanel( { productId, channelsEnabled } ) {
 			requires_wp: release.requires_wp || '',
 			tested_up_to: release.tested_up_to || '',
 			requires_php: release.requires_php || '',
-			channel: release.channel || 'stable',
-			rollout_percent:
-				typeof release.rollout_percent === 'number'
-					? release.rollout_percent
-					: 100,
 		} );
 	};
 
@@ -579,42 +545,6 @@ export default function ReleasesPanel( { productId, channelsEnabled } ) {
 					} ) )
 				}
 			/>
-			{ channelsEnabled && (
-				<>
-					<SelectControl
-						__nextHasNoMarginBottom
-						__next40pxDefaultSize
-						label={ __( 'Channel', 'tiermint' ) }
-						value={ upload.channel }
-						options={ CHANNEL_OPTIONS }
-						onChange={ ( value ) =>
-							setUpload( ( prev ) => ( {
-								...prev,
-								channel: value,
-							} ) )
-						}
-					/>
-					<TextControl
-						__nextHasNoMarginBottom
-						__next40pxDefaultSize
-						type="number"
-						min={ 0 }
-						max={ 100 }
-						label={ __( 'Rollout percentage', 'tiermint' ) }
-						help={ __(
-							'How many sites the release reaches, chosen deterministically. 100 is a full rollout.',
-							'tiermint'
-						) }
-						value={ upload.rollout_percent }
-						onChange={ ( value ) =>
-							setUpload( ( prev ) => ( {
-								...prev,
-								rollout_percent: toInt( value ),
-							} ) )
-						}
-					/>
-				</>
-			) }
 			<Button
 				variant="primary"
 				disabled={
@@ -677,18 +607,9 @@ export default function ReleasesPanel( { productId, channelsEnabled } ) {
 					// dropping focus to the document body and sending the next
 					// Tab back to the top of the page.
 					//
-					// The stable spelling is `accessibleWhenDisabled`, and it
-					// is deliberately not used: it landed in
-					// @wordpress/components 28.3.0, which ships in WP 6.6,
-					// while this plugin declares `Requires at least: 6.5`. On
-					// 6.5 the stable name is not destructured, so it falls
-					// through onto the DOM button and React warns about an
-					// unrecognized prop (once per property name, not per
-					// render, but in a shipped plugin admin screen). The experimental name
-					// is the one that works across the whole supported range:
-					// native on 6.5, mapped to the stable prop by
-					// `useDeprecatedProps` on 6.6 and later, silently in both.
-					// Switch to the stable name when the floor reaches 6.6.
+					// WordPress maps it to the stable `accessibleWhenDisabled`
+					// through `useDeprecatedProps`. The admin screens still use
+					// the experimental name everywhere; switch them together.
 					// The jest Button stub models neither prop, so nothing in
 					// the unit suite would notice if this were dropped; it was
 					// checked in the browser instead.
@@ -702,26 +623,15 @@ export default function ReleasesPanel( { productId, channelsEnabled } ) {
 										release.status
 									) }
 								/>
-								{ release.channel && (
-									<span className="tiermint-release-channel">
-										{ release.channel }
-									</span>
+								{ extensions.map(
+									( { id, component: Extension } ) => (
+										<Extension
+											key={ id }
+											release={ release }
+											productId={ productId }
+										/>
+									)
 								) }
-								{ channelsEnabled &&
-									typeof release.rollout_percent ===
-										'number' &&
-									release.rollout_percent < 100 && (
-										<span className="tiermint-release-rollout">
-											{ sprintf(
-												/* translators: %d: staged rollout percentage. */
-												__(
-													'%d%% rollout',
-													'tiermint'
-												),
-												release.rollout_percent
-											) }
-										</span>
-									) }
 							</div>
 
 							<div className="tiermint-release-package">
@@ -962,47 +872,6 @@ export default function ReleasesPanel( { productId, channelsEnabled } ) {
 											} ) )
 										}
 									/>
-									{ channelsEnabled && (
-										<>
-											<SelectControl
-												__nextHasNoMarginBottom
-												__next40pxDefaultSize
-												label={ __(
-													'Channel',
-													'tiermint'
-												) }
-												value={ editForm.channel }
-												options={ CHANNEL_OPTIONS }
-												onChange={ ( value ) =>
-													setEditForm( ( prev ) => ( {
-														...prev,
-														channel: value,
-													} ) )
-												}
-											/>
-											<TextControl
-												__nextHasNoMarginBottom
-												__next40pxDefaultSize
-												type="number"
-												min={ 0 }
-												max={ 100 }
-												label={ __(
-													'Rollout percentage',
-													'tiermint'
-												) }
-												value={
-													editForm.rollout_percent
-												}
-												onChange={ ( value ) =>
-													setEditForm( ( prev ) => ( {
-														...prev,
-														rollout_percent:
-															toInt( value ),
-													} ) )
-												}
-											/>
-										</>
-									) }
 									{ ! fully && (
 										<p>
 											{ __(

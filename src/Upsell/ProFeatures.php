@@ -15,40 +15,11 @@ defined( 'ABSPATH' ) || exit;
 /**
  * The single source the upsell surfaces read their copy from.
  *
- * Every row names a feature the separate Pro add-on ships. The Pro test suite
- * guards the keys, hashes, and field types below against drift.
+ * Every row names a feature the separate Pro add-on ships.
  *
  * @since 1.0.0
  */
 final class ProFeatures {
-
-	/**
-	 * The Pro admin screens, by hash, that Pro's screen integrations register.
-	 *
-	 * @var array<int, string>
-	 */
-	public const ADMIN_HASHES = array(
-		'#/analytics',
-		'#/tax',
-		'#/affiliates',
-		'#/recovery',
-		'#/kits',
-		'#/tools/migrate',
-	);
-
-	/**
-	 * The Pro settings field types, one per Pro settings panel.
-	 *
-	 * @var array<int, string>
-	 */
-	public const SETTINGS_FIELD_TYPES = array(
-		'pro_license',
-		'pro_paypal',
-		'pro_tax',
-		'pro_invoices',
-		'pro_affiliates',
-		'pro_recovery',
-	);
 
 	/**
 	 * The feature rows shown on the upgrade screen and the settings teaser.
@@ -67,7 +38,7 @@ final class ProFeatures {
 			array(
 				'key'   => 'tax',
 				'title' => __( 'EU VAT with VIES and OSS returns', 'tiermint' ),
-				'blurb' => __( 'Charge the right VAT by country, check VAT numbers against VIES, and prepare your OSS return.', 'tiermint' ),
+				'blurb' => __( 'Charge VAT at each buyer\'s country rate, check VAT numbers against VIES, and prepare your OSS return.', 'tiermint' ),
 			),
 			array(
 				'key'   => 'invoices',
@@ -106,13 +77,13 @@ final class ProFeatures {
 			),
 			array(
 				'key'   => 'elementor',
-				'title' => __( 'Elementor account widgets', 'tiermint' ),
-				'blurb' => __( 'Add the account widgets to Elementor: Licenses, Downloads, Subscriptions, and Invoices.', 'tiermint' ),
+				'title' => __( 'Elementor subscription and invoice widgets', 'tiermint' ),
+				'blurb' => __( 'Add Subscriptions, Invoices, and Upgrade Prompt widgets to Elementor.', 'tiermint' ),
 			),
 			array(
 				'key'   => 'conditional_content',
 				'title' => __( 'Conditional Content block', 'tiermint' ),
-				'blurb' => __( 'Show inner blocks only to visitors who match a licence, subscription, purchase, or activation rule.', 'tiermint' ),
+				'blurb' => __( 'Show inner blocks only to visitors who match a license, subscription, purchase, or activation rule.', 'tiermint' ),
 			),
 		);
 	}

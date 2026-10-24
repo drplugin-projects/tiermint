@@ -74,7 +74,6 @@ class LicenseRepository {
 			?? $this->formatInstant( $license->createdAt() )
 			?? $now;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Repository-owned custom table write; caching is handled here.
 		$inserted = $this->wpdb->insert(
 			$this->table(),
 			array(
@@ -88,7 +87,6 @@ class LicenseRepository {
 				'activation_limit' => $license->activationLimit(),
 				'activation_count' => $license->activationCount(),
 				'expires_at'       => $this->formatInstant( $license->expiresAt() ),
-				'parent_id'        => $license->parentId(),
 				'created_at'       => $createdAt,
 				'updated_at'       => $updatedAt,
 			)
@@ -98,16 +96,17 @@ class LicenseRepository {
 			// Discriminate the unique-key clash from other faults: if a row now
 			// carries this key, the collision is the cause and the caller may
 			// retry with a fresh key; anything else is a real write failure.
-			$sql = 'SELECT id FROM ' . $this->table() . ' WHERE license_key = %s';
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); a one-off existence probe on the write failure path.
-			$existing = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $license->licenseKey() ) );
+			$wpdb = $this->wpdb;
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$existing = $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE license_key = %s', $this->table(), $license->licenseKey() ) );
 
 			if ( null !== $existing ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only message; never echoed as HTML.
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw DuplicateLicenseKeyException::forKey( $license->licenseKey() );
 			}
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Failed to insert license: ' . $this->wpdb->last_error );
 		}
 
@@ -133,8 +132,10 @@ class LicenseRepository {
 			return $cached;
 		}
 
-		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE id = %d';
-		$row = $this->getRowOrFail( $this->wpdb->prepare( $sql, $id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->getRowOrFail( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $this->table(), $id ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -167,8 +168,10 @@ class LicenseRepository {
 			}
 		}
 
-		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE license_key = %s';
-		$row = $this->getRowOrFail( $this->wpdb->prepare( $sql, $licenseKey ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->getRowOrFail( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE license_key = %s', $this->table(), $licenseKey ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -189,42 +192,27 @@ class LicenseRepository {
 	 * @return array<int, License> The order's licenses, oldest first.
 	 */
 	public function findByOrderId( int $orderId ): array {
-		$sql  = 'SELECT * FROM ' . $this->table() . ' WHERE order_id = %d ORDER BY id ASC';
-		$rows = $this->getResultsOrFail( $this->wpdb->prepare( $sql, $orderId ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->getResultsOrFail( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE order_id = %d ORDER BY id ASC', $this->table(), $orderId ) ) );
 
 		return array_map( array( $this, 'fromRow' ), $rows );
 	}
 
 	/**
-	 * Load a customer's top-level licenses, newest first.
-	 *
-	 * Child seats stay under their organization.
+	 * Load every license of a customer, newest first.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param int $customerId The customer id.
-	 * @return array<int, License> The customer's own (non-seat) licenses, newest first.
+	 * @return array<int, License> The customer's licenses, newest first.
 	 */
 	public function findByCustomerId( int $customerId ): array {
-		$sql  = 'SELECT * FROM ' . $this->table() . ' WHERE customer_id = %d AND parent_id IS NULL ORDER BY id DESC';
-		$rows = $this->getResultsOrFail( $this->wpdb->prepare( $sql, $customerId ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		$wpdb = $this->wpdb;
 
-		return array_map( array( $this, 'fromRow' ), $rows );
-	}
-
-	/**
-	 * Load an organization's child licenses, oldest first.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param int $orgLicenseId The organization (parent) license id.
-	 * @return array<int, License> The child licenses, oldest first.
-	 *
-	 * @throws LicensePersistenceException When the read faults at the database.
-	 */
-	public function findByParentId( int $orgLicenseId ): array {
-		$sql  = 'SELECT * FROM ' . $this->table() . ' WHERE parent_id = %d ORDER BY id ASC';
-		$rows = $this->getResultsOrFail( $this->wpdb->prepare( $sql, $orgLicenseId ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->getResultsOrFail( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE customer_id = %d ORDER BY id DESC', $this->table(), $customerId ) ) );
 
 		return array_map( array( $this, 'fromRow' ), $rows );
 	}
@@ -242,24 +230,68 @@ class LicenseRepository {
 	 * @throws LicensePersistenceException When the read faults at the database.
 	 */
 	public function query( array $args ): array {
-		$args = $this->normalizeArgs( $args );
-
-		list( $where, $params ) = $this->buildFilters( $args );
-
+		$args    = $this->normalizeArgs( $args );
 		$orderby = $this->whitelistOrderby( $args['orderby'] ?? 'created_at' );
-		$order   = $this->whitelistOrder( $args['order'] ?? 'DESC' );
 		$perPage = $this->perPage( $args );
-		$page    = max( 1, (int) ( $args['page'] ?? 1 ) );
+		$offset  = ( max( 1, (int) ( $args['page'] ?? 1 ) ) - 1 ) * $perPage;
+		$wpdb    = $this->wpdb;
 
-		$sql = 'SELECT * FROM ' . $this->table() . $where
-			. ' ORDER BY ' . $orderby . ' ' . $order . ', id ' . $order
-			. ' LIMIT %d OFFSET %d';
+		list( $status, $productId, $customerId, $bySearch, $search, $searchCustomerId ) = $this->filters( $args );
 
-		$params[] = $perPage;
-		$params[] = ( $page - 1 ) * $perPage;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Runtime values are bound via prepare(); the SQL interpolates only the Schema-derived table name and a whitelisted orderby/order.
-		$rows = $this->getResultsOrFail( $this->wpdb->prepare( $sql, $params ) );
+		// The WHERE is the one in countQuery(); keep the copies in step.
+		if ( 'ASC' === $this->whitelistOrder( $args['order'] ?? 'DESC' ) ) {
+			$rows = $this->getResultsOrFail(
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+				fn () => $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT * FROM %i WHERE ( %s = '' OR status = %s ) AND ( %d = 0 OR product_id = %d )" .
+						' AND ( %d = 0 OR customer_id = %d )' .
+						' AND ( %d = 0 OR license_key = %s OR ( %d > 0 AND customer_id = %d ) )' .
+						' ORDER BY %i ASC, id ASC LIMIT %d OFFSET %d',
+						$this->table(),
+						$status,
+						$status,
+						$productId,
+						$productId,
+						$customerId,
+						$customerId,
+						$bySearch,
+						$search,
+						$searchCustomerId,
+						$searchCustomerId,
+						$orderby,
+						$perPage,
+						$offset
+					)
+				)
+			);
+		} else {
+			$rows = $this->getResultsOrFail(
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+				fn () => $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT * FROM %i WHERE ( %s = '' OR status = %s ) AND ( %d = 0 OR product_id = %d )" .
+						' AND ( %d = 0 OR customer_id = %d )' .
+						' AND ( %d = 0 OR license_key = %s OR ( %d > 0 AND customer_id = %d ) )' .
+						' ORDER BY %i DESC, id DESC LIMIT %d OFFSET %d',
+						$this->table(),
+						$status,
+						$status,
+						$productId,
+						$productId,
+						$customerId,
+						$customerId,
+						$bySearch,
+						$search,
+						$searchCustomerId,
+						$searchCustomerId,
+						$orderby,
+						$perPage,
+						$offset
+					)
+				)
+			);
+		}
 
 		return array_map( array( $this, 'fromRow' ), $rows );
 	}
@@ -277,18 +309,31 @@ class LicenseRepository {
 	 * @throws LicensePersistenceException When the read faults at the database.
 	 */
 	public function countQuery( array $args ): int {
-		$args = $this->normalizeArgs( $args );
+		$wpdb = $this->wpdb;
 
-		list( $where, $params ) = $this->buildFilters( $args );
+		list( $status, $productId, $customerId, $bySearch, $search, $searchCustomerId ) = $this->filters( $this->normalizeArgs( $args ) );
 
-		$sql = 'SELECT COUNT(*) FROM ' . $this->table() . $where;
-
-		if ( array() === $params ) {
-			return (int) $this->getVarOrFail( $sql );
-		}
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Runtime values are bound via prepare(); the SQL interpolates only the Schema-derived table name.
-		return (int) $this->getVarOrFail( $this->wpdb->prepare( $sql, $params ) );
+		return (int) $this->getVarOrFail(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM %i WHERE ( %s = '' OR status = %s ) AND ( %d = 0 OR product_id = %d )" .
+					' AND ( %d = 0 OR customer_id = %d )' .
+					' AND ( %d = 0 OR license_key = %s OR ( %d > 0 AND customer_id = %d ) )',
+					$this->table(),
+					$status,
+					$status,
+					$productId,
+					$productId,
+					$customerId,
+					$customerId,
+					$bySearch,
+					$search,
+					$searchCustomerId,
+					$searchCustomerId
+				)
+			)
+		);
 	}
 
 	/**
@@ -305,16 +350,15 @@ class LicenseRepository {
 	 * @throws LicensePersistenceException When the read faults at the database.
 	 */
 	public function countForCustomer( int $customerId, ?LicenseStatus $ignoring = null ): int {
-		$sql    = 'SELECT COUNT(*) FROM ' . $this->table() . ' WHERE customer_id = %d';
-		$params = array( $customerId );
+		$wpdb = $this->wpdb;
 
-		if ( null !== $ignoring ) {
-			$sql     .= ' AND status <> %s';
-			$params[] = $ignoring->value;
+		if ( null === $ignoring ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			return (int) $this->getVarOrFail( fn () => $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE customer_id = %d', $this->table(), $customerId ) ) );
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
-		return (int) $this->getVarOrFail( $this->wpdb->prepare( $sql, $params ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		return (int) $this->getVarOrFail( fn () => $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE customer_id = %d AND status <> %s', $this->table(), $customerId, $ignoring->value ) ) );
 	}
 
 	/**
@@ -337,20 +381,23 @@ class LicenseRepository {
 	public function transitionStatus( License $license, array $fromStatuses, LicenseStatus $to ): bool {
 		$id = $this->requireId( $license );
 
-		$placeholders = implode( ',', array_fill( 0, count( $fromStatuses ), '%s' ) );
-		$sql          = 'UPDATE ' . $this->table() .
-			" SET status = %s, updated_at = %s WHERE id = %d AND status IN ({$placeholders})";
-
+		$wpdb   = $this->wpdb;
 		$values = array_merge(
-			array( $to->value, gmdate( 'Y-m-d H:i:s' ), $id ),
+			array( $this->table(), $to->value, gmdate( 'Y-m-d H:i:s' ), $id ),
 			array_map( static fn ( LicenseStatus $s ): string => $s->value, $fromStatuses )
 		);
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); cache invalidated below.
-		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $values ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$affected = $wpdb->query(
+			$wpdb->prepare(
+				'UPDATE %i SET status = %s, updated_at = %s WHERE id = %d AND status IN (' .
+				implode( ',', array_fill( 0, count( $fromStatuses ), '%s' ) ) . ')',
+				$values
+			)
+		);
 
 		if ( false === $affected ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Failed to transition license status: ' . $this->wpdb->last_error );
 		}
 
@@ -375,26 +422,37 @@ class LicenseRepository {
 	 * @throws LicensePersistenceException When the write faults at the database.
 	 */
 	public function renew( License $license, ?string $newExpiresAt ): bool {
-		$id  = $this->requireId( $license );
-		$now = gmdate( 'Y-m-d H:i:s' );
+		$id   = $this->requireId( $license );
+		$now  = gmdate( 'Y-m-d H:i:s' );
+		$wpdb = $this->wpdb;
 
 		if ( null === $newExpiresAt ) {
-			$sql    = 'UPDATE ' . $this->table() .
-				" SET status = 'active', expires_at = NULL, updated_at = %s" .
-				" WHERE id = %d AND status IN ('active','expired')";
-			$values = array( $now, $id );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$affected = $wpdb->query(
+				$wpdb->prepare(
+					"UPDATE %i SET status = 'active', expires_at = NULL, updated_at = %s" .
+					" WHERE id = %d AND status IN ('active','expired')",
+					$this->table(),
+					$now,
+					$id
+				)
+			);
 		} else {
-			$sql    = 'UPDATE ' . $this->table() .
-				" SET status = 'active', expires_at = %s, updated_at = %s" .
-				" WHERE id = %d AND status IN ('active','expired')";
-			$values = array( $newExpiresAt, $now, $id );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$affected = $wpdb->query(
+				$wpdb->prepare(
+					"UPDATE %i SET status = 'active', expires_at = %s, updated_at = %s" .
+					" WHERE id = %d AND status IN ('active','expired')",
+					$this->table(),
+					$newExpiresAt,
+					$now,
+					$id
+				)
+			);
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); cache invalidated below.
-		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $values ) );
-
 		if ( false === $affected ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Failed to renew license: ' . $this->wpdb->last_error );
 		}
 
@@ -426,7 +484,7 @@ class LicenseRepository {
 	/**
 	 * Update a license's price tier and activation cap.
 	 *
-	 * Use literal SQL NULL for nullable unsigned fields. Existing activations remain.
+	 * A null tier or cap is stored as NULL, never as 0. Existing activations remain.
 	 *
 	 * @since 1.0.0
 	 *
@@ -439,37 +497,22 @@ class LicenseRepository {
 	 * @throws LicensePersistenceException When the write faults at the database.
 	 */
 	public function changeTier( License $license, ?int $priceId, ?int $activationLimit ): bool {
-		$id  = $this->requireId( $license );
-		$now = gmdate( 'Y-m-d H:i:s' );
+		$id = $this->requireId( $license );
 
-		$sets   = array();
-		$values = array();
-
-		if ( null === $priceId ) {
-			$sets[] = 'price_id = NULL';
-		} else {
-			$sets[]   = 'price_id = %d';
-			$values[] = $priceId;
-		}
-
-		if ( null === $activationLimit ) {
-			$sets[] = 'activation_limit = NULL';
-		} else {
-			$sets[]   = 'activation_limit = %d';
-			$values[] = $activationLimit;
-		}
-
-		$sets[]   = 'updated_at = %s';
-		$values[] = $now;
-		$values[] = $id;
-
-		$sql = 'UPDATE ' . $this->table() . ' SET ' . implode( ', ', $sets ) . ' WHERE id = %d';
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); the SQL embeds only the Schema-derived table name and literal NULL assignments; cache invalidated below.
-		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $values ) );
+		$affected = $this->wpdb->update(
+			$this->table(),
+			array(
+				'price_id'         => $priceId,
+				'activation_limit' => $activationLimit,
+				'updated_at'       => gmdate( 'Y-m-d H:i:s' ),
+			),
+			array( 'id' => $id ),
+			array( '%d', '%d', '%s' ),
+			array( '%d' )
+		);
 
 		if ( false === $affected ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Failed to change license tier: ' . $this->wpdb->last_error );
 		}
 
@@ -498,15 +541,21 @@ class LicenseRepository {
 	 * @throws LicensePersistenceException When the write faults at the database.
 	 */
 	public function claimActivationSlot( int $licenseId ): bool {
-		$sql = 'UPDATE ' . $this->table() .
-			' SET activation_count = activation_count + 1, updated_at = %s' .
-			' WHERE id = %d AND (activation_limit IS NULL OR activation_count < activation_limit)';
+		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); cache invalidated below.
-		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, gmdate( 'Y-m-d H:i:s' ), $licenseId ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$affected = $wpdb->query(
+			$wpdb->prepare(
+				'UPDATE %i SET activation_count = activation_count + 1, updated_at = %s' .
+				' WHERE id = %d AND (activation_limit IS NULL OR activation_count < activation_limit)',
+				$this->table(),
+				gmdate( 'Y-m-d H:i:s' ),
+				$licenseId
+			)
+		);
 
 		if ( false === $affected ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Failed to claim an activation slot: ' . $this->wpdb->last_error );
 		}
 
@@ -528,15 +577,20 @@ class LicenseRepository {
 	 * @throws LicensePersistenceException When the write faults at the database.
 	 */
 	public function releaseActivationSlot( int $licenseId ): void {
-		$sql = 'UPDATE ' . $this->table() .
-			' SET activation_count = activation_count - 1, updated_at = %s' .
-			' WHERE id = %d AND activation_count > 0';
+		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); cache invalidated below.
-		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, gmdate( 'Y-m-d H:i:s' ), $licenseId ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$affected = $wpdb->query(
+			$wpdb->prepare(
+				'UPDATE %i SET activation_count = activation_count - 1, updated_at = %s WHERE id = %d AND activation_count > 0',
+				$this->table(),
+				gmdate( 'Y-m-d H:i:s' ),
+				$licenseId
+			)
+		);
 
 		if ( false === $affected ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Failed to release an activation slot: ' . $this->wpdb->last_error );
 		}
 
@@ -553,11 +607,19 @@ class LicenseRepository {
 	 * @return array<int, License> The due licenses, oldest expiry first.
 	 */
 	public function findDueForExpiry( string $now, int $limit ): array {
-		$sql = 'SELECT * FROM ' . $this->table() .
-			" WHERE status = 'active' AND expires_at IS NOT NULL AND expires_at < %s" .
-			' ORDER BY expires_at ASC LIMIT %d';
-
-		$rows = $this->getResultsOrFail( $this->wpdb->prepare( $sql, $now, $limit ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		$wpdb = $this->wpdb;
+		$rows = $this->getResultsOrFail(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT * FROM %i WHERE status = 'active' AND expires_at IS NOT NULL AND expires_at < %s" .
+					' ORDER BY expires_at ASC LIMIT %d',
+					$this->table(),
+					$now,
+					$limit
+				)
+			)
+		);
 
 		return array_map( array( $this, 'fromRow' ), $rows );
 	}
@@ -569,19 +631,18 @@ class LicenseRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $preparedSql The already-prepared SQL.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return object|null The row, or null when it genuinely does not exist.
 	 *
 	 * @throws LicensePersistenceException When the read faulted at the database.
 	 */
-	private function getRowOrFail( string $preparedSql ): ?object {
+	private function getRowOrFail( callable $query ): ?object {
 		$this->wpdb->last_error = '';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Callers prepare the SQL; the repository fronts reads with wp_cache where the hot path needs it.
-		$row = $this->wpdb->get_row( $preparedSql );
+		$row = $query();
 
 		if ( '' !== $this->wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'License read failed: ' . $this->wpdb->last_error );
 		}
 
@@ -594,19 +655,18 @@ class LicenseRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $preparedSql The already-prepared SQL.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return array<int, object> The rows (possibly empty).
 	 *
 	 * @throws LicensePersistenceException When the read faulted at the database.
 	 */
-	private function getResultsOrFail( string $preparedSql ): array {
+	private function getResultsOrFail( callable $query ): array {
 		$this->wpdb->last_error = '';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Callers prepare the SQL; list reads are deliberately uncached.
-		$rows = $this->wpdb->get_results( $preparedSql );
+		$rows = $query();
 
 		if ( '' !== $this->wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'License read failed: ' . $this->wpdb->last_error );
 		}
 
@@ -620,19 +680,18 @@ class LicenseRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $preparedSql The already-prepared SQL.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return string|null The scalar value, or null when the query genuinely returned none.
 	 *
 	 * @throws LicensePersistenceException When the read faulted at the database.
 	 */
-	private function getVarOrFail( string $preparedSql ): ?string {
+	private function getVarOrFail( callable $query ): ?string {
 		$this->wpdb->last_error = '';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Callers prepare the SQL; a bounded admin count, deliberately uncached.
-		$value = $this->wpdb->get_var( $preparedSql );
+		$value = $query();
 
 		if ( '' !== $this->wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'License count failed: ' . $this->wpdb->last_error );
 		}
 
@@ -659,56 +718,33 @@ class LicenseRepository {
 	}
 
 	/**
-	 * Build indexed filters for the collection query.
+	 * Read the collection filters for the fixed WHERE in query() and countQuery().
+	 *
+	 * An empty status or a 0 id or flag turns a filter off. The search has its own
+	 * flag because MySQL collations compare a zero-width space equal to ''. MySQL
+	 * drops a clause that is off before it plans the query, so the indexes still apply.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param array<string, mixed> $args The query args.
-	 * @return array{0: string, 1: array<int, mixed>} The clause (with leading space) and params.
+	 * @return array{0: string, 1: int, 2: int, 3: int, 4: string, 5: int} Status, product id,
+	 *         customer id, search flag, search term and search customer id.
 	 */
-	private function buildFilters( array $args ): array {
-		$clauses = array();
-		$params  = array();
+	private function filters( array $args ): array {
+		$status = isset( $args['status'] ) ? (string) $args['status'] : '';
+		$search = isset( $args['search'] ) ? trim( (string) $args['search'] ) : '';
 
-		if ( isset( $args['status'] ) && '' !== (string) $args['status'] ) {
-			$status = (string) $args['status'];
-
-			if ( null !== LicenseStatus::tryFrom( $status ) ) {
-				$clauses[] = 'status = %s';
-				$params[]  = $status;
-			}
-		}
-
-		if ( isset( $args['product_id'] ) && (int) $args['product_id'] > 0 ) {
-			$clauses[] = 'product_id = %d';
-			$params[]  = (int) $args['product_id'];
-		}
-
-		if ( isset( $args['customer_id'] ) && (int) $args['customer_id'] > 0 ) {
-			$clauses[] = 'customer_id = %d';
-			$params[]  = (int) $args['customer_id'];
-		}
-
-		if ( isset( $args['search'] ) && '' !== trim( (string) $args['search'] ) ) {
-			$search           = trim( (string) $args['search'] );
-			$searchCustomerId = isset( $args['search_customer_id'] ) ? (int) $args['search_customer_id'] : 0;
-
-			// The search term is matched as an exact license key, and, when the controller
-			// resolved it to a customer email, that customer's id is OR-ed in. Both sides are
-			// index-backed, so the search never degrades into a table scan.
-			if ( $searchCustomerId > 0 ) {
-				$clauses[] = '(license_key = %s OR customer_id = %d)';
-				$params[]  = $search;
-				$params[]  = $searchCustomerId;
-			} else {
-				$clauses[] = 'license_key = %s';
-				$params[]  = $search;
-			}
-		}
-
-		$where = array() === $clauses ? '' : ' WHERE ' . implode( ' AND ', $clauses );
-
-		return array( $where, $params );
+		// The search term is matched as an exact license key, and, when the controller
+		// resolved it to a customer email, that customer's id is OR-ed in. Both sides are
+		// index-backed, so the search never degrades into a table scan.
+		return array(
+			null !== LicenseStatus::tryFrom( $status ) ? $status : '',
+			isset( $args['product_id'] ) ? max( 0, (int) $args['product_id'] ) : 0,
+			isset( $args['customer_id'] ) ? max( 0, (int) $args['customer_id'] ) : 0,
+			'' === $search ? 0 : 1,
+			$search,
+			isset( $args['search_customer_id'] ) ? max( 0, (int) $args['search_customer_id'] ) : 0,
+		);
 	}
 
 	/**
@@ -776,7 +812,6 @@ class LicenseRepository {
 			null === $row->activation_limit ? null : (int) $row->activation_limit,
 			(int) $row->activation_count,
 			$this->parseInstant( $row->expires_at ),
-			null === $row->parent_id ? null : (int) $row->parent_id,
 			$this->parseInstant( $row->created_at ),
 			$this->parseInstant( $row->updated_at )
 		);
@@ -828,7 +863,6 @@ class LicenseRepository {
 		$id = $license->id();
 
 		if ( null === $id ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
 			throw new LicenseException( 'Cannot write a license that has not been persisted.' );
 		}
 

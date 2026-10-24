@@ -16,6 +16,7 @@ use DrPlugin\WP\TierMint\Core\Container;
 use DrPlugin\WP\TierMint\Core\ServiceProvider;
 use DrPlugin\WP\TierMint\Database\Logger;
 use DrPlugin\WP\TierMint\Frontend\CheckoutFieldSettings;
+use DrPlugin\WP\TierMint\Frontend\PasswordResetLinks;
 use DrPlugin\WP\TierMint\Licensing\LicenseRepository;
 use DrPlugin\WP\TierMint\Orders\OrderRepository;
 
@@ -72,7 +73,8 @@ final class CustomersServiceProvider implements ServiceProvider {
 			static fn ( Container $c ): UserProvisioner => new UserProvisioner(
 				new CheckoutFieldSettings(),
 				$c->get( CustomerService::class ),
-				$c->get( Logger::class )
+				$c->get( Logger::class ),
+				$c->get( PasswordResetLinks::class )
 			)
 		);
 	}

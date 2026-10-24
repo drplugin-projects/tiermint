@@ -96,8 +96,8 @@ class ProductPageTitle implements Hookable {
 			return $title;
 		}
 
-		// SEO title overrides apply only to the document title.
-		return $this->themeOwnsHeading() ? $product->name() : '';
+		// SEO title overrides apply only to the document title. Themes print the_title raw.
+		return $this->themeOwnsHeading() ? esc_html( $product->name() ) : '';
 	}
 
 	/**

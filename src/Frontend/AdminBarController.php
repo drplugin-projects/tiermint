@@ -61,7 +61,7 @@ class AdminBarController implements Hookable {
 	}
 
 	/**
-	 * Whether the hide-admin-bar setting is on, defaulting on when unconfigured.
+	 * Whether the hide-admin-bar setting is on, defaulting off when unconfigured.
 	 *
 	 * @return bool
 	 */
@@ -72,6 +72,6 @@ class AdminBarController implements Hookable {
 			return (bool) $settings['frontend']['hide_admin_bar'];
 		}
 
-		return true;
+		return false;
 	}
 }

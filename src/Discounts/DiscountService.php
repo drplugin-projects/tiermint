@@ -78,7 +78,7 @@ class DiscountService {
 		$discount = $this->buildDiscount( $data, null );
 
 		if ( null !== $this->repository->findByCode( $discount->code() ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw DuplicateDiscountCodeException::forCode( $discount->code() );
 		}
 
@@ -87,7 +87,7 @@ class DiscountService {
 		} catch ( DiscountPersistenceException $e ) {
 			// A concurrent insert can win after the first lookup.
 			if ( null !== $this->repository->findByCode( $discount->code() ) ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message surfaced as an API error, never echoed as HTML.
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw DuplicateDiscountCodeException::forCode( $discount->code() );
 			}
 
@@ -117,7 +117,7 @@ class DiscountService {
 		$existing = $this->repository->find( $id );
 
 		if ( null === $existing ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only message; controllers map this to a structured 404.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw DiscountNotFoundException::forId( $id );
 		}
 
@@ -128,7 +128,7 @@ class DiscountService {
 			$clash = $this->repository->findByCode( $discount->code() );
 
 			if ( null !== $clash && $clash->id() !== $id ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message surfaced as an API error, never echoed as HTML.
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw DuplicateDiscountCodeException::forCode( $discount->code() );
 			}
 		}
@@ -151,7 +151,7 @@ class DiscountService {
 	 */
 	public function delete( int $id ): void {
 		if ( null === $this->repository->find( $id ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only message; controllers map this to a structured 404.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw DiscountNotFoundException::forId( $id );
 		}
 
@@ -233,25 +233,25 @@ class DiscountService {
 
 		// Do not reveal unknown, disabled, future or automatic discounts.
 		if ( null === $discount || ! $discount->isActive() || $discount->isAuto() ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw $this->reject( $this->genericInvalidMessage() );
 		}
 
 		$now = time();
 
 		if ( null !== $discount->startsAt() && $now < strtotime( $discount->startsAt() . ' UTC' ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw $this->reject( $this->genericInvalidMessage() );
 		}
 
 		// A known expired code can use a specific message.
 		if ( ! $discount->isWithinWindow( $now ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw $this->reject( __( 'This discount code has expired.', 'tiermint' ) );
 		}
 
 		if ( ! $discount->hasUsesRemaining() ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw $this->reject( __( 'This discount code has reached its usage limit.', 'tiermint' ) );
 		}
 
@@ -262,7 +262,7 @@ class DiscountService {
 		}
 
 		if ( null !== $discount->minTotal() && $orderSubtotal < $discount->minTotal() ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw $this->reject( __( 'Your order total is below the minimum required for this discount code.', 'tiermint' ) );
 		}
 
@@ -274,14 +274,14 @@ class DiscountService {
 		}
 
 		if ( array() === $applicable ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw $this->reject( __( 'This discount code does not apply to the items in your cart.', 'tiermint' ) );
 		}
 
 		// Guests without an id cannot be checked against prior orders.
 		if ( $discount->isOncePerCustomer() && null !== $customer && null !== $customer->id() ) {
 			if ( $this->orders->customerUsedDiscount( (int) $customer->id(), (int) $discount->id() ) ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message surfaced as an API error, never echoed as HTML.
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw $this->reject( __( 'You have already used this discount code.', 'tiermint' ) );
 			}
 		}
@@ -337,7 +337,7 @@ class DiscountService {
 		$scope  = $this->resolveScope( $data, $existing, $errors );
 
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation messages, surfaced as API errors, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw DiscountValidationException::withErrors( $errors );
 		}
 
@@ -524,7 +524,7 @@ class DiscountService {
 		$discount = $this->repository->find( $id );
 
 		if ( null === $discount ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only message; controllers map this to a structured 404.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw DiscountNotFoundException::forId( $id );
 		}
 
@@ -540,7 +540,6 @@ class DiscountService {
 	 * @return DiscountValidationException The rejection.
 	 */
 	private function reject( string $message ): DiscountValidationException {
-		// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message surfaced as an API error, never echoed as HTML.
 		return DiscountValidationException::withErrors( array( $message ) );
 	}
 

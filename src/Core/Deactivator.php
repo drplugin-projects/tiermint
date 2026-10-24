@@ -34,6 +34,7 @@ final class Deactivator {
 		// These jobs reschedule on the next activation.
 		as_unschedule_all_actions( \DrPlugin\WP\TierMint\Licensing\LicensingListener::EXPIRY_HOOK, array(), 'tiermint' );
 		as_unschedule_all_actions( \DrPlugin\WP\TierMint\Jobs\ActionSchedulerPruner::PRUNE_HOOK, array(), 'tiermint' );
+		as_unschedule_all_actions( \DrPlugin\WP\TierMint\Jobs\AbandonedOrdersSweep::SWEEP_HOOK, array(), 'tiermint' );
 
 		// Rebuild product rewrites after the next activation.
 		\DrPlugin\WP\TierMint\Frontend\ProductRewrites::clearOnDeactivate();

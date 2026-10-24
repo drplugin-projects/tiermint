@@ -88,7 +88,7 @@ class GatewayRegistry {
 		$all = $this->all();
 
 		if ( ! isset( $all[ $id ] ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Validation message surfaced as a structured API error by controllers, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw GatewayNotFoundException::forId( $id );
 		}
 

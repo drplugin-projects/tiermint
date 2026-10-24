@@ -16,6 +16,7 @@ defined( 'ABSPATH' ) || exit;
 use DrPlugin\WP\TierMint\Core\Hookable;
 use DrPlugin\WP\TierMint\Database\Logger;
 use DrPlugin\WP\TierMint\Frontend\CheckoutFieldSettings;
+use DrPlugin\WP\TierMint\Frontend\PasswordResetLinks;
 use DrPlugin\WP\TierMint\Orders\Order;
 use RuntimeException;
 use Throwable;
@@ -51,18 +52,27 @@ final class UserProvisioner implements Hookable {
 	private Logger $logger;
 
 	/**
+	 * Puts the reset page link in the set-password email, or null.
+	 *
+	 * @var PasswordResetLinks|null
+	 */
+	private ?PasswordResetLinks $links;
+
+	/**
 	 * Wire the provisioner with its collaborators.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param CheckoutFieldSettings $settings  The checkout settings reader.
-	 * @param CustomerService       $customers The customer domain service.
-	 * @param Logger                $logger    The audit writer.
+	 * @param CheckoutFieldSettings   $settings  The checkout settings reader.
+	 * @param CustomerService         $customers The customer domain service.
+	 * @param Logger                  $logger    The audit writer.
+	 * @param PasswordResetLinks|null $links     The email link rewriter, or null to send WordPress's own link.
 	 */
-	public function __construct( CheckoutFieldSettings $settings, CustomerService $customers, Logger $logger ) {
+	public function __construct( CheckoutFieldSettings $settings, CustomerService $customers, Logger $logger, ?PasswordResetLinks $links = null ) {
 		$this->settings  = $settings;
 		$this->customers = $customers;
 		$this->logger    = $logger;
+		$this->links     = $links;
 	}
 
 	/**
@@ -205,7 +215,7 @@ final class UserProvisioner implements Hookable {
 		$userId = wp_insert_user( $args );
 
 		if ( is_wp_error( $userId ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only message, never echoed; caught by onOrderCompleted.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new RuntimeException( 'wp_insert_user failed: ' . $userId->get_error_message() );
 		}
 
@@ -223,7 +233,14 @@ final class UserProvisioner implements Hookable {
 		if ( (bool) apply_filters( 'tiermint_auto_register_notify', true, $userId, $order ) ) {
 			// The 'user' notification sends the set-password link only; no plaintext
 			// password is ever emailed.
-			wp_send_new_user_notifications( $userId, 'user' );
+			$send = static function () use ( $userId ): void {
+				wp_send_new_user_notifications( $userId, 'user' );
+			};
+			if ( null !== $this->links ) {
+				$this->links->withBrandedLinks( $send );
+			} else {
+				$send();
+			}
 		}
 	}
 

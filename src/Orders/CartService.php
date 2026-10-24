@@ -48,6 +48,13 @@ class CartService {
 	private ?string $token = null;
 
 	/**
+	 * Whether this request cleared the cart, so the cookie it came with no longer counts.
+	 *
+	 * @var bool
+	 */
+	private bool $cleared = false;
+
+	/**
 	 * Wire the service with its repository and the product catalog.
 	 *
 	 * @since 1.0.0
@@ -88,7 +95,7 @@ class CartService {
 	 */
 	public function addItem( int $productId, int $priceId, int $quantity = 1 ): Cart {
 		if ( $quantity < 1 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderValidationException::withErrors( array( __( 'A quantity must be at least 1.', 'tiermint' ) ) );
 		}
 
@@ -190,49 +197,8 @@ class CartService {
 		}
 
 		$this->repository->clearCookie();
-		$this->token = null;
-	}
-
-	/**
-	 * Replace the cart with live-priced purchasable items.
-	 *
-	 * Invalid items are skipped. Keep the existing cart when none resolve.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array<int, array{product_id: int, price_id: int, quantity: int}> $items The items to restore.
-	 * @return int The number of lines restored (0 leaves the current cart unchanged).
-	 */
-	public function replaceWith( array $items ): int {
-		$lines = array();
-
-		foreach ( $items as $item ) {
-			$productId = (int) ( $item['product_id'] ?? 0 );
-			$priceId   = (int) ( $item['price_id'] ?? 0 );
-			$quantity  = max( 1, (int) ( $item['quantity'] ?? 1 ) );
-
-			try {
-				$lines[] = $this->resolveLine( $productId, $priceId, $quantity );
-			} catch ( OrderException $e ) {
-				// Skip unavailable lines. Catalog failures still reach the caller.
-				continue;
-			}
-		}
-
-		if ( array() === $lines ) {
-			// Do not replace a cart when no lines can be restored.
-			return 0;
-		}
-
-		$cart = new Cart();
-
-		foreach ( $lines as $line ) {
-			$cart = $cart->withItem( $line );
-		}
-
-		$this->persist( $cart );
-
-		return count( $lines );
+		$this->token   = null;
+		$this->cleared = true;
 	}
 
 	/**
@@ -289,7 +255,7 @@ class CartService {
 			/* translators: %d: the product id. */
 			$message = sprintf( __( 'Product %d was not found.', 'tiermint' ), $productId );
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderValidationException::withErrors( array( $message ) );
 		}
 
@@ -297,7 +263,7 @@ class CartService {
 			/* translators: %d: the product id. */
 			$message = sprintf( __( 'Product %d is not available for purchase.', 'tiermint' ), $productId );
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderValidationException::withErrors( array( $message ) );
 		}
 
@@ -307,14 +273,8 @@ class CartService {
 			/* translators: 1: the price id, 2: the product id. */
 			$message = sprintf( __( 'Price %1$d is not available for product %2$d.', 'tiermint' ), $priceId, $productId );
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderValidationException::withErrors( array( $message ) );
-		}
-
-		// Never add a recurring price when this store cannot bill it.
-		if ( ! $price->isPurchasable( ProductService::recurringTiersSupported() ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
-			throw OrderValidationException::withErrors( array( __( 'This subscription plan is temporarily unavailable.', 'tiermint' ) ) );
 		}
 
 		return array( $product, $price );
@@ -345,6 +305,11 @@ class CartService {
 	private function currentToken(): ?string {
 		if ( null !== $this->token ) {
 			return $this->token;
+		}
+
+		// The request still carries the cookie a clear just dropped.
+		if ( $this->cleared ) {
+			return null;
 		}
 
 		$this->token = $this->repository->readToken();

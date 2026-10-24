@@ -169,7 +169,9 @@ class ProductRequestContext implements Hookable {
 	 * @return string The slug, or '' when the request carries none.
 	 */
 	private function requestedSlug(): string {
-		$slug = sanitize_title( (string) get_query_var( ProductUrlProvider::QUERY_VAR ) );
+		// WordPress copies a query-string array into a public query var as is.
+		$var  = get_query_var( ProductUrlProvider::QUERY_VAR );
+		$slug = is_string( $var ) ? sanitize_title( $var ) : '';
 
 		if ( '' !== $slug ) {
 			return $slug;
@@ -177,7 +179,7 @@ class ProductRequestContext implements Hookable {
 
 		// Fall back to the raw query argument on plain permalink installs.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only public catalogue lookup, no state change; sanitized to a slug on this line.
-		return isset( $_GET[ ProductUrlProvider::QUERY_VAR ] ) ? sanitize_title( (string) wp_unslash( $_GET[ ProductUrlProvider::QUERY_VAR ] ) ) : '';
+		return isset( $_GET[ ProductUrlProvider::QUERY_VAR ] ) && is_string( $_GET[ ProductUrlProvider::QUERY_VAR ] ) ? sanitize_title( wp_unslash( $_GET[ ProductUrlProvider::QUERY_VAR ] ) ) : '';
 	}
 
 	/**

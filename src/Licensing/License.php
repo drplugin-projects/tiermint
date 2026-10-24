@@ -109,13 +109,6 @@ final class License {
 	private ?DateTimeImmutable $expiresAt;
 
 	/**
-	 * The license this one upgraded from, or null (upgrade lineage).
-	 *
-	 * @var int|null
-	 */
-	private ?int $parentId;
-
-	/**
 	 * Creation instant, or null before the first persist.
 	 *
 	 * @var DateTimeImmutable|null
@@ -145,7 +138,6 @@ final class License {
 	 * @param int|null               $activationLimit Activation cap, or null for unlimited (non-negative when set).
 	 * @param int                    $activationCount Current activation count (non-negative).
 	 * @param DateTimeImmutable|null $expiresAt       Expiry instant, or null for lifetime.
-	 * @param int|null               $parentId        Upgrade-parent license id, or null.
 	 * @param DateTimeImmutable|null $createdAt       Creation instant, or null.
 	 * @param DateTimeImmutable|null $updatedAt       Last-update instant, or null.
 	 *
@@ -163,45 +155,44 @@ final class License {
 		?int $activationLimit,
 		int $activationCount,
 		?DateTimeImmutable $expiresAt,
-		?int $parentId,
 		?DateTimeImmutable $createdAt,
 		?DateTimeImmutable $updatedAt
 	) {
 		if ( '' === $licenseKey ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'A license must have a key.', 'tiermint' ) );
 		}
 
 		// The key is stored in a fixed CHAR(35) column, so anything longer would be
 		// truncated silently on write and never match on lookup. Reject it up front.
 		if ( strlen( $licenseKey ) > self::MAX_KEY_LENGTH ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'A license key cannot be longer than 35 characters.', 'tiermint' ) );
 		}
 
 		if ( $productId <= 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'A license must belong to a product.', 'tiermint' ) );
 		}
 
 		if ( $orderId <= 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'A license must belong to an order.', 'tiermint' ) );
 		}
 
 		if ( $customerId <= 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'A license must belong to a customer.', 'tiermint' ) );
 		}
 
 		// NULL means unlimited; a negative cap is meaningless (the column is UNSIGNED).
 		if ( null !== $activationLimit && $activationLimit < 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'A license activation limit cannot be negative.', 'tiermint' ) );
 		}
 
 		if ( $activationCount < 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'A license activation count cannot be negative.', 'tiermint' ) );
 		}
 
@@ -216,7 +207,6 @@ final class License {
 		$this->activationLimit = $activationLimit;
 		$this->activationCount = $activationCount;
 		$this->expiresAt       = $expiresAt;
-		$this->parentId        = $parentId;
 		$this->createdAt       = $createdAt;
 		$this->updatedAt       = $updatedAt;
 	}
@@ -291,7 +281,6 @@ final class License {
 			$this->activationLimit,
 			$this->activationCount,
 			$this->expiresAt,
-			$this->parentId,
 			$this->createdAt,
 			$this->updatedAt
 		);
@@ -318,7 +307,6 @@ final class License {
 			$this->activationLimit,
 			$this->activationCount,
 			$expiresAt,
-			$this->parentId,
 			$this->createdAt,
 			$this->updatedAt
 		);
@@ -345,7 +333,6 @@ final class License {
 			$this->activationLimit,
 			$this->activationCount,
 			$this->expiresAt,
-			$this->parentId,
 			$this->createdAt,
 			$this->updatedAt
 		);
@@ -376,7 +363,6 @@ final class License {
 			$activationLimit,
 			$this->activationCount,
 			$this->expiresAt,
-			$this->parentId,
 			$this->createdAt,
 			$this->updatedAt
 		);
@@ -405,7 +391,6 @@ final class License {
 			$this->activationLimit,
 			$count,
 			$this->expiresAt,
-			$this->parentId,
 			$this->createdAt,
 			$this->updatedAt
 		);
@@ -530,17 +515,6 @@ final class License {
 	 */
 	public function expiresAt(): ?DateTimeImmutable {
 		return $this->expiresAt;
-	}
-
-	/**
-	 * The upgrade-parent license id, or null.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return int|null
-	 */
-	public function parentId(): ?int {
-		return $this->parentId;
 	}
 
 	/**

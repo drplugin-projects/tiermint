@@ -29,46 +29,11 @@ use DrPlugin\WP\TierMint\Storage\StoredFile;
 class ReleaseService {
 
 	/**
-	 * Default release channel.
-	 *
-	 * @var string
-	 */
-	private const CHANNEL = 'stable';
-
-	/**
-	 * Allowed channels when the feature is enabled.
-	 *
-	 * @var array<int, string>
-	 */
-	private const CHANNELS = array( 'stable', 'rc', 'beta' );
-
-	/**
 	 * Package storage provider.
 	 *
 	 * @var string
 	 */
 	private const STORAGE_PROVIDER = 'local';
-
-	/**
-	 * Default full rollout percentage.
-	 *
-	 * @var int
-	 */
-	private const DEFAULT_ROLLOUT = 100;
-
-	/**
-	 * The smallest legal rollout percentage.
-	 *
-	 * @var int
-	 */
-	private const MIN_ROLLOUT = 0;
-
-	/**
-	 * The largest legal rollout percentage (a full rollout).
-	 *
-	 * @var int
-	 */
-	private const MAX_ROLLOUT = 100;
 
 	/**
 	 * Bytes read when checking a plugin header.
@@ -85,11 +50,18 @@ class ReleaseService {
 	private const VERSION_PATTERN = '/^\d+(\.\d+){0,3}(-[0-9A-Za-z][0-9A-Za-z.\-]*)?$/';
 
 	/**
-	 * Fields that remain editable after publication.
+	 * Release fields an edit can change. Only a draft can change its version.
 	 *
 	 * @var array<int, string>
 	 */
-	private const EDITABLE_AFTER_PUBLISH = array( 'changelog', 'requires_wp', 'tested_up_to', 'requires_php' );
+	private const EDITABLE_FIELDS = array( 'version', 'changelog', 'requires_wp', 'tested_up_to', 'requires_php' );
+
+	/**
+	 * Columns a package replacement writes.
+	 *
+	 * @var array<int, string>
+	 */
+	private const PACKAGE_COLUMNS = array( 'storage_provider', 'storage_key', 'filesize', 'checksum_sha256' );
 
 	/**
 	 * The releases repository this service reads and writes through.
@@ -142,24 +114,6 @@ class ReleaseService {
 	}
 
 	/**
-	 * Check if release channels and staged rollouts are available.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return bool True when an extension enables channels and rollouts.
-	 */
-	public static function channelsSupported(): bool {
-		/**
-		 * Filters support for release channels and staged rollouts.
-		 *
-		 * @since 1.0.0
-		 *
-		 * @param bool $supported Whether channels and rollouts may be set and rendered.
-		 */
-		return (bool) apply_filters( 'tiermint_release_channels_supported', false );
-	}
-
-	/**
 	 * Create a validated draft release and store its package.
 	 *
 	 * @since 1.0.0
@@ -187,10 +141,8 @@ class ReleaseService {
 			$errors[] = __( 'A release must include a package file.', 'tiermint' );
 		}
 
-		list( $channel, $rollout ) = $this->resolveChannelAndRollout( $data, self::CHANNEL, self::DEFAULT_ROLLOUT, $errors );
-
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation messages, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ReleaseValidationException::withErrors( $errors );
 		}
 
@@ -206,7 +158,6 @@ class ReleaseService {
 			null,
 			$productId,
 			$version,
-			$channel,
 			$stored->providerId(),
 			$stored->key(),
 			$stored->filesize(),
@@ -215,7 +166,6 @@ class ReleaseService {
 			$this->optionalString( $data, 'tested_up_to' ),
 			$this->optionalString( $data, 'requires_php' ),
 			$this->optionalString( $data, 'changelog' ),
-			$rollout,
 			ReleaseStatus::Draft,
 			null,
 			null,
@@ -237,6 +187,8 @@ class ReleaseService {
 
 	/**
 	 * Validate and apply changes to a release.
+	 *
+	 * Keys other than the version, changelog and compatibility fields are ignored.
 	 *
 	 * @since 1.0.0
 	 *
@@ -286,7 +238,7 @@ class ReleaseService {
 		);
 
 		if ( ! $won ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message, surfaced as a 409 envelope, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ReleaseTransitionException::between( $release->status(), ReleaseStatus::Published );
 		}
 
@@ -327,7 +279,7 @@ class ReleaseService {
 		);
 
 		if ( ! $won ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message, surfaced as a 409 envelope, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ReleaseTransitionException::between( $release->status(), ReleaseStatus::Yanked );
 		}
 
@@ -354,7 +306,7 @@ class ReleaseService {
 		if ( $release->isPublished() ) {
 			$messages = array( __( 'A published release cannot be deleted. Yank it first, then delete it.', 'tiermint' ) );
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message, surfaced as a 400 envelope, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ReleaseValidationException::withErrors( $messages );
 		}
 
@@ -405,132 +357,31 @@ class ReleaseService {
 	 * @param array<string, mixed> $file     An optional replacement package, in `$_FILES` shape.
 	 * @return Release The reloaded release.
 	 *
-	 * @throws ReleaseValidationException When the version is changed, an unknown field is
-	 *                                   supplied, or a supplied channel/rollout is invalid or the
-	 *                                   channel move is not newer on its target. A duplicate
-	 *                                   version ({@see DuplicateReleaseVersionException}), a
-	 *                                   database write fault ({@see ReleasePersistenceException}),
-	 *                                   and a storage failure ({@see StorageException}) also
-	 *                                   propagate.
+	 * @throws ReleaseValidationException When the version is changed, or a replacement package
+	 *                                   fails the plugin-header check. A database write fault
+	 *                                   ({@see ReleasePersistenceException}) and a storage
+	 *                                   failure ({@see StorageException}) also propagate.
 	 */
 	private function updateLockedRelease( Release $existing, array $data, array $file ): Release {
-		$channelsOn = self::channelsSupported();
+		$fields = $this->editableFields( $data );
 
-		// Ignore the unchanged version field from the editor.
-		$considered = $data;
-		if ( array_key_exists( 'version', $considered ) && trim( (string) $considered['version'] ) === $existing->version() ) {
-			unset( $considered['version'] );
+		// The editor sends the unchanged version with every save.
+		if ( array_key_exists( 'version', $fields ) && trim( (string) $fields['version'] ) === $existing->version() ) {
+			unset( $fields['version'] );
 		}
 
-		// Core ignores channel fields when channels are unavailable.
-		if ( ! $channelsOn ) {
-			$considered = array_diff_key(
-				$considered,
-				array(
-					'channel'         => true,
-					'rollout_percent' => true,
-				)
-			);
-		}
-
-		// Avoid a needless write for an unchanged release.
-		if ( array() === $considered && ! $this->hasPackage( $file ) ) {
+		if ( array() === $fields && ! $this->hasPackage( $file ) ) {
 			return $existing;
 		}
 
-		$editable = $channelsOn
-			? array_merge( self::EDITABLE_AFTER_PUBLISH, array( 'channel', 'rollout_percent' ) )
-			: self::EDITABLE_AFTER_PUBLISH;
-
-		$disallowed = array_diff( array_keys( $considered ), $editable );
-
-		if ( array() !== $disallowed ) {
+		if ( array_key_exists( 'version', $fields ) ) {
 			$messages = array( __( "A published or yanked release's version is locked. To ship a different version, yank this release and publish a new one.", 'tiermint' ) );
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message, surfaced as a 400 envelope, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ReleaseValidationException::withErrors( $messages );
 		}
 
-		// Validate channel fields before storing changes.
-		$channel = $existing->channel();
-		$rollout = $existing->rolloutPercent();
-
-		if ( $channelsOn ) {
-			if ( array_key_exists( 'channel', $considered ) ) {
-				$channel = trim( (string) $considered['channel'] );
-
-				if ( ! in_array( $channel, self::CHANNELS, true ) ) {
-					/* translators: %s: the submitted channel string. */
-					$message = sprintf( __( '"%s" is not a valid release channel. Choose stable, rc, or beta.', 'tiermint' ), $channel );
-
-					// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message, surfaced as a 400 envelope, never echoed as HTML.
-					throw ReleaseValidationException::withErrors( array( $message ) );
-				}
-			}
-
-			if ( array_key_exists( 'rollout_percent', $considered ) ) {
-				$rollout = (int) $considered['rollout_percent'];
-
-				if ( $rollout < self::MIN_ROLLOUT || $rollout > self::MAX_ROLLOUT ) {
-					// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message, surfaced as a 400 envelope, never echoed as HTML.
-					throw ReleaseValidationException::withErrors( array( __( 'A rollout percentage must be between 0 and 100.', 'tiermint' ) ) );
-				}
-			}
-		}
-
-		// A published channel move must remain version-ordered.
-		if ( $channel !== $existing->channel() && $existing->isPublished() ) {
-			$this->assertChannelMoveIsNewer( $existing, $channel );
-		}
-
-		// Store replacement files only after validation.
-		$provider = $existing->storageProvider();
-		$key      = $existing->storageKey();
-		$filesize = $existing->filesize();
-		$checksum = $existing->checksumSha256();
-
-		$oldKey    = null;
-		$oldPrefix = null;
-
-		$stored = $this->storeReplacement( $existing, $file );
-
-		if ( null !== $stored ) {
-			$oldKey    = $key;
-			$oldPrefix = $provider;
-			$provider  = $stored->providerId();
-			$key       = $stored->key();
-			$filesize  = $stored->filesize();
-			$checksum  = $stored->sha256();
-		}
-
-		// Keep locked fields and the original release date.
-		$edited = new Release(
-			$existing->id(),
-			$existing->productId(),
-			$existing->version(),
-			$channel,
-			$provider,
-			$key,
-			$filesize,
-			$checksum,
-			array_key_exists( 'requires_wp', $considered ) ? $this->nullableString( $considered['requires_wp'] ) : $existing->requiresWp(),
-			array_key_exists( 'tested_up_to', $considered ) ? $this->nullableString( $considered['tested_up_to'] ) : $existing->testedUpTo(),
-			array_key_exists( 'requires_php', $considered ) ? $this->nullableString( $considered['requires_php'] ) : $existing->requiresPhp(),
-			array_key_exists( 'changelog', $considered ) ? $this->nullableString( $considered['changelog'] ) : $existing->changelog(),
-			$rollout,
-			$existing->status(),
-			$existing->releasedAt(),
-			$existing->createdAt(),
-			$existing->updatedAt()
-		);
-
-		$this->repository->update( $edited );
-
-		if ( null !== $oldKey && null !== $oldPrefix ) {
-			$this->deleteSuperseded( $oldPrefix, $oldKey );
-		}
-
-		return $this->requireRelease( (int) $existing->id() );
+		return $this->saveEdit( $existing, $existing->version(), $fields, $file );
 	}
 
 	/**
@@ -550,63 +401,97 @@ class ReleaseService {
 	 *                                   propagate.
 	 */
 	private function updateDraftRelease( Release $existing, array $data, array $file ): Release {
+		$fields = $this->editableFields( $data );
+
+		if ( array() === $fields && ! $this->hasPackage( $file ) ) {
+			return $existing;
+		}
+
 		$errors  = array();
 		$version = $existing->version();
 
-		if ( array_key_exists( 'version', $data ) ) {
-			$version = trim( (string) $data['version'] );
+		if ( array_key_exists( 'version', $fields ) ) {
+			$version = trim( (string) $fields['version'] );
 			$this->validateVersion( $version, $errors );
 		}
 
-		list( $channel, $rollout ) = $this->resolveChannelAndRollout( $data, $existing->channel(), $existing->rolloutPercent(), $errors );
-
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation messages, surfaced as a 400 envelope, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ReleaseValidationException::withErrors( $errors );
 		}
 
-		$provider  = $existing->storageProvider();
-		$key       = $existing->storageKey();
-		$filesize  = $existing->filesize();
-		$checksum  = $existing->checksumSha256();
-		$oldKey    = null;
-		$oldPrefix = null;
+		return $this->saveEdit( $existing, $version, $fields, $file );
+	}
 
+	/**
+	 * Keep only the release fields an edit can change.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, mixed> $data The edit input.
+	 * @return array<string, mixed> The editable fields that were sent.
+	 */
+	private function editableFields( array $data ): array {
+		return array_intersect_key( $data, array_flip( self::EDITABLE_FIELDS ) );
+	}
+
+	/**
+	 * Store a validated edit, writing only the fields it was sent.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param Release              $existing The release being edited.
+	 * @param string               $version  The version to store.
+	 * @param array<string, mixed> $fields   The editable fields that were sent.
+	 * @param array<string, mixed> $file     An optional replacement package, in `$_FILES` shape.
+	 * @return Release The reloaded release.
+	 *
+	 * @throws ReleaseValidationException       When the replacement fails the plugin-header check.
+	 * @throws DuplicateReleaseVersionException When the new version already exists for the product.
+	 * @throws ReleasePersistenceException      When the database write fails.
+	 * @throws StorageException                 When the replacement cannot be stored.
+	 */
+	private function saveEdit( Release $existing, string $version, array $fields, array $file ): Release {
+		$columns  = array_keys( $fields );
+		$provider = $existing->storageProvider();
+		$key      = $existing->storageKey();
+		$filesize = $existing->filesize();
+		$checksum = $existing->checksumSha256();
+
+		// Store a replacement only after every field is valid.
 		$stored = $this->storeReplacement( $existing, $file );
 
 		if ( null !== $stored ) {
-			$oldKey    = $key;
-			$oldPrefix = $provider;
-			$provider  = $stored->providerId();
-			$key       = $stored->key();
-			$filesize  = $stored->filesize();
-			$checksum  = $stored->sha256();
+			$columns  = array_merge( $columns, self::PACKAGE_COLUMNS );
+			$provider = $stored->providerId();
+			$key      = $stored->key();
+			$filesize = $stored->filesize();
+			$checksum = $stored->sha256();
 		}
 
-		$release = new Release(
-			$existing->id(),
-			$existing->productId(),
-			$version,
-			$channel,
-			$provider,
-			$key,
-			$filesize,
-			$checksum,
-			array_key_exists( 'requires_wp', $data ) ? $this->nullableString( $data['requires_wp'] ) : $existing->requiresWp(),
-			array_key_exists( 'tested_up_to', $data ) ? $this->nullableString( $data['tested_up_to'] ) : $existing->testedUpTo(),
-			array_key_exists( 'requires_php', $data ) ? $this->nullableString( $data['requires_php'] ) : $existing->requiresPhp(),
-			array_key_exists( 'changelog', $data ) ? $this->nullableString( $data['changelog'] ) : $existing->changelog(),
-			$rollout,
-			$existing->status(),
-			$existing->releasedAt(),
-			$existing->createdAt(),
-			$existing->updatedAt()
+		$this->repository->update(
+			new Release(
+				$existing->id(),
+				$existing->productId(),
+				$version,
+				$provider,
+				$key,
+				$filesize,
+				$checksum,
+				array_key_exists( 'requires_wp', $fields ) ? $this->nullableString( $fields['requires_wp'] ) : $existing->requiresWp(),
+				array_key_exists( 'tested_up_to', $fields ) ? $this->nullableString( $fields['tested_up_to'] ) : $existing->testedUpTo(),
+				array_key_exists( 'requires_php', $fields ) ? $this->nullableString( $fields['requires_php'] ) : $existing->requiresPhp(),
+				array_key_exists( 'changelog', $fields ) ? $this->nullableString( $fields['changelog'] ) : $existing->changelog(),
+				$existing->status(),
+				$existing->releasedAt(),
+				$existing->createdAt(),
+				$existing->updatedAt()
+			),
+			$columns
 		);
 
-		$this->repository->update( $release );
-
-		if ( null !== $oldKey && null !== $oldPrefix ) {
-			$this->deleteSuperseded( $oldPrefix, $oldKey );
+		if ( null !== $stored ) {
+			$this->deleteSuperseded( $existing->storageProvider(), $existing->storageKey() );
 		}
 
 		return $this->requireRelease( (int) $existing->id() );
@@ -659,47 +544,7 @@ class ReleaseService {
 	}
 
 	/**
-	 * Resolve the gated channel and rollout values.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array<string, mixed> $data           The write input.
-	 * @param string               $currentChannel The channel kept when none is supplied or channels are off.
-	 * @param int                  $currentRollout The rollout kept when none is supplied or channels are off.
-	 * @param array<int, string>   $errors         Error accumulator, appended by reference.
-	 * @return array{0: string, 1: int} The resolved channel and rollout.
-	 */
-	private function resolveChannelAndRollout( array $data, string $currentChannel, int $currentRollout, array &$errors ): array {
-		if ( ! self::channelsSupported() ) {
-			return array( $currentChannel, $currentRollout );
-		}
-
-		$channel = $currentChannel;
-
-		if ( array_key_exists( 'channel', $data ) ) {
-			$channel = trim( (string) $data['channel'] );
-
-			if ( ! in_array( $channel, self::CHANNELS, true ) ) {
-				/* translators: %s: the submitted channel string. */
-				$errors[] = sprintf( __( '"%s" is not a valid release channel. Choose stable, rc, or beta.', 'tiermint' ), $channel );
-			}
-		}
-
-		$rollout = $currentRollout;
-
-		if ( array_key_exists( 'rollout_percent', $data ) ) {
-			$rollout = (int) $data['rollout_percent'];
-
-			if ( $rollout < self::MIN_ROLLOUT || $rollout > self::MAX_ROLLOUT ) {
-				$errors[] = __( 'A rollout percentage must be between 0 and 100.', 'tiermint' );
-			}
-		}
-
-		return array( $channel, $rollout );
-	}
-
-	/**
-	 * Check that a release is newer than its channel's current version.
+	 * Check that a release is newer than the latest published release.
 	 *
 	 * @since 1.0.0
 	 *
@@ -709,7 +554,7 @@ class ReleaseService {
 	 * @throws ReleaseValidationException When the version is not greater than the latest.
 	 */
 	private function assertVersionIsNewer( Release $release ): void {
-		$latest = $this->repository->latestPublished( $release->productId(), $release->channel() );
+		$latest = $this->repository->latestPublished( $release->productId() );
 
 		if ( null === $latest ) {
 			return;
@@ -726,37 +571,7 @@ class ReleaseService {
 			$latest->version()
 		);
 
-		// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message, surfaced as a 400 envelope, never echoed as HTML.
-		throw ReleaseValidationException::withErrors( array( $message ) );
-	}
-
-	/**
-	 * Check that a channel move is newer than its destination.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param Release $release       The release being moved.
-	 * @param string  $targetChannel The channel it is moving to.
-	 * @return void
-	 *
-	 * @throws ReleaseValidationException When the version is not greater than the target's latest.
-	 */
-	private function assertChannelMoveIsNewer( Release $release, string $targetChannel ): void {
-		$latest = $this->repository->latestPublished( $release->productId(), $targetChannel );
-
-		if ( null === $latest || version_compare( $release->version(), $latest->version(), '>' ) ) {
-			return;
-		}
-
-		$message = sprintf(
-			/* translators: 1: the release version, 2: the target channel, 3: the latest published version already on that channel. */
-			__( 'Version %1$s cannot move to the %2$s channel: it is not newer than %3$s already published there. Yank and re-publish to move it deliberately.', 'tiermint' ),
-			$release->version(),
-			$targetChannel,
-			$latest->version()
-		);
-
-		// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message, surfaced as a 400 envelope, never echoed as HTML.
+		// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 		throw ReleaseValidationException::withErrors( array( $message ) );
 	}
 
@@ -804,7 +619,7 @@ class ReleaseService {
 		if ( true !== $zip->open( $tmpPath ) ) {
 			$messages = array( __( 'The uploaded package could not be read as a zip archive.', 'tiermint' ) );
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message, surfaced as a 400 envelope, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ReleaseValidationException::withErrors( $messages );
 		}
 
@@ -835,7 +650,7 @@ class ReleaseService {
 				$updateSlug
 			);
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated message, surfaced as a 400 envelope, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ReleaseValidationException::withErrors( array( $message ) );
 		}
 	}
@@ -913,7 +728,7 @@ class ReleaseService {
 		$product = $this->products->get( $productId );
 
 		if ( null === $product ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-facing message, surfaced as a generic 404, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ProductNotFoundException::forId( $productId );
 		}
 
@@ -934,7 +749,7 @@ class ReleaseService {
 		$release = $this->repository->find( $releaseId );
 
 		if ( null === $release ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-facing message, surfaced as a generic 404, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ReleaseNotFoundException::forId( $releaseId );
 		}
 

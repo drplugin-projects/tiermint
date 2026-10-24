@@ -54,20 +54,19 @@ class LogRepository {
 			return array();
 		}
 
-		$page         = max( 1, $page );
-		$perPage      = max( 1, $perPage );
-		$placeholders = implode( ', ', array_fill( 0, count( $orderIds ), '%d' ) );
+		$page    = max( 1, $page );
+		$perPage = max( 1, $perPage );
+		$wpdb    = $this->wpdb;
+		$values  = array_merge( array( $this->table() ), $orderIds, array( $perPage, ( $page - 1 ) * $perPage ) );
 
-		$sql = 'SELECT * FROM ' . $this->table()
-			. " WHERE type = 'download' AND object_type = 'order' AND object_id IN ( {$placeholders} )"
-			. ' ORDER BY id ASC LIMIT %d OFFSET %d';
-
-		$params   = $orderIds;
-		$params[] = $perPage;
-		$params[] = ( $page - 1 ) * $perPage;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- The SQL embeds only the Schema-derived table name and generated %d placeholders; every value is bound via prepare(); a bounded privacy-tooling read.
-		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $params ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM %i WHERE type = 'download' AND object_type = 'order' AND object_id IN ( " .
+				implode( ', ', array_fill( 0, count( $orderIds ), '%d' ) ) . ' ) ORDER BY id ASC LIMIT %d OFFSET %d',
+				$values
+			)
+		);
 
 		return is_array( $rows ) ? $rows : array();
 	}
@@ -85,14 +84,16 @@ class LogRepository {
 			return;
 		}
 
-		$placeholders = implode( ', ', array_fill( 0, count( $orderIds ), '%d' ) );
+		$wpdb = $this->wpdb;
 
-		$sql = 'UPDATE ' . $this->table()
-			. " SET ip_address = NULL WHERE type = 'download' AND object_type = 'order'"
-			. " AND ip_address IS NOT NULL AND object_id IN ( {$placeholders} )";
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- The SQL embeds only the Schema-derived table name and generated %d placeholders; every id is bound via prepare(); logs carry no object cache.
-		$this->wpdb->query( $this->wpdb->prepare( $sql, $orderIds ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE %i SET ip_address = NULL WHERE type = 'download' AND object_type = 'order'" .
+				' AND ip_address IS NOT NULL AND object_id IN ( ' . implode( ', ', array_fill( 0, count( $orderIds ), '%d' ) ) . ' )',
+				array_merge( array( $this->table() ), $orderIds )
+			)
+		);
 	}
 
 	/**
@@ -112,18 +113,19 @@ class LogRepository {
 
 		$page    = max( 1, $page );
 		$perPage = max( 1, $perPage );
+		$wpdb    = $this->wpdb;
+		$values  = array_merge( array( $this->table() ), $this->licenseNeedles( $licenseIds ), array( $perPage, ( $page - 1 ) * $perPage ) );
 
-		list( $where, $params ) = $this->licenseContextWhere( $licenseIds );
-
-		$sql = 'SELECT * FROM ' . $this->table()
-			. " WHERE type = 'download' AND object_type = 'release' AND ( {$where} )"
-			. ' ORDER BY id ASC LIMIT %d OFFSET %d';
-
-		$params[] = $perPage;
-		$params[] = ( $page - 1 ) * $perPage;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- The SQL embeds only the Schema-derived table name and generated %s/%d placeholders; every value is bound via prepare(); a bounded privacy-tooling read.
-		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $params ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- array_fill() writes one LIKE pair per licence.
+			$wpdb->prepare(
+				"SELECT * FROM %i WHERE type = 'download' AND object_type = 'release' AND ( " .
+				implode( ' OR ', array_fill( 0, count( $licenseIds ), '( context LIKE %s OR context LIKE %s )' ) ) .
+				' ) ORDER BY id ASC LIMIT %d OFFSET %d',
+				$values
+			)
+		);
 
 		return is_array( $rows ) ? $rows : array();
 	}
@@ -141,14 +143,18 @@ class LogRepository {
 			return;
 		}
 
-		list( $where, $params ) = $this->licenseContextWhere( $licenseIds );
+		$wpdb = $this->wpdb;
 
-		$sql = 'UPDATE ' . $this->table()
-			. " SET ip_address = NULL WHERE type = 'download' AND object_type = 'release'"
-			. " AND ip_address IS NOT NULL AND ( {$where} )";
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- The SQL embeds only the Schema-derived table name and generated %s placeholders; every pattern is bound via prepare(); logs carry no object cache.
-		$this->wpdb->query( $this->wpdb->prepare( $sql, $params ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$wpdb->query(
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- array_fill() writes one LIKE pair per licence.
+			$wpdb->prepare(
+				"UPDATE %i SET ip_address = NULL WHERE type = 'download' AND object_type = 'release'" .
+				' AND ip_address IS NOT NULL AND ( ' .
+				implode( ' OR ', array_fill( 0, count( $licenseIds ), '( context LIKE %s OR context LIKE %s )' ) ) . ' )',
+				array_merge( array( $this->table() ), $this->licenseNeedles( $licenseIds ) )
+			)
+		);
 	}
 
 	/**
@@ -164,36 +170,36 @@ class LogRepository {
 			return;
 		}
 
-		$placeholders = implode( ', ', array_fill( 0, count( $licenseIds ), '%d' ) );
+		$wpdb = $this->wpdb;
 
-		$sql = 'UPDATE ' . $this->table()
-			. " SET message = 'License event (details removed after a personal data erasure request).', ip_address = NULL"
-			. " WHERE object_type = 'license' AND object_id IN ( {$placeholders} )";
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- The SQL embeds only the Schema-derived table name, a fixed literal message, and generated %d placeholders; every id is bound via prepare(); logs carry no object cache.
-		$this->wpdb->query( $this->wpdb->prepare( $sql, $licenseIds ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE %i SET message = 'License event (details removed after a personal data erasure request).', ip_address = NULL" .
+				" WHERE object_type = 'license' AND object_id IN ( " . implode( ', ', array_fill( 0, count( $licenseIds ), '%d' ) ) . ' )',
+				array_merge( array( $this->table() ), $licenseIds )
+			)
+		);
 	}
 
 	/**
-	 * Build a LIKE clause for licence IDs in JSON context.
+	 * Build the LIKE patterns that find licence IDs in JSON context, two per licence.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param array<int, int> $licenseIds The license ids to match.
-	 * @return array{0: string, 1: array<int, string>} The WHERE fragment of %s placeholders and its bind values.
+	 * @return array<int, string> The patterns, in placeholder order.
 	 */
-	private function licenseContextWhere( array $licenseIds ): array {
-		$clauses = array();
-		$params  = array();
+	private function licenseNeedles( array $licenseIds ): array {
+		$needles = array();
 
 		foreach ( $licenseIds as $licenseId ) {
-			$clauses[] = '( context LIKE %s OR context LIKE %s )';
 			$needle    = '"license_id":' . (int) $licenseId;
-			$params[]  = '%' . $this->wpdb->esc_like( $needle . ',' ) . '%';
-			$params[]  = '%' . $this->wpdb->esc_like( $needle . '}' ) . '%';
+			$needles[] = '%' . $this->wpdb->esc_like( $needle . ',' ) . '%';
+			$needles[] = '%' . $this->wpdb->esc_like( $needle . '}' ) . '%';
 		}
 
-		return array( implode( ' OR ', $clauses ), $params );
+		return $needles;
 	}
 
 	/**

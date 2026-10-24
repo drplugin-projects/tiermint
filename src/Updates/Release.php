@@ -31,32 +31,11 @@ final class Release {
 	private const MAX_VERSION_LENGTH = 32;
 
 	/**
-	 * The widest a channel may be, matching the `channel` VARCHAR(20) column.
-	 *
-	 * @var int
-	 */
-	private const MAX_CHANNEL_LENGTH = 20;
-
-	/**
 	 * The widest a storage key may be, matching the `storage_key` VARCHAR(500) column.
 	 *
 	 * @var int
 	 */
 	private const MAX_STORAGE_KEY_LENGTH = 500;
-
-	/**
-	 * The smallest legal rollout percentage.
-	 *
-	 * @var int
-	 */
-	private const MIN_ROLLOUT = 0;
-
-	/**
-	 * The largest legal rollout percentage (a full rollout).
-	 *
-	 * @var int
-	 */
-	private const MAX_ROLLOUT = 100;
 
 	/**
 	 * Primary key, or null for a release that has not been persisted yet.
@@ -78,13 +57,6 @@ final class Release {
 	 * @var string
 	 */
 	private string $version;
-
-	/**
-	 * Release channel.
-	 *
-	 * @var string
-	 */
-	private string $channel;
 
 	/**
 	 * The storage adapter id the package lives under, e.g. 'local'.
@@ -143,13 +115,6 @@ final class Release {
 	private ?string $changelog;
 
 	/**
-	 * Rollout percentage.
-	 *
-	 * @var int
-	 */
-	private int $rolloutPercent;
-
-	/**
 	 * Lifecycle status.
 	 *
 	 * @var ReleaseStatus
@@ -185,7 +150,6 @@ final class Release {
 	 * @param int|null               $id              Primary key, or null when unsaved.
 	 * @param int                    $productId       Owning product id (must be positive).
 	 * @param string                 $version         Version string (present, at most 32 chars).
-	 * @param string                 $channel         Release channel (present, at most 20 chars).
 	 * @param string                 $storageProvider Storage adapter id, e.g. 'local'.
 	 * @param string                 $storageKey      Provider-scoped package key (present, at most 500 chars).
 	 * @param int|null               $filesize        Package size in bytes, or null.
@@ -194,20 +158,17 @@ final class Release {
 	 * @param string|null            $testedUpTo      Highest tested WordPress version, or null.
 	 * @param string|null            $requiresPhp     Minimum PHP version, or null.
 	 * @param string|null            $changelog       Markdown changelog source, or null.
-	 * @param int                    $rolloutPercent  Rollout percentage in 0-100.
 	 * @param ReleaseStatus          $status          Lifecycle status.
 	 * @param DateTimeImmutable|null $releasedAt      Publish instant, or null.
 	 * @param DateTimeImmutable|null $createdAt       Creation instant, or null.
 	 * @param DateTimeImmutable|null $updatedAt       Last-update instant, or null.
 	 *
-	 * @throws ReleaseValidationException When the product id, version, storage key, channel,
-	 *                                    or rollout percentage is invalid.
+	 * @throws ReleaseValidationException When the product id, version or storage key is invalid.
 	 */
 	public function __construct(
 		?int $id,
 		int $productId,
 		string $version,
-		string $channel,
 		string $storageProvider,
 		string $storageKey,
 		?int $filesize,
@@ -216,60 +177,41 @@ final class Release {
 		?string $testedUpTo,
 		?string $requiresPhp,
 		?string $changelog,
-		int $rolloutPercent,
 		ReleaseStatus $status,
 		?DateTimeImmutable $releasedAt,
 		?DateTimeImmutable $createdAt,
 		?DateTimeImmutable $updatedAt
 	) {
 		if ( $productId <= 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ReleaseValidationException( __( 'A release must belong to a product.', 'tiermint' ) );
 		}
 
 		if ( '' === $version ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ReleaseValidationException( __( 'A release must have a version.', 'tiermint' ) );
 		}
 
 		// The version is stored in a fixed VARCHAR(32) column, so anything longer would be
 		// truncated silently on write and never match on lookup. Reject it up front.
 		if ( strlen( $version ) > self::MAX_VERSION_LENGTH ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ReleaseValidationException( __( 'A release version cannot be longer than 32 characters.', 'tiermint' ) );
 		}
 
-		if ( '' === $channel ) {
-			// A blank channel would break the latest-lookup key, which is part of the
-			// update-check hot path; a release always names its channel.
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
-			throw new ReleaseValidationException( __( 'A release must have a channel.', 'tiermint' ) );
-		}
-
-		if ( strlen( $channel ) > self::MAX_CHANNEL_LENGTH ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
-			throw new ReleaseValidationException( __( 'A release channel cannot be longer than 20 characters.', 'tiermint' ) );
-		}
-
 		if ( '' === $storageKey ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ReleaseValidationException( __( 'A release must have a storage key for its package.', 'tiermint' ) );
 		}
 
 		if ( strlen( $storageKey ) > self::MAX_STORAGE_KEY_LENGTH ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ReleaseValidationException( __( 'A release storage key cannot be longer than 500 characters.', 'tiermint' ) );
-		}
-
-		if ( $rolloutPercent < self::MIN_ROLLOUT || $rolloutPercent > self::MAX_ROLLOUT ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
-			throw new ReleaseValidationException( __( 'A release rollout percentage must be between 0 and 100.', 'tiermint' ) );
 		}
 
 		$this->id              = $id;
 		$this->productId       = $productId;
 		$this->version         = $version;
-		$this->channel         = $channel;
 		$this->storageProvider = $storageProvider;
 		$this->storageKey      = $storageKey;
 		$this->filesize        = $filesize;
@@ -278,7 +220,6 @@ final class Release {
 		$this->testedUpTo      = $testedUpTo;
 		$this->requiresPhp     = $requiresPhp;
 		$this->changelog       = $changelog;
-		$this->rolloutPercent  = $rolloutPercent;
 		$this->status          = $status;
 		$this->releasedAt      = $releasedAt;
 		$this->createdAt       = $createdAt;
@@ -286,7 +227,7 @@ final class Release {
 	}
 
 	/**
-	 * Whether the release is currently published (the only status `/update-check` serves).
+	 * Whether the release is currently published.
 	 *
 	 * @since 1.0.0
 	 *
@@ -309,7 +250,6 @@ final class Release {
 			$this->id,
 			$this->productId,
 			$this->version,
-			$this->channel,
 			$this->storageProvider,
 			$this->storageKey,
 			$this->filesize,
@@ -318,103 +258,8 @@ final class Release {
 			$this->testedUpTo,
 			$this->requiresPhp,
 			$this->changelog,
-			$this->rolloutPercent,
 			$status,
 			$this->releasedAt,
-			$this->createdAt,
-			$this->updatedAt
-		);
-	}
-
-	/**
-	 * Return a copy with a new validated channel.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string $channel The channel the copy should carry.
-	 * @return self The new release.
-	 *
-	 * @throws ReleaseValidationException When the channel is empty or longer than 20 characters.
-	 */
-	public function withChannel( string $channel ): self {
-		return new self(
-			$this->id,
-			$this->productId,
-			$this->version,
-			$channel,
-			$this->storageProvider,
-			$this->storageKey,
-			$this->filesize,
-			$this->checksumSha256,
-			$this->requiresWp,
-			$this->testedUpTo,
-			$this->requiresPhp,
-			$this->changelog,
-			$this->rolloutPercent,
-			$this->status,
-			$this->releasedAt,
-			$this->createdAt,
-			$this->updatedAt
-		);
-	}
-
-	/**
-	 * Return a copy with a new validated rollout percentage.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param int $rolloutPercent The rollout percentage the copy should carry (0-100).
-	 * @return self The new release.
-	 *
-	 * @throws ReleaseValidationException When the percentage is outside 0-100.
-	 */
-	public function withRolloutPercent( int $rolloutPercent ): self {
-		return new self(
-			$this->id,
-			$this->productId,
-			$this->version,
-			$this->channel,
-			$this->storageProvider,
-			$this->storageKey,
-			$this->filesize,
-			$this->checksumSha256,
-			$this->requiresWp,
-			$this->testedUpTo,
-			$this->requiresPhp,
-			$this->changelog,
-			$rolloutPercent,
-			$this->status,
-			$this->releasedAt,
-			$this->createdAt,
-			$this->updatedAt
-		);
-	}
-
-	/**
-	 * Return a copy with a new publish time.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param DateTimeImmutable|null $releasedAt The publish instant the copy should carry, or null.
-	 * @return self The new release.
-	 */
-	public function withReleasedAt( ?DateTimeImmutable $releasedAt ): self {
-		return new self(
-			$this->id,
-			$this->productId,
-			$this->version,
-			$this->channel,
-			$this->storageProvider,
-			$this->storageKey,
-			$this->filesize,
-			$this->checksumSha256,
-			$this->requiresWp,
-			$this->testedUpTo,
-			$this->requiresPhp,
-			$this->changelog,
-			$this->rolloutPercent,
-			$this->status,
-			$releasedAt,
 			$this->createdAt,
 			$this->updatedAt
 		);
@@ -451,17 +296,6 @@ final class Release {
 	 */
 	public function version(): string {
 		return $this->version;
-	}
-
-	/**
-	 * The release channel.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return string
-	 */
-	public function channel(): string {
-		return $this->channel;
 	}
 
 	/**
@@ -550,17 +384,6 @@ final class Release {
 	 */
 	public function changelog(): ?string {
 		return $this->changelog;
-	}
-
-	/**
-	 * The rollout percentage (0-100).
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return int
-	 */
-	public function rolloutPercent(): int {
-		return $this->rolloutPercent;
 	}
 
 	/**

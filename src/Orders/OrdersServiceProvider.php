@@ -15,6 +15,7 @@ defined( 'ABSPATH' ) || exit;
 use DrPlugin\WP\TierMint\Core\Container;
 use DrPlugin\WP\TierMint\Core\ServiceProvider;
 use DrPlugin\WP\TierMint\Customers\CustomerService;
+use DrPlugin\WP\TierMint\Database\Logger;
 use DrPlugin\WP\TierMint\Products\ProductService;
 
 /**
@@ -46,10 +47,10 @@ final class OrdersServiceProvider implements ServiceProvider {
 
 		$container->singleton(
 			OrderRepository::class,
-			static function (): OrderRepository {
+			static function ( Container $c ): OrderRepository {
 				global $wpdb;
 
-				return new OrderRepository( $wpdb );
+				return new OrderRepository( $wpdb, $c->get( Logger::class ) );
 			}
 		);
 
@@ -78,6 +79,9 @@ final class OrdersServiceProvider implements ServiceProvider {
 					: null,
 				$c->has( \DrPlugin\WP\TierMint\Discounts\DiscountSettings::class )
 					? $c->get( \DrPlugin\WP\TierMint\Discounts\DiscountSettings::class )
+					: null,
+				$c->has( \DrPlugin\WP\TierMint\Database\Logger::class )
+					? $c->get( \DrPlugin\WP\TierMint\Database\Logger::class )
 					: null
 			)
 		);

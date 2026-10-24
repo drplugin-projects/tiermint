@@ -72,7 +72,7 @@ class TermService {
 
 		// Validate taxonomy and name before resolving a parent.
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Validation messages surfaced as structured API errors, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw TermValidationException::withErrors( $errors );
 		}
 
@@ -80,7 +80,7 @@ class TermService {
 		$slug   = $this->uniqueSlug( $this->slugSource( $data, $name ), $taxonomy, null );
 
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Validation messages surfaced as structured API errors, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw TermValidationException::withErrors( $errors );
 		}
 
@@ -125,7 +125,7 @@ class TermService {
 		$existing = $this->terms->find( $id );
 
 		if ( null === $existing ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured 404, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw TermNotFoundException::forId( $id );
 		}
 
@@ -146,7 +146,7 @@ class TermService {
 		$parent          = $this->resolveParent( $taxonomy, $requestedParent, $id, $errors );
 
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Validation messages surfaced as structured API errors, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw TermValidationException::withErrors( $errors );
 		}
 
@@ -189,7 +189,7 @@ class TermService {
 		$existing = $this->terms->find( $id );
 
 		if ( null === $existing ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured 404, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw TermNotFoundException::forId( $id );
 		}
 
@@ -253,7 +253,7 @@ class TermService {
 		$errors     = $this->validateAssignable( $normalized, $taxonomy );
 
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Validation messages surfaced as structured API errors, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw TermValidationException::withErrors( $errors );
 		}
 
@@ -582,7 +582,7 @@ class TermService {
 		$term = $this->terms->find( $id );
 
 		if ( null === $term ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw TermNotFoundException::forId( $id );
 		}
 

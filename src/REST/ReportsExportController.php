@@ -326,7 +326,7 @@ final class ReportsExportController extends AbstractRestController {
 	 * @return array<int, string>
 	 */
 	private function ordersHeader(): array {
-		return array( 'order_id', 'date', 'customer_name', 'customer_email', 'products', 'status', 'type', 'total', 'currency', 'gateway' );
+		return array( 'order_id', 'date', 'customer_name', 'customer_email', 'products', 'status', 'type', 'total', 'currency', 'gateway', 'company_name', 'tax_id', 'billing_address', 'billing_country' );
 	}
 
 	/**
@@ -343,9 +343,13 @@ final class ReportsExportController extends AbstractRestController {
 		$buyers = $this->buyers->forOrders( $orders );
 		$rows   = array();
 
+		// One meta query for the whole export, not one per order.
+		update_meta_cache( 'tiermint_order', array_map( static fn ( Order $order ): int => (int) $order->id(), $orders ) );
+
 		foreach ( $orders as $order ) {
 			$buyer    = $buyers[ (int) $order->customerId() ] ?? null;
 			$currency = (string) $order->currency();
+			$orderId  = (int) $order->id();
 
 			$rows[] = array(
 				(string) (int) $order->id(),
@@ -358,10 +362,57 @@ final class ReportsExportController extends AbstractRestController {
 				Money::toDecimalString( (int) $order->total(), $currency ),
 				$currency,
 				null === $order->gateway() ? '' : (string) $order->gateway(),
+				$this->metaCell( $orderId, CheckoutController::COMPANY_META ),
+				$this->metaCell( $orderId, CheckoutController::TAX_ID_META ),
+				$this->addressCell( $orderId ),
+				(string) $order->country(),
 			);
 		}
 
 		return $rows;
+	}
+
+	/**
+	 * Return a string order meta value as one CSV cell.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param int    $orderId The order id.
+	 * @param string $key     The order meta key.
+	 * @return string The value, or '' when it is absent.
+	 */
+	private function metaCell( int $orderId, string $key ): string {
+		$value = get_metadata( 'tiermint_order', $orderId, $key, true );
+
+		return is_string( $value ) ? $value : '';
+	}
+
+	/**
+	 * Return the billing address as one CSV cell, in the order the screen shows it.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param int $orderId The order id.
+	 * @return string The filled-in parts joined by commas, or ''.
+	 */
+	private function addressCell( int $orderId ): string {
+		$address = get_metadata( 'tiermint_order', $orderId, CheckoutController::ADDRESS_META, true );
+
+		if ( ! is_array( $address ) ) {
+			return '';
+		}
+
+		$parts = array();
+
+		foreach ( array( 'address_1', 'address_2', 'city', 'state', 'postcode' ) as $key ) {
+			$part = isset( $address[ $key ] ) && is_string( $address[ $key ] ) ? trim( $address[ $key ] ) : '';
+
+			if ( '' !== $part ) {
+				$parts[] = $part;
+			}
+		}
+
+		return implode( ', ', $parts );
 	}
 
 	/**

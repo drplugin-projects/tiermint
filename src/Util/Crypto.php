@@ -12,6 +12,8 @@ namespace DrPlugin\WP\TierMint\Util;
 // Prevent direct file access.
 defined( 'ABSPATH' ) || exit;
 
+use SodiumException;
+
 /**
  * Encrypts stored secrets with libsodium secretbox.
  *
@@ -42,8 +44,8 @@ final class Crypto {
 		$nonce      = random_bytes( SODIUM_CRYPTO_SECRETBOX_NONCEBYTES );
 		$ciphertext = sodium_crypto_secretbox( $plaintext, $nonce, $key );
 
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Store binary ciphertext in an option.
-		return base64_encode( $nonce . $ciphertext );
+		// Same output as base64_encode(), so stored values stay readable.
+		return sodium_bin2base64( $nonce . $ciphertext, SODIUM_BASE64_VARIANT_ORIGINAL );
 	}
 
 	/**
@@ -56,9 +58,9 @@ final class Crypto {
 	public function decrypt( string $encoded ): string {
 		$key = $this->derive_key();
 
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Decode stored ciphertext.
-		$payload = base64_decode( $encoded, true );
-		if ( false === $payload ) {
+		try {
+			$payload = sodium_base642bin( $encoded, SODIUM_BASE64_VARIANT_ORIGINAL );
+		} catch ( SodiumException ) {
 			throw new CryptoException( 'Stored secret is not valid base64.' );
 		}
 

@@ -125,7 +125,7 @@ final class Customer {
 		$normalizedEmail = self::normalizeEmail( $email );
 
 		if ( '' === $normalizedEmail || false === filter_var( $normalizedEmail, FILTER_VALIDATE_EMAIL ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new CustomerException( __( 'A customer requires a valid email address.', 'tiermint' ) );
 		}
 

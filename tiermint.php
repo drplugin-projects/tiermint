@@ -1,10 +1,10 @@
 <?php
 /**
  * Plugin Name:       TierMint
- * Plugin URI:        https://drplugin.com/docs/tiermint
+ * Plugin URI:        https://github.com/drplugin-projects/tiermint
  * Description:       Sell digital products with licensing, updates, and Stripe checkout, right from WordPress.
  * Version:           1.0.0
- * Requires at least: 6.6
+ * Requires at least: 6.9
  * Requires PHP:      8.1
  * Author:            DrPlugin
  * Author URI:        https://drplugin.com
@@ -32,7 +32,7 @@ define( 'TIERMINT_URL', plugin_dir_url( __FILE__ ) );
 /*
  * Keep this equal to the highest migration version.
  */
-define( 'TIERMINT_DB_VERSION', 8 );
+define( 'TIERMINT_DB_VERSION', 4 );
 
 /**
  * Autoload TierMint classes.
@@ -70,25 +70,10 @@ spl_autoload_register(
  */
 require_once __DIR__ . '/lib/action-scheduler/action-scheduler.php';
 
-// Keep completed actions for seven days instead of the default 31.
-add_filter(
-	'action_scheduler_retention_period',
-	/**
-	 * Shorten how long completed/failed actions are kept before cleanup.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return int Retention period in seconds.
-	 */
-	static function (): int {
-		return 7 * 86400;
-	}
-);
-
 /**
  * Access the shared TierMint plugin instance.
  *
- * Build on first use. Pro and add-ons use this core check.
+ * Build on first use. Block render files reach the container through it; extensions can too.
  *
  * @since 1.0.0
  *

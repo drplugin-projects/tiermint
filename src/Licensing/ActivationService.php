@@ -162,7 +162,7 @@ class ActivationService {
 		$existing = $this->activations->findByLicenseAndHash( $licenseId, $hash );
 
 		if ( null === $existing ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured domain message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ActivationNotFoundException::forSite( $normalized );
 		}
 
@@ -290,7 +290,6 @@ class ActivationService {
 		}
 
 		if ( ! $this->licenses->claimActivationSlot( (int) $license->id() ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured domain message, surfaced as an API error, never echoed as HTML.
 			throw new ActivationLimitException( (int) $license->activationLimit() );
 		}
 
@@ -309,12 +308,12 @@ class ActivationService {
 	 */
 	private function assertActivatable( License $license ): void {
 		if ( LicenseStatus::Expired === $license->status() ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured domain message, surfaced as an API error, never echoed as HTML.
-			throw new LicenseValidationException( __( 'This license has expired. Renew it to activate new sites.', 'tiermint' ) );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
+			throw new LicenseValidationException( __( 'This license has expired. To activate new sites, buy a new license and use its key.', 'tiermint' ) );
 		}
 
 		if ( LicenseStatus::Disabled === $license->status() ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured domain message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'This license has been disabled and cannot be activated.', 'tiermint' ) );
 		}
 	}

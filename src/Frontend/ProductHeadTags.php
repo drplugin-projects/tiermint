@@ -82,7 +82,8 @@ class ProductHeadTags implements Hookable {
 		$tags = $this->tags( $product );
 		$name = $tags['title'];
 
-		return '' !== $tags['site_name'] ? $name . ' - ' . $tags['site_name'] : $name;
+		// WordPress prints a pre_get_document_title return in the title tag as it is.
+		return esc_html( '' !== $tags['site_name'] ? $name . ' - ' . $tags['site_name'] : $name );
 	}
 
 	/**

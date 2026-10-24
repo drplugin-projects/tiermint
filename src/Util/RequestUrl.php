@@ -32,8 +32,7 @@ final class RequestUrl {
 	public static function current(): string {
 		$uri = '/';
 		if ( isset( $_SERVER['REQUEST_URI'] ) ) {
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- resolved against home_url() below; callers escape or pass to wp_safe_redirect().
-			$uri = (string) wp_unslash( $_SERVER['REQUEST_URI'] );
+			$uri = esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) );
 			if ( '' === $uri ) {
 				$uri = '/';
 			}

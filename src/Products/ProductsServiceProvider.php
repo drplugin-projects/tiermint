@@ -14,6 +14,7 @@ defined( 'ABSPATH' ) || exit;
 
 use DrPlugin\WP\TierMint\Core\Container;
 use DrPlugin\WP\TierMint\Core\ServiceProvider;
+use DrPlugin\WP\TierMint\Database\Logger;
 use DrPlugin\WP\TierMint\Products\Fields\CoreProductFields;
 use DrPlugin\WP\TierMint\Products\Fields\ProductFieldRegistry;
 
@@ -74,7 +75,8 @@ final class ProductsServiceProvider implements ServiceProvider {
 			ProductService::class,
 			static fn ( Container $c ): ProductService => new ProductService(
 				$c->get( ProductRepository::class ),
-				$c->get( TermService::class )
+				$c->get( TermService::class ),
+				$c->get( Logger::class )
 			)
 		);
 

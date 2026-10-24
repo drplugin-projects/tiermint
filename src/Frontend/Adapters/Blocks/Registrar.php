@@ -233,11 +233,6 @@ class Registrar implements Hookable {
 
 			$controls = array();
 			foreach ( $component->schema() as $attribute => $definition ) {
-				// The reserved Pro gating bucket is not an attribute.
-				if ( 'pro' === $attribute ) {
-					continue;
-				}
-
 				$controls[] = array(
 					'name'        => $attribute,
 					'type'        => (string) ( $definition['type'] ?? 'string' ),
@@ -284,8 +279,7 @@ class Registrar implements Hookable {
 			return null;
 		}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reading the plugin's own block metadata, not a remote resource.
-		$metadata = json_decode( (string) file_get_contents( $file ), true );
+		$metadata = wp_json_file_decode( $file, array( 'associative' => true ) );
 
 		$name = is_array( $metadata ) ? (string) ( $metadata['name'] ?? '' ) : '';
 

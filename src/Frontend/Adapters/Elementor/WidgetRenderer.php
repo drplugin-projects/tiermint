@@ -166,7 +166,7 @@ class WidgetRenderer {
 		$mapped = array();
 
 		foreach ( $schema as $name => $definition ) {
-			if ( 'pro' === $name || ! is_array( $definition ) || ! array_key_exists( $name, $settings ) ) {
+			if ( ! is_array( $definition ) || ! array_key_exists( $name, $settings ) ) {
 				continue;
 			}
 

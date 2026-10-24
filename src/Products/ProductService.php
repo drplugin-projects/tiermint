@@ -12,6 +12,9 @@ namespace DrPlugin\WP\TierMint\Products;
 // Prevent direct file access.
 defined( 'ABSPATH' ) || exit;
 
+use DrPlugin\WP\TierMint\Database\Logger;
+use Throwable;
+
 /**
  * Product CRUD, validation and business rules.
  *
@@ -36,6 +39,13 @@ class ProductService {
 	private TermService $terms;
 
 	/**
+	 * Records a listener failure after a save, or null to skip the record.
+	 *
+	 * @var Logger|null
+	 */
+	private ?Logger $logger;
+
+	/**
 	 * Allowed status transitions, keyed by the current status value.
 	 *
 	 * Archived products return through draft. Identity transitions are allowed.
@@ -55,10 +65,12 @@ class ProductService {
 	 *
 	 * @param ProductRepository $repository Reads and writes products.
 	 * @param TermService       $terms      The term service for category/tag assignment.
+	 * @param Logger|null       $logger     Records a listener failure after a save.
 	 */
-	public function __construct( ProductRepository $repository, TermService $terms ) {
+	public function __construct( ProductRepository $repository, TermService $terms, ?Logger $logger = null ) {
 		$this->repository = $repository;
 		$this->terms      = $terms;
+		$this->logger     = $logger;
 	}
 
 	/**
@@ -85,7 +97,7 @@ class ProductService {
 
 		// A bad name/type/status blocks everything downstream, so stop here.
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation messages, surfaced as structured API errors, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ProductValidationException::withErrors( $errors );
 		}
 
@@ -93,7 +105,8 @@ class ProductService {
 		$slug        = $this->uniqueSlug( $this->slugSource( $data, $name ), null );
 		$updateSlug  = $this->resolveUpdateSlug( $data, $isLicensed, null, $errors );
 		$prices      = $this->buildPrices( $data['prices'] ?? array(), $errors );
-		$settings    = $this->resolveSettings( $data['settings'] ?? array(), null, $prices, $errors );
+		$priceRows   = $this->priceRows( $data['prices'] ?? array() );
+		$settings    = $this->filterSettings( $data['settings'] ?? array(), $prices, null, $priceRows );
 		$bundleItems = ProductType::Bundle === $type
 			? $this->buildBundleItems( $data['bundle_items'] ?? array(), null, $errors )
 			: array();
@@ -101,8 +114,10 @@ class ProductService {
 		$this->assertPublishable( $status, $isLicensed, $prices, $errors );
 		$this->validateTermAssignments( $data, $errors );
 
+		$errors = $this->filterErrors( $errors, $prices, $settings, null, $priceRows );
+
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation messages, surfaced as structured API errors, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ProductValidationException::withErrors( $errors );
 		}
 
@@ -135,9 +150,10 @@ class ProductService {
 			// table name) is discarded here and never reaches the controller or client.
 			$this->repository->delete( (int) $saved->id() );
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Generic developer-facing message with no request data; the controller maps it to a generic 500.
 			throw new ProductPersistenceException( 'The product could not be saved with its categories and tags.' );
 		}
+
+		$this->announceSaved( $saved, $prices, $priceRows, null );
 
 		return $saved;
 	}
@@ -159,7 +175,7 @@ class ProductService {
 		$existing = $this->repository->find( $id );
 
 		if ( null === $existing ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation message, surfaced as a structured 404, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ProductNotFoundException::forId( $id );
 		}
 
@@ -168,7 +184,7 @@ class ProductService {
 
 		// An invalid or forbidden transition is fatal on its own; stop before edits.
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation messages, surfaced as structured API errors, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ProductValidationException::withErrors( $errors );
 		}
 
@@ -196,20 +212,26 @@ class ProductService {
 		}
 
 		$prices = array_key_exists( 'prices', $data )
-			? $this->buildPrices( $data['prices'], $errors, $this->existingRecurringTierIds( $existing ) )
+			? $this->buildPrices( $data['prices'], $errors )
 			: $existing->prices();
 
-		$settings = array_key_exists( 'settings', $data )
-			? $this->resolveSettings( $data['settings'], $existing, $prices, $errors )
-			: $existing->settings();
+		$priceRows = array_key_exists( 'prices', $data ) ? $this->priceRows( $data['prices'] ) : array();
+		$settings  = $this->filterSettings(
+			array_key_exists( 'settings', $data ) ? $data['settings'] : $existing->settings(),
+			$prices,
+			$existing,
+			$priceRows
+		);
 
 		$bundleItems = $this->resolveBundleItems( $type, $data, $existing, $errors );
 
 		$this->assertPublishable( $status, $isLicensed, $prices, $errors );
 		$this->validateTermAssignments( $data, $errors );
 
+		$errors = $this->filterErrors( $errors, $prices, $settings, $existing, $priceRows );
+
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation messages, surfaced as structured API errors, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ProductValidationException::withErrors( $errors );
 		}
 
@@ -236,13 +258,15 @@ class ProductService {
 
 		$saved = $this->requireProduct( $id );
 
+		// Announce before the term write: the tiers are stored even if that write fails.
+		$this->announceSaved( $saved, array_key_exists( 'prices', $data ) ? $prices : array(), $priceRows, $existing );
+
 		try {
 			$this->assignTerms( $saved, $data );
 		} catch ( TermPersistenceException $e ) {
 			// A relationship write failed after the product columns were updated. Map it
 			// to a generic product persistence failure so the controller returns a generic
 			// 500 and the term exception's internal table detail never reaches the client.
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Generic developer-facing message with no request data; the controller maps it to a generic 500.
 			throw new ProductPersistenceException( 'The product could not be saved with its categories and tags.' );
 		}
 
@@ -260,12 +284,30 @@ class ProductService {
 	 * @throws ProductNotFoundException When no product has the given id.
 	 */
 	public function delete( int $id ): void {
-		if ( null === $this->repository->find( $id ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation message, surfaced as a structured 404, never echoed as HTML.
+		$existing = $this->repository->find( $id );
+
+		if ( null === $existing ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ProductNotFoundException::forId( $id );
 		}
 
 		$this->repository->delete( $id );
+
+		try {
+			/**
+			 * Fires after a product and its price tiers are deleted.
+			 *
+			 * An extension that stores its own data per product or tier drops it
+			 * here. A listener that throws is logged and the delete still succeeds.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param Product $product The product as it was before the delete.
+			 */
+			do_action( 'tiermint_product_deleted', $existing );
+		} catch ( Throwable $failure ) {
+			$this->logListenerFailure( 'tiermint_product_deleted', $id, $failure );
+		}
 	}
 
 	/**
@@ -437,7 +479,7 @@ class ProductService {
 
 	/**
 	 * Generate a slug unique across products, suffixing WP-style on collision
-	 * (`base`, `base-2`, `base-3`, …).
+	 * (`base`, `base-2`, `base-3`, ...).
 	 *
 	 * @since 1.0.0
 	 *
@@ -494,39 +536,15 @@ class ProductService {
 	}
 
 	/**
-	 * Whether recurring price tiers may be saved.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return bool True when an extension enables recurring tiers.
-	 */
-	public static function recurringTiersSupported(): bool {
-		/**
- * Filters recurring price tier support.
- *
- * The free core must reject tiers it cannot renew.
-		 *
-		 * @since 1.0.0
-		 *
-		 * @param bool $supported Whether recurring tiers may be saved and rendered.
-		 */
-		return (bool) apply_filters( 'tiermint_recurring_tiers_supported', false );
-	}
-
-	/**
 	 * Build price objects and collect validation errors.
 	 *
-	 * Existing recurring tiers stay valid when recurring billing is unavailable.
-	 *
 	 * @since 1.0.0
 	 *
-	 * @param mixed              $pricesData               The raw prices input (expected: a list of arrays).
-	 * @param array<int, string> $errors                   Error accumulator, appended by reference.
-	 * @param array<int, int>    $grandfatheredRecurringIds Ids of the product's already-persisted
-	 *                                                     recurring tiers, exempt from the gate.
+	 * @param mixed              $pricesData The raw prices input (expected: a list of arrays).
+	 * @param array<int, string> $errors     Error accumulator, appended by reference.
 	 * @return array<int, ProductPrice> The built price tiers.
 	 */
-	private function buildPrices( $pricesData, array &$errors, array $grandfatheredRecurringIds = array() ): array {
+	private function buildPrices( $pricesData, array &$errors ): array {
 		if ( ! is_array( $pricesData ) ) {
 			return array();
 		}
@@ -550,24 +568,11 @@ class ProductService {
 			// can never go back into the strtotime-string column (the corruption an
 			// older build caused) while legacy freeform rows stay saveable. Hydration does
 			// not run this, so an existing row still loads.
-			$lengthError = ProductPrice::licenseLengthError( $price->licenseLength(), $price->isSubscription() );
+			$lengthError = ProductPrice::licenseLengthError( $price->licenseLength() );
 
 			if ( null !== $lengthError ) {
 				$errors[] = $lengthError;
 				continue;
-			}
-
-			if ( $price->isSubscription() && ! self::recurringTiersSupported() ) {
-				// Grandfather an existing recurring tier of this product so an admin
-				// who removed Pro is not locked out of editing the product at all;
-				// anything new (no id, or a one-time tier newly flipped to recurring)
-				// is still refused because the core cannot bill it.
-				$priceId = $price->id();
-
-				if ( null === $priceId || ! in_array( $priceId, $grandfatheredRecurringIds, true ) ) {
-					$errors[] = __( 'Recurring price tiers require TierMint Pro.', 'tiermint' );
-					continue;
-				}
 			}
 
 			$prices[] = $price;
@@ -577,194 +582,241 @@ class ProductService {
 	}
 
 	/**
-	 * Get persisted recurring-tier IDs that remain valid on update.
+	 * The price rows of a save as sent.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param Product $product The product being updated.
-	 * @return array<int, int> The persisted recurring tier ids.
+	 * @param mixed $pricesData The raw prices input.
+	 * @return array<int|string, mixed> The rows, or an empty list when prices is not a list.
 	 */
-	private function existingRecurringTierIds( Product $product ): array {
-		$ids = array();
-
-		foreach ( $product->prices() as $price ) {
-			$id = $price->id();
-
-			if ( $price->isSubscription() && null !== $id ) {
-				$ids[] = $id;
-			}
-		}
-
-		return $ids;
+	private function priceRows( $pricesData ): array {
+		return is_array( $pricesData ) ? $pricesData : array();
 	}
 
 	/**
-	 * Resolve settings input.
+	 * Fire the saved action, so an extension can store its own data per tier.
 	 *
-	 * Validate upgrade paths and retain unknown settings.
+	 * A listener failure is logged. The save has landed, so it must not look
+	 * like a failed save to the caller.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param mixed                    $settingsData The raw settings input.
-	 * @param Product|null             $existing     The product being updated, or null on create.
-	 * @param array<int, ProductPrice> $prices       The resolved price tiers of this save.
-	 * @param array<int, string>       $errors       Error accumulator, appended by reference.
-	 * @return array<string, mixed> The resolved settings blob.
+	 * @param Product                  $saved     The stored product.
+	 * @param array<int, ProductPrice> $prices    The tiers as built from the input, or none when no prices were sent.
+	 * @param array<int|string, mixed> $priceRows The price rows as sent.
+	 * @param Product|null             $previous  The product before the save, or null on create.
+	 * @return void
 	 */
-	private function resolveSettings( $settingsData, ?Product $existing, array $prices, array &$errors ): array {
-		$settings = is_array( $settingsData ) ? $settingsData : array();
+	private function announceSaved( Product $saved, array $prices, array $priceRows, ?Product $previous ): void {
+		$tiers = $this->pairTiers( $saved, $prices, array_values( $priceRows ), $previous );
 
-		if ( ! array_key_exists( 'upgrade_paths', $settings ) ) {
-			return $settings;
+		try {
+			/**
+			 * Fires after a product and its price tiers are stored.
+			 *
+			 * Each entry of `$tiers` pairs a stored tier with the input row it was
+			 * saved from, in input order, so a listener can store data for keys
+			 * core does not use. Tiers the save did not send are not listed;
+			 * read `$product->prices()` for every stored tier. A listener that
+			 * throws is logged and the save still succeeds.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param Product                                                             $product  The stored product.
+			 * @param array<int, array{price: ProductPrice, input: array<string, mixed>}> $tiers    Stored tiers with their input rows.
+			 * @param Product|null                                                        $previous The product before the save, or null on create.
+			 */
+			do_action( 'tiermint_product_saved', $saved, $tiers, $previous );
+		} catch ( Throwable $failure ) {
+			$this->logListenerFailure( 'tiermint_product_saved', (int) $saved->id(), $failure );
 		}
-
-		$resolved = $this->resolveUpgradePaths( $settings['upgrade_paths'], $existing, $prices, $errors );
-
-		// An empty map means "no switches allowed", which is also the meaning of
-		// an absent key, so the blob stays clean rather than storing empty husks.
-		if ( array() === $resolved ) {
-			unset( $settings['upgrade_paths'] );
-		} else {
-			$settings['upgrade_paths'] = $resolved;
-		}
-
-		return $settings;
 	}
 
 	/**
-	 * Validate upgrade paths between recurring prices of this product.
-	 *
-	 * Existing paths remain valid when recurring billing is unavailable.
+	 * Log a listener that threw after a write had already landed.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param mixed                    $raw      The raw upgrade_paths input.
-	 * @param Product|null             $existing The product being updated, or null on create.
-	 * @param array<int, ProductPrice> $prices   The resolved price tiers of this save.
-	 * @param array<int, string>       $errors   Error accumulator, appended by reference.
-	 * @return array<int, array<int, int>> The validated, normalized map (possibly empty).
+	 * @param string    $hook      The action that ran.
+	 * @param int       $productId The product it ran for.
+	 * @param Throwable $failure   What the listener threw.
+	 * @return void
 	 */
-	private function resolveUpgradePaths( $raw, ?Product $existing, array $prices, array &$errors ): array {
+	private function logListenerFailure( string $hook, int $productId, Throwable $failure ): void {
+		$this->logger?->log(
+			'error',
+			sprintf( 'A %s listener failed for product %d: %s', $hook, $productId, $failure->getMessage() ),
+			array(),
+			'product',
+			$productId
+		);
+	}
+
+	/**
+	 * Pair each stored tier with the input row it was saved from.
+	 *
+	 * The stored product lists tiers by sort order. A row that kept an existing
+	 * tier pairs by id. Every other row was inserted in input order, so new
+	 * tiers pair by ascending id.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param Product                  $saved    The stored product.
+	 * @param array<int, ProductPrice> $prices   The tiers as built from the input.
+	 * @param array<int, mixed>        $rows     The input rows, in the order of `$prices`.
+	 * @param Product|null             $previous The product before the save, or null on create.
+	 * @return array<int, array{price: ProductPrice, input: array<string, mixed>}> The pairs, in input order.
+	 */
+	private function pairTiers( Product $saved, array $prices, array $rows, ?Product $previous ): array {
+		$previousIds = array();
+
+		foreach ( null === $previous ? array() : $previous->prices() as $price ) {
+			$previousIds[] = $price->id();
+		}
+
 		$stored = array();
 
-		if ( null !== $existing ) {
-			$existingSettings = $existing->settings();
-			$stored           = $this->normalizeUpgradePaths( $existingSettings['upgrade_paths'] ?? array() ) ?? array();
+		foreach ( $saved->prices() as $price ) {
+			$stored[ (int) $price->id() ] = $price;
 		}
 
-		$submitted = $this->normalizeUpgradePaths( $raw );
+		$newIds = array_values( array_diff( array_keys( $stored ), $previousIds ) );
+		sort( $newIds );
 
-		if ( null === $submitted ) {
-			$errors[] = __( 'Plan switch targets must be a map of price tier ids to lists of price tier ids.', 'tiermint' );
+		$pairs = array();
 
-			return $stored;
-		}
-
-		if ( ! self::recurringTiersSupported() ) {
-			// Grandfather the persisted config so an admin who removed Pro can
-			// keep saving the product (the SPA resubmits stored settings
-			// verbatim); anything new or changed is refused because nothing in
-			// the free core can execute a plan switch.
-			if ( $submitted === $stored ) {
-				return $stored;
-			}
-
-			$errors[] = __( 'Configuring plan switch targets requires TierMint Pro.', 'tiermint' );
-
-			return $stored;
-		}
-
-		$recurringIds = array();
-
-		foreach ( $prices as $price ) {
+		foreach ( $prices as $index => $price ) {
 			$id = $price->id();
 
-			if ( $price->isSubscription() && null !== $id ) {
-				$recurringIds[] = $id;
+			if ( null !== $id && in_array( $id, $previousIds, true ) ) {
+				$match = $stored[ $id ] ?? null;
+			} else {
+				$newId = array_shift( $newIds );
+				$match = null === $newId ? null : $stored[ $newId ];
+			}
+
+			$row = $rows[ $index ] ?? array();
+
+			if ( null !== $match && is_array( $row ) ) {
+				$pairs[] = array(
+					'price' => $match,
+					'input' => $row,
+				);
 			}
 		}
 
-		$validated = array();
-
-		foreach ( $submitted as $source => $targets ) {
-			if ( ! in_array( $source, $recurringIds, true ) ) {
-				/* translators: %d: the submitted price tier id. */
-				$errors[] = sprintf( __( 'Plan switch targets reference price tier #%d, which is not one of this product\'s recurring tiers.', 'tiermint' ), $source );
-				continue;
-			}
-
-			$list = array();
-
-			foreach ( $targets as $target ) {
-				// A tier switching to itself is meaningless; drop it quietly
-				// rather than failing the whole save over a no-op.
-				if ( $target === $source ) {
-					continue;
-				}
-
-				if ( ! in_array( $target, $recurringIds, true ) ) {
-					/* translators: %d: the submitted price tier id. */
-					$errors[] = sprintf( __( 'Plan switch targets reference price tier #%d, which is not one of this product\'s recurring tiers.', 'tiermint' ), $target );
-					continue;
-				}
-
-				$list[] = $target;
-			}
-
-			if ( array() !== $list ) {
-				$validated[ $source ] = $list;
-			}
-		}
-
-		return $validated;
+		return $pairs;
 	}
 
 	/**
-	 * Normalize upgrade paths for stable comparison and storage.
+	 * Resolve the settings blob of a save through the extension filter.
+	 *
+	 * Core keeps keys it does not own as they arrive.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param mixed $raw The raw upgrade-paths value.
-	 * @return array<int, array<int, int>>|null The canonical map, or null when the
-	 *                                          shape is not a map of id lists.
+	 * @param mixed                    $settingsData The submitted or stored settings.
+	 * @param array<int, ProductPrice> $prices       The price tiers of this save.
+	 * @param Product|null             $existing     The stored product, or null on create.
+	 * @param array<int|string, mixed> $priceRows    The price rows as sent.
+	 * @return array<string, mixed> The settings to store.
 	 */
-	private function normalizeUpgradePaths( $raw ): ?array {
-		if ( null === $raw || array() === $raw ) {
-			return array();
+	private function filterSettings( $settingsData, array $prices, ?Product $existing, array $priceRows ): array {
+		$settings = is_array( $settingsData ) ? $settingsData : array();
+
+		/**
+		 * Filters a product's settings before they are validated and stored.
+		 *
+		 * Runs on every save except a create with a bad name, type or status, or
+		 * an update with a bad status change. An update that sends no settings
+		 * passes the stored ones, so an extension can keep its keys in step with
+		 * the tiers.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array<string, mixed>     $settings  The settings to store.
+		 * @param array<int, ProductPrice> $prices    The price tiers of this save.
+		 * @param Product|null             $existing  The stored product, or null on create.
+		 * @param array<int|string, mixed> $priceRows The price rows as sent, keys core does not
+		 *                                            use included. Empty when the save sends no prices.
+		 */
+		$filtered = apply_filters( 'tiermint_product_settings_before_save', $settings, $prices, $existing, $priceRows );
+
+		return is_array( $filtered ) ? $filtered : $settings;
+	}
+
+	/**
+	 * Add extension validation errors to the errors of a save.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int, string>       $errors    Core's errors so far.
+	 * @param array<int, ProductPrice> $prices    The price tiers of this save.
+	 * @param array<string, mixed>     $settings  The filtered settings of this save.
+	 * @param Product|null             $existing  The stored product, or null on create.
+	 * @param array<int|string, mixed> $priceRows The price rows as sent.
+	 * @return array<int, string> Every error. Any error aborts the save.
+	 */
+	private function filterErrors( array $errors, array $prices, array $settings, ?Product $existing, array $priceRows ): array {
+		/**
+		 * Filters the validation errors of a product save.
+		 *
+		 * Any error aborts the save, and the REST response lists it with core's
+		 * own errors. A string adds itself. A WP_Error, in the list or returned,
+		 * adds its non-blank messages, so an empty one adds nothing. Blank
+		 * strings and null entries are ignored. Any other entry, or a return
+		 * that is neither a list nor a WP_Error, refuses the save with a generic
+		 * message.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array<int, string>       $errors    The errors found so far.
+		 * @param array<int, ProductPrice> $prices    The price tiers of this save.
+		 * @param array<string, mixed>     $settings  The settings to store.
+		 * @param Product|null             $existing  The stored product, or null on create.
+		 * @param array<int|string, mixed> $priceRows The price rows as sent, keys core does not
+		 *                                            use included. Empty when the save sends no prices.
+		 */
+		$filtered = apply_filters( 'tiermint_product_validation_errors', $errors, $prices, $settings, $existing, $priceRows );
+
+		// A non-array return keeps core's errors. Anything but a WP_Error refuses the save.
+		if ( ! is_array( $filtered ) ) {
+			$filtered = array_merge( $errors, array( $filtered instanceof \WP_Error ? $filtered : false ) );
 		}
 
-		if ( ! is_array( $raw ) ) {
-			return null;
-		}
+		$merged  = array();
+		$refused = false;
 
-		$map = array();
+		foreach ( $filtered as $error ) {
+			$messages = $error instanceof \WP_Error ? $error->get_error_messages() : array( $error );
 
-		foreach ( $raw as $source => $targets ) {
-			if ( ! is_numeric( $source ) || (int) $source <= 0 || ! is_array( $targets ) ) {
-				return null;
-			}
-
-			$list = array();
-
-			foreach ( $targets as $target ) {
-				if ( ! is_numeric( $target ) || (int) $target <= 0 ) {
-					return null;
+			foreach ( $messages as $message ) {
+				if ( is_string( $message ) ) {
+					if ( '' !== trim( $message ) ) {
+						$merged[] = $message;
+					}
+				} elseif ( null !== $message ) {
+					$refused = true;
 				}
-
-				$list[] = (int) $target;
-			}
-
-			$list = array_values( array_unique( $list ) );
-			sort( $list );
-
-			if ( array() !== $list ) {
-				$map[ (int) $source ] = $list;
 			}
 		}
 
-		ksort( $map );
+		if ( $refused ) {
+			$merged[] = __( 'An extension refused this product.', 'tiermint' );
+		}
 
-		return $map;
+		// A filter can add errors, never remove core's, repeats included.
+		$counts = array_count_values( $merged );
+
+		foreach ( $errors as $error ) {
+			if ( ( $counts[ $error ] ?? 0 ) > 0 ) {
+				--$counts[ $error ];
+			} else {
+				$merged[] = $error;
+			}
+		}
+
+		return $merged;
 	}
 
 	/**
@@ -983,7 +1035,7 @@ class ProductService {
 		$product = $this->repository->find( $id );
 
 		if ( null === $product ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation message, surfaced as a structured error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ProductNotFoundException::forId( $id );
 		}
 

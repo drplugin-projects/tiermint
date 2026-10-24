@@ -321,7 +321,7 @@ class StripeSettings {
 	 */
 	private function assertValidMode( string $mode ): void {
 		if ( 'test' !== $mode && 'live' !== $mode ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Static validation message, surfaced as a structured API error by the settings controller, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new PaymentException( __( 'Stripe mode must be "test" or "live".', 'tiermint' ) );
 		}
 	}

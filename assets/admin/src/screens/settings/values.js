@@ -147,24 +147,39 @@ function gatewayOf( field ) {
 /**
  * Group fields by gateway in first-appearance order.
  *
- * @param {Array<{gateway?: string}>} fields The section's fields, in served order.
- * @return {Array<{id: string, fields: Array}>} The gateway groups, in order.
+ * A group's label is the `gateway_label` of the first of its fields that has one.
+ *
+ * @param {Array<{gateway?: string, gateway_label?: string}>} fields The section's fields, in served order.
+ * @return {Array<{id: string, label: ?string, fields: Array}>} The gateway groups, in order.
  */
 export function partitionByGateway( fields ) {
 	const all = Array.isArray( fields ) ? fields : [];
 	const order = [];
 	const buckets = {};
+	const labels = {};
 
 	all.forEach( ( field ) => {
 		const id = gatewayOf( field );
 		if ( ! buckets[ id ] ) {
 			buckets[ id ] = [];
+			labels[ id ] = null;
 			order.push( id );
+		}
+		if (
+			null === labels[ id ] &&
+			typeof field.gateway_label === 'string' &&
+			'' !== field.gateway_label
+		) {
+			labels[ id ] = field.gateway_label;
 		}
 		buckets[ id ].push( field );
 	} );
 
-	return order.map( ( id ) => ( { id, fields: buckets[ id ] } ) );
+	return order.map( ( id ) => ( {
+		id,
+		label: labels[ id ],
+		fields: buckets[ id ],
+	} ) );
 }
 
 /**
@@ -228,20 +243,17 @@ export function groupLabel( group ) {
 /**
  * Get a gateway sub-tab label.
  *
- * @param {string} id The gateway bucket id.
+ * @param {{id: string, label?: ?string}} group A group from partitionByGateway().
  * @return {string} The label to show on the sub-tab.
  */
-export function gatewayLabel( id ) {
-	switch ( id ) {
-		case 'stripe':
-			return __( 'Stripe', 'tiermint' );
-		case 'paypal':
-			return __( 'PayPal', 'tiermint' );
-		case 'general':
-			return __( 'Other', 'tiermint' );
-		default:
-			return String( id );
+export function gatewayLabel( group ) {
+	if ( group.label ) {
+		return group.label;
 	}
+
+	return 'general' === group.id
+		? __( 'Other', 'tiermint' )
+		: String( group.id );
 }
 
 /**

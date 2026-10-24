@@ -12,7 +12,8 @@
  *     @type string|null  $login_url      Sign-in URL.
  *     @type array         $error          Error data.
  *     @type bool          $show_name      Whether to show the name field.
- *     @type string        $nonce_field    Nonce field markup.
+ *     @type string        $nonce_action   Nonce action.
+ *     @type string        $nonce_field    Nonce field name.
  *     @type string        $action_field   Hidden action field name.
  *     @type string        $email_field    Email field name.
  *     @type string        $name_field     Name field name.
@@ -62,10 +63,7 @@ defined( 'ABSPATH' ) || exit;
 		<?php endif; ?>
 
 		<form class="tiermint-registration-form__form" method="post">
-			<?php
-			// wp_nonce_field() returns core-generated, self-escaping hidden inputs.
-			echo $data['nonce_field']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core-generated nonce markup.
-			?>
+			<?php wp_nonce_field( $data['nonce_action'], $data['nonce_field'] ); ?>
 			<input type="hidden" name="<?php echo esc_attr( $data['action_field'] ); ?>" value="1" />
 
 			<p class="tiermint-registration-form__field tiermint-field">

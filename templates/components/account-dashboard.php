@@ -30,7 +30,7 @@ defined( 'ABSPATH' ) || exit;
 		<div class="tiermint-account-dashboard__prompt">
 			<p><?php esc_html_e( 'Please log in to view your account.', 'tiermint' ); ?></p>
 			<?php if ( '' !== $data['login_html'] ) : ?>
-				<?php echo $data['login_html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- component renderers return fully escaped HTML. ?>
+				<?php echo wp_kses( $data['login_html'], \DrPlugin\WP\TierMint\Frontend\Kses::allowed() ); ?>
 			<?php else : ?>
 				<a class="tiermint-account-dashboard__login tiermint-button tiermint-button--primary" href="<?php echo esc_url( $data['login_url'] ); ?>">
 					<?php esc_html_e( 'Log in', 'tiermint' ); ?>
@@ -43,7 +43,7 @@ defined( 'ABSPATH' ) || exit;
 		<div class="tiermint-account-dashboard__header">
 			<?php if ( '' !== $data['header']['avatar'] ) : ?>
 				<span class="tiermint-account-dashboard__avatar">
-					<?php echo $data['header']['avatar']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_avatar() returns an escaped <img> element. ?>
+					<?php echo wp_kses( $data['header']['avatar'], \DrPlugin\WP\TierMint\Frontend\Kses::image() ); ?>
 				</span>
 			<?php endif; ?>
 			<p class="tiermint-account-dashboard__greeting"><?php echo esc_html( $data['header']['greeting'] ); ?></p>
@@ -59,7 +59,7 @@ defined( 'ABSPATH' ) || exit;
 							href="#<?php echo esc_attr( $tiermint_tab['panel_id'] ); ?>"
 							role="tab"
 							aria-controls="<?php echo esc_attr( $tiermint_tab['panel_id'] ); ?>"
-						<?php echo $tiermint_tab['tab_attrs']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static enhanced-tab-state attributes built from fixed literals, empty on a live render. ?>><?php echo esc_html( $tiermint_tab['label'] ); ?></a>
+						<?php echo true === $tiermint_tab['selected'] ? ' aria-selected="true" tabindex="0"' : ''; ?><?php echo false === $tiermint_tab['selected'] ? ' aria-selected="false" tabindex="-1"' : ''; ?>><?php echo esc_html( $tiermint_tab['label'] ); ?></a>
 					</li>
 				<?php endforeach; ?>
 			</ul>
@@ -70,7 +70,7 @@ defined( 'ABSPATH' ) || exit;
 					id="<?php echo esc_attr( $tiermint_tab['panel_id'] ); ?>"
 					role="tabpanel"
 					aria-labelledby="<?php echo esc_attr( $tiermint_tab['tab_id'] ); ?>"
-				<?php echo $tiermint_tab['panel_attrs']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static ' hidden' attribute or empty string, set only in an editor preview. ?>>
+				<?php echo $tiermint_tab['hidden'] ? ' hidden' : ''; ?>>
 					<h3 class="tiermint-account-dashboard__panel-title"><?php echo esc_html( $tiermint_tab['label'] ); ?></h3>
 
 					<?php if ( 'purchases' === $tiermint_tab['key'] ) : ?>
@@ -105,7 +105,7 @@ defined( 'ABSPATH' ) || exit;
 						<?php endif; ?>
 
 					<?php else : ?>
-						<?php echo $tiermint_tab['html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- component renderers return fully escaped HTML. ?>
+						<?php echo wp_kses( $tiermint_tab['html'], \DrPlugin\WP\TierMint\Frontend\Kses::allowed() ); ?>
 					<?php endif; ?>
 				</section>
 			<?php endforeach; ?>

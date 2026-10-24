@@ -45,7 +45,7 @@ require TIERMINT_PATH . 'templates/components/partials/cart-notice.php';
 		<input type="hidden" name="price_id" value="<?php echo esc_attr( (string) $tiermint_only['id'] ); ?>" />
 		<p class="<?php echo esc_attr( $tiermint_block ); ?>__price">
 			<span class="<?php echo esc_attr( $tiermint_block ); ?>__tier-name"><?php echo esc_html( (string) $tiermint_only['name'] ); ?></span>
-			<span class="<?php echo esc_attr( $tiermint_block ); ?>__tier-price"><?php echo $tiermint_only['price_html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PriceDisplay returns markup it has already escaped. ?></span>
+			<span class="<?php echo esc_attr( $tiermint_block ); ?>__tier-price"><?php echo wp_kses( $tiermint_only['price_html'], \DrPlugin\WP\TierMint\Frontend\Kses::allowed() ); ?></span>
 		</p>
 		<?php if ( array() !== $tiermint_meta ) : ?>
 			<ul class="<?php echo esc_attr( $tiermint_block ); ?>__tier-meta">
@@ -77,7 +77,7 @@ require TIERMINT_PATH . 'templates/components/partials/cart-notice.php';
 					/>
 					<label class="<?php echo esc_attr( $tiermint_block ); ?>__tier-label" for="<?php echo esc_attr( $tiermint_tier_id ); ?>">
 						<span class="<?php echo esc_attr( $tiermint_block ); ?>__tier-name"><?php echo esc_html( (string) $tiermint_tier['name'] ); ?></span>
-						<span class="<?php echo esc_attr( $tiermint_block ); ?>__tier-price"><?php echo $tiermint_tier['price_html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PriceDisplay returns markup it has already escaped. ?></span>
+						<span class="<?php echo esc_attr( $tiermint_block ); ?>__tier-price"><?php echo wp_kses( $tiermint_tier['price_html'], \DrPlugin\WP\TierMint\Frontend\Kses::allowed() ); ?></span>
 					</label>
 					<?php if ( $tiermint_has_meta ) : ?>
 						<ul class="<?php echo esc_attr( $tiermint_block ); ?>__tier-meta" id="<?php echo esc_attr( $tiermint_meta_id ); ?>">

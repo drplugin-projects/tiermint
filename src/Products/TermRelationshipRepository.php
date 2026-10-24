@@ -51,12 +51,18 @@ class TermRelationshipRepository {
 	 * @return void
 	 */
 	public function replaceForProductTaxonomy( int $productId, ProductTaxonomy $taxonomy, array $termIds ): void {
+		$wpdb = $this->wpdb;
+
 		// Keep assignments in other taxonomies.
-		$this->run(
-			'DELETE tr FROM ' . $this->relationshipsTable() . ' tr'
-			. ' INNER JOIN ' . $this->termsTable() . ' t ON t.id = tr.term_id'
-			. ' WHERE tr.product_id = %d AND t.taxonomy = %s',
-			array( $productId, $taxonomy->value )
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$wpdb->query(
+			$wpdb->prepare(
+				'DELETE tr FROM %i tr INNER JOIN %i t ON t.id = tr.term_id WHERE tr.product_id = %d AND t.taxonomy = %s',
+				$this->relationshipsTable(),
+				$this->termsTable(),
+				$productId,
+				$taxonomy->value
+			)
 		);
 
 		$unique = array_values( array_unique( array_map( 'intval', $termIds ) ) );
@@ -82,12 +88,22 @@ class TermRelationshipRepository {
 	 * @return array<int, int> The assigned term ids.
 	 */
 	public function termIdsForProduct( int $productId, ProductTaxonomy $taxonomy ): array {
-		$sql = 'SELECT tr.term_id FROM ' . $this->relationshipsTable() . ' tr'
-			. ' INNER JOIN ' . $this->termsTable() . ' t ON t.id = tr.term_id'
-			. ' WHERE tr.product_id = %d AND t.taxonomy = %s'
-			. ' ORDER BY tr.term_id ASC';
+		$wpdb = $this->wpdb;
+		$ids  = $this->fetchCol(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_col(
+				$wpdb->prepare(
+					'SELECT tr.term_id FROM %i tr INNER JOIN %i t ON t.id = tr.term_id' .
+					' WHERE tr.product_id = %d AND t.taxonomy = %s ORDER BY tr.term_id ASC',
+					$this->relationshipsTable(),
+					$this->termsTable(),
+					$productId,
+					$taxonomy->value
+				)
+			)
+		);
 
-		return array_map( 'intval', $this->fetchCol( $sql, array( $productId, $taxonomy->value ) ) );
+		return array_map( 'intval', $ids );
 	}
 
 	/**
@@ -106,14 +122,23 @@ class TermRelationshipRepository {
 			return array();
 		}
 
-		$sql = 'SELECT tr.product_id, tr.term_id FROM ' . $this->relationshipsTable() . ' tr'
-			. ' INNER JOIN ' . $this->termsTable() . ' t ON t.id = tr.term_id'
-			. ' WHERE t.taxonomy = %s AND tr.product_id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')'
-			. ' ORDER BY tr.product_id ASC, tr.term_id ASC';
+		$wpdb   = $this->wpdb;
+		$values = array_merge( array( $this->relationshipsTable(), $this->termsTable(), $taxonomy->value ), $unique );
+		$rows   = $this->fetchRows(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT tr.product_id, tr.term_id FROM %i tr INNER JOIN %i t ON t.id = tr.term_id' .
+					' WHERE t.taxonomy = %s AND tr.product_id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')' .
+					' ORDER BY tr.product_id ASC, tr.term_id ASC',
+					$values
+				)
+			)
+		);
 
 		$grouped = array();
 
-		foreach ( $this->fetchRows( $sql, array_merge( array( $taxonomy->value ), $unique ) ) as $row ) {
+		foreach ( $rows as $row ) {
 			$grouped[ (int) $row->product_id ][] = (int) $row->term_id;
 		}
 
@@ -157,64 +182,40 @@ class TermRelationshipRepository {
 	private function insertRow( string $table, array $data ): void {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Insert into a Schema-defined table; $wpdb->insert escapes every value; there is nothing to cache on a write.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; this class decides what to cache.
 		$inserted = $wpdb->insert( $table, $data );
 
 		if ( false === $inserted ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- $table is a Schema-derived internal identifier, never user input or HTML output; this is a developer-facing failure kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new TermPersistenceException( 'Failed to insert a row into ' . $table . '.' );
 		}
 	}
 
 	/**
-	 * Fetch one column with bound values.
+	 * Fetch one column.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return array<int, mixed> The column values.
 	 */
-	private function fetchCol( string $sql, array $args = array() ): array {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); this is a bounded per-product read.
-		$col = $wpdb->get_col( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchCol( callable $query ): array {
+		$col = $query();
 
 		return is_array( $col ) ? $col : array();
 	}
 
 	/**
-	 * Fetch result rows with bound values.
+	 * Fetch result rows.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return array<int, object> The rows (empty on no match).
 	 */
-	private function fetchRows( string $sql, array $args = array() ): array {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names and generated placeholders; runtime values are bound via prepare(); this is a bounded per-page read.
-		$rows = $wpdb->get_results( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchRows( callable $query ): array {
+		$rows = $query();
 
 		return is_array( $rows ) ? $rows : array();
-	}
-
-	/**
-	 * Run a write query with bound values.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
-	 * @return void
-	 */
-	private function run( string $sql, array $args = array() ): void {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); this is a targeted taxonomy-scoped relationship delete.
-		$wpdb->query( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
 	}
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * The product fields and panels the free core registers.
+ * The product fields and panels TierMint registers itself.
  *
  * @package DrPlugin\WP\TierMint
  */

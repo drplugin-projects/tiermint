@@ -93,7 +93,7 @@ class RefundService {
 		$saved = $this->orders->find( $orderId );
 		// The hook needs a saved order, so a missing row is an update failure.
 		if ( null === $saved ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation message, surfaced as a structured error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderNotFoundException::forId( $orderId );
 		}
 
@@ -129,23 +129,23 @@ class RefundService {
 		$order = $this->orders->find( $orderId );
 
 		if ( null === $order ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation message, surfaced as a structured 404, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderNotFoundException::forId( $orderId );
 		}
 
 		// Refund rows are completed, but must never be refunded again.
 		if ( OrderType::Refund === $order->type() ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderValidationException::withErrors( array( __( 'A refund cannot itself be refunded.', 'tiermint' ) ) );
 		}
 
 		if ( ! $order->isRefundable() ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderValidationException::withErrors( array( __( 'Only a completed order can be refunded.', 'tiermint' ) ) );
 		}
 
 		if ( $amount <= 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderValidationException::withErrors( array( __( 'A refund amount must be greater than zero.', 'tiermint' ) ) );
 		}
 
@@ -156,7 +156,7 @@ class RefundService {
 			/* translators: 1: the requested refund amount in minor units, 2: the remaining refundable balance in minor units. */
 			$message = sprintf( __( 'The refund amount (%1$d) exceeds the remaining refundable balance (%2$d).', 'tiermint' ), $amount, $remaining );
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderValidationException::withErrors( array( $message ) );
 		}
 

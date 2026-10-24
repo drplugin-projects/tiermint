@@ -61,7 +61,7 @@ class DiscountRepository {
 		$now  = gmdate( 'Y-m-d H:i:s' );
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Insert into a Schema-defined table; $wpdb->insert escapes every value; there is nothing to cache on a write.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; this class decides what to cache.
 		$inserted = $wpdb->insert(
 			$this->table(),
 			array_merge(
@@ -74,7 +74,7 @@ class DiscountRepository {
 		);
 
 		if ( false === $inserted ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new DiscountPersistenceException( 'Failed to insert a discount: ' . $wpdb->last_error );
 		}
 
@@ -102,7 +102,7 @@ class DiscountRepository {
 		$id = $discount->id();
 
 		if ( null === $id ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new DiscountException( __( 'Cannot update a discount that has no id.', 'tiermint' ) );
 		}
 
@@ -115,11 +115,11 @@ class DiscountRepository {
 
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Update on a Schema-defined table; $wpdb->update escapes values and conditions; the write path invalidates the cache below.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
 		$updated = $wpdb->update( $this->table(), $data, array( 'id' => $id ) );
 
 		if ( false === $updated ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new DiscountPersistenceException( 'Failed to update a discount: ' . $wpdb->last_error );
 		}
 
@@ -145,11 +145,11 @@ class DiscountRepository {
 		$existing = $this->find( $id );
 		$wpdb     = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Delete on a Schema-defined table; $wpdb->delete escapes the conditions; the cache is invalidated below.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
 		$deleted = $wpdb->delete( $this->table(), array( 'id' => $id ) );
 
 		if ( false === $deleted ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new DiscountPersistenceException( 'Failed to delete a discount: ' . $wpdb->last_error );
 		}
 
@@ -173,10 +173,10 @@ class DiscountRepository {
 			return $cached;
 		}
 
-		$row = $this->getRowOrFail(
-			'SELECT * FROM ' . $this->table() . ' WHERE id = %d',
-			array( $id )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->getRowOrFail( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $this->table(), $id ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -213,10 +213,10 @@ class DiscountRepository {
 			return $cached;
 		}
 
-		$row = $this->getRowOrFail(
-			'SELECT * FROM ' . $this->table() . ' WHERE code = %s',
-			array( $trimmed )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->getRowOrFail( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE code = %s', $this->table(), $trimmed ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -240,9 +240,10 @@ class DiscountRepository {
 	 * @throws DiscountPersistenceException When the read faults at the database.
 	 */
 	public function activeAutomatic(): array {
+		$wpdb = $this->wpdb;
 		$rows = $this->getResultsOrFail(
-			'SELECT * FROM ' . $this->table() . ' WHERE auto = 1 AND status = %s ORDER BY id ASC',
-			array( DiscountStatus::Active->value )
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE auto = 1 AND status = %s ORDER BY id ASC', $this->table(), DiscountStatus::Active->value ) )
 		);
 
 		return array_map( static fn ( object $r ): Discount => Discount::fromRow( (array) $r ), $rows );
@@ -264,15 +265,13 @@ class DiscountRepository {
 		$existing = $this->find( $id );
 		$wpdb     = $this->wpdb;
 
-		$sql = 'UPDATE ' . $this->table() . ' SET use_count = use_count + 1, updated_at = %s WHERE id = %d';
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); the cache is invalidated below.
-		$affected = $wpdb->query( $wpdb->prepare( $sql, gmdate( 'Y-m-d H:i:s' ), $id ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$affected = $wpdb->query( $wpdb->prepare( 'UPDATE %i SET use_count = use_count + 1, updated_at = %s WHERE id = %d', $this->table(), gmdate( 'Y-m-d H:i:s' ), $id ) );
 
 		$this->forget( $id, null !== $existing ? $existing->code() : null );
 
 		if ( false === $affected ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new DiscountPersistenceException( 'Failed to increment a discount use count: ' . $wpdb->last_error );
 		}
 	}
@@ -290,21 +289,53 @@ class DiscountRepository {
 	 * @throws DiscountPersistenceException When the read faults at the database.
 	 */
 	public function query( array $args ): array {
-		list( $where, $params ) = $this->buildFilters( $args );
-
 		$orderby = $this->whitelistOrderby( $args['orderby'] ?? 'created_at' );
-		$order   = $this->whitelistOrder( $args['order'] ?? 'DESC' );
 		$perPage = $this->perPage( $args );
-		$page    = max( 1, (int) ( $args['page'] ?? 1 ) );
+		$offset  = ( max( 1, (int) ( $args['page'] ?? 1 ) ) - 1 ) * $perPage;
+		$wpdb    = $this->wpdb;
 
-		$sql = 'SELECT * FROM ' . $this->table() . $where
-			. ' ORDER BY ' . $orderby . ' ' . $order . ', id ' . $order
-			. ' LIMIT %d OFFSET %d';
+		list( $status, $bySearch, $like ) = $this->filters( $args );
 
-		$params[] = $perPage;
-		$params[] = ( $page - 1 ) * $perPage;
-
-		$rows = $this->getResultsOrFail( $sql, $params );
+		// The WHERE is the one in countQuery(); keep the copies in step.
+		if ( 'ASC' === $this->whitelistOrder( $args['order'] ?? 'DESC' ) ) {
+			$rows = $this->getResultsOrFail(
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+				fn () => $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT * FROM %i WHERE ( %s = '' OR status = %s ) AND ( %d = 0 OR code LIKE %s OR name LIKE %s )" .
+						' ORDER BY %i ASC, id ASC LIMIT %d OFFSET %d',
+						$this->table(),
+						$status,
+						$status,
+						$bySearch,
+						$like,
+						$like,
+						$orderby,
+						$perPage,
+						$offset
+					)
+				)
+			);
+		} else {
+			$rows = $this->getResultsOrFail(
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+				fn () => $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT * FROM %i WHERE ( %s = '' OR status = %s ) AND ( %d = 0 OR code LIKE %s OR name LIKE %s )" .
+						' ORDER BY %i DESC, id DESC LIMIT %d OFFSET %d',
+						$this->table(),
+						$status,
+						$status,
+						$bySearch,
+						$like,
+						$like,
+						$orderby,
+						$perPage,
+						$offset
+					)
+				)
+			);
+		}
 
 		return array_map( static fn ( object $r ): Discount => Discount::fromRow( (array) $r ), $rows );
 	}
@@ -320,44 +351,47 @@ class DiscountRepository {
 	 * @throws DiscountPersistenceException When the read faults at the database.
 	 */
 	public function countQuery( array $args ): int {
-		list( $where, $params ) = $this->buildFilters( $args );
+		$wpdb = $this->wpdb;
 
-		$sql = 'SELECT COUNT(*) FROM ' . $this->table() . $where;
+		list( $status, $bySearch, $like ) = $this->filters( $args );
 
-		return (int) $this->getVarOrFail( $sql, $params );
+		return (int) $this->getVarOrFail(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM %i WHERE ( %s = '' OR status = %s ) AND ( %d = 0 OR code LIKE %s OR name LIKE %s )",
+					$this->table(),
+					$status,
+					$status,
+					$bySearch,
+					$like,
+					$like
+				)
+			)
+		);
 	}
 
 	/**
-	 * Build the WHERE clause and bound params for the collection query.
+	 * Read the collection filters for the fixed WHERE in query() and countQuery().
+	 *
+	 * An empty status or a 0 search flag turns that filter off. MySQL drops a clause
+	 * that is off before it plans the query. The search has its own flag because
+	 * MySQL collations compare a zero-width space equal to ''.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param array<string, mixed> $args The query args.
-	 * @return array{0: string, 1: array<int, mixed>} The clause (with leading space) and params.
+	 * @return array{0: string, 1: int, 2: string} Status, search flag and the LIKE pattern.
 	 */
-	private function buildFilters( array $args ): array {
-		$clauses = array();
-		$params  = array();
+	private function filters( array $args ): array {
+		$status = isset( $args['status'] ) ? (string) $args['status'] : '';
+		$search = isset( $args['search'] ) ? trim( (string) $args['search'] ) : '';
 
-		if ( isset( $args['status'] ) && '' !== (string) $args['status'] ) {
-			$status = (string) $args['status'];
-
-			if ( null !== DiscountStatus::tryFrom( $status ) ) {
-				$clauses[] = 'status = %s';
-				$params[]  = $status;
-			}
-		}
-
-		if ( isset( $args['search'] ) && '' !== trim( (string) $args['search'] ) ) {
-			$like      = '%' . $this->wpdb->esc_like( trim( (string) $args['search'] ) ) . '%';
-			$clauses[] = '(code LIKE %s OR name LIKE %s)';
-			$params[]  = $like;
-			$params[]  = $like;
-		}
-
-		$where = array() === $clauses ? '' : ' WHERE ' . implode( ' AND ', $clauses );
-
-		return array( $where, $params );
+		return array(
+			null !== DiscountStatus::tryFrom( $status ) ? $status : '',
+			'' === $search ? 0 : 1,
+			'%' . $this->wpdb->esc_like( $search ) . '%',
+		);
 	}
 
 	/**
@@ -483,21 +517,19 @@ class DiscountRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with a Schema-derived table name and placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return object|null The row, or null when it genuinely does not exist.
 	 *
 	 * @throws DiscountPersistenceException When the read faulted at the database.
 	 */
-	private function getRowOrFail( string $sql, array $args ): ?object {
+	private function getRowOrFail( callable $query ): ?object {
 		$wpdb             = $this->wpdb;
 		$wpdb->last_error = '';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); find()/findByCode() front reads with wp_cache.
-		$row = $wpdb->get_row( $wpdb->prepare( $sql, $args ) );
+		$row = $query();
 
 		if ( '' !== $wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new DiscountPersistenceException( 'Discount read failed: ' . $wpdb->last_error );
 		}
 
@@ -510,21 +542,19 @@ class DiscountRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with a Schema-derived table name and placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return array<int, object> The rows (possibly empty).
 	 *
 	 * @throws DiscountPersistenceException When the read faulted at the database.
 	 */
-	private function getResultsOrFail( string $sql, array $args ): array {
+	private function getResultsOrFail( callable $query ): array {
 		$wpdb             = $this->wpdb;
 		$wpdb->last_error = '';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); collection reads are deliberately uncached.
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $args ) );
+		$rows = $query();
 
 		if ( '' !== $wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new DiscountPersistenceException( 'Discount read failed: ' . $wpdb->last_error );
 		}
 
@@ -537,21 +567,19 @@ class DiscountRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with a Schema-derived table name and placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return string|null The scalar value, or null.
 	 *
 	 * @throws DiscountPersistenceException When the read faulted at the database.
 	 */
-	private function getVarOrFail( string $sql, array $args ): ?string {
+	private function getVarOrFail( callable $query ): ?string {
 		$wpdb             = $this->wpdb;
 		$wpdb->last_error = '';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); a count probe has nothing to cache.
-		$value = $wpdb->get_var( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+		$value = $query();
 
 		if ( '' !== $wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new DiscountPersistenceException( 'Discount read failed: ' . $wpdb->last_error );
 		}
 

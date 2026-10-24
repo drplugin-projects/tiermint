@@ -13,6 +13,7 @@ namespace DrPlugin\WP\TierMint\Orders;
 defined( 'ABSPATH' ) || exit;
 
 use DrPlugin\WP\TierMint\Customers\CustomerService;
+use DrPlugin\WP\TierMint\Database\Logger;
 use DrPlugin\WP\TierMint\Products\Product;
 use DrPlugin\WP\TierMint\Products\ProductPrice;
 use DrPlugin\WP\TierMint\Products\ProductService;
@@ -91,6 +92,13 @@ class OrderService {
 	private ?\DrPlugin\WP\TierMint\Discounts\DiscountComposer $discountComposer = null;
 
 	/**
+	 * Audit log for a totals listener's invalid lines, when available.
+	 *
+	 * @var Logger|null
+	 */
+	private ?Logger $logger;
+
+	/**
 	 * Wire the service with its repository and collaborators.
 	 *
 	 * @since 1.0.0
@@ -103,6 +111,7 @@ class OrderService {
 	 * @param \DrPlugin\WP\TierMint\Discounts\DiscountService|null           $discounts        The discount engine; null disables code redemption.
 	 * @param \DrPlugin\WP\TierMint\Discounts\AutomaticDiscountResolver|null $autoResolver   The automatic-discount resolver; null disables automatic discounts.
 	 * @param \DrPlugin\WP\TierMint\Discounts\DiscountSettings|null          $discountSettings The combination-rule reader; null defaults to code-replaces-auto.
+	 * @param Logger|null                                                    $logger           The audit log; null logs nothing.
 	 */
 	public function __construct(
 		OrderRepository $orders,
@@ -112,7 +121,8 @@ class OrderService {
 		OrderStateMachine $machine,
 		?\DrPlugin\WP\TierMint\Discounts\DiscountService $discounts = null,
 		?\DrPlugin\WP\TierMint\Discounts\AutomaticDiscountResolver $autoResolver = null,
-		?\DrPlugin\WP\TierMint\Discounts\DiscountSettings $discountSettings = null
+		?\DrPlugin\WP\TierMint\Discounts\DiscountSettings $discountSettings = null,
+		?Logger $logger = null
 	) {
 		$this->orders           = $orders;
 		$this->customers        = $customers;
@@ -122,6 +132,7 @@ class OrderService {
 		$this->discounts        = $discounts;
 		$this->autoResolver     = $autoResolver;
 		$this->discountSettings = $discountSettings;
+		$this->logger           = $logger;
 	}
 
 	/**
@@ -160,13 +171,10 @@ class OrderService {
 		// Only quote() may mark a request as a preview.
 		unset( $context['tiermint_preview'] );
 
-		// Set the gross-mode marker from the filter, over any caller value.
-		$context = $this->markPricingMode( $context );
-
 		$cart = $this->cart->getCart();
 
 		if ( $cart->isEmpty() ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderValidationException::withErrors( array( __( 'The cart is empty.', 'tiermint' ) ) );
 		}
 
@@ -193,7 +201,7 @@ class OrderService {
 			$vetoes = array_values( array_filter( $vetoes, 'is_string' ) );
 
 			if ( array() !== $vetoes ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Extension-supplied translated validation messages, surfaced as API errors, never echoed as HTML.
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw OrderValidationException::withErrors( $vetoes );
 			}
 		}
@@ -257,8 +265,8 @@ class OrderService {
 			do_action( 'tiermint_discount_applied', $primaryDiscount, $this->discountItems( $items ) );
 		}
 
-		// Tax follows discounts. Gross mode rebases the lines to net, so the sums
-		// come from the taxed items. Net mode is a no-op here.
+		// Tax follows discounts. A listener may rebase a line, so the sums come
+		// from the taxed items.
 		$items = $this->applyTaxes( $items, $context );
 
 		$subtotal      = $this->sumField( $items, 'subtotal' );
@@ -346,15 +354,12 @@ class OrderService {
 		$cart = $this->cart->getCart();
 
 		if ( $cart->isEmpty() ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderValidationException::withErrors( array( __( 'The cart is empty.', 'tiermint' ) ) );
 		}
 
 		/* Preview listeners must avoid external work. */
 		$context['tiermint_preview'] = true;
-
-		// Mark the pricing mode for every seam, as a checkout does.
-		$context = $this->markPricingMode( $context );
 
 		$clampNotices = array();
 		$items        = $this->buildItems( $cart, $clampNotices );
@@ -407,8 +412,8 @@ class OrderService {
 
 		$autoDiscount = $payload['auto_discount'];
 
-		// Tax follows discount allocation and, in gross mode, rebases the lines to
-		// net, so the money sums are taken from the taxed items (a no-op in net mode).
+		// Tax follows discount allocation. A listener may rebase a line, so the
+		// money sums are taken from the taxed items.
 		$items = $this->applyTaxes( $items, $context );
 
 		$lines = $this->lineBreakdown( $items );
@@ -419,14 +424,14 @@ class OrderService {
 		return array(
 			'currency'       => $this->storeCurrency(),
 			'subtotal'       => $this->sumField( $items, 'subtotal' ),
-			// The shown discount, not the order row's net share (gross mode).
+			// The reduction the buyer was shown, which a rebased line can book lower.
 			'discount_total' => $this->displayedDiscountTotal( $payload ),
 			// Typed-code discount payload.
 			'discount'       => $discount,
 			// Automatic discount payload.
 			'auto_discount'  => $autoDiscount,
 			'tax_total'      => $this->sumField( $items, 'tax' ),
-			// total = sum(lines.total). In gross mode subtotal - discount + tax does not.
+			// total = sum(lines.total). With a rebased line, subtotal - discount_total + tax does not.
 			'total'          => $this->sumField( $items, 'total' ),
 			'lines'          => $lines,
 			'notices'        => $notices,
@@ -504,103 +509,6 @@ class OrderService {
 	}
 
 	/**
-	 * Create a renewal order from a paid recurring invoice.
-	 *
-	 * The gateway transaction id deduplicates webhook redelivery.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param Order  $parentOrder  The initial (or previous) order the renewal chains to.
-	 * @param int    $amount       The invoice amount in minor units.
-	 * @param string $currency     The invoice currency; must match the parent's.
-	 * @param string $gateway      The gateway id, e.g. 'stripe'.
-	 * @param string $gatewayTxnId The gateway-side invoice/transaction id.
-	 * @return Order The persisted renewal order (or the already-recorded one). A failed
-	 *               write propagates as OrderPersistenceException from the repository.
-	 *
-	 * @throws OrderValidationException When the parent is unsaved, is a refund row, has no
-	 *                                  line items, or the currency disagrees with it.
-	 */
-	public function createRenewal( Order $parentOrder, int $amount, string $currency, string $gateway, string $gatewayTxnId ): Order {
-		$existing = $this->orders->findByGatewayTxnId( $gateway, $gatewayTxnId );
-
-		if ( null !== $existing ) {
-			return $existing;
-		}
-
-		$errors = array();
-
-		if ( null === $parentOrder->id() ) {
-			$errors[] = __( 'A renewal needs a saved parent order.', 'tiermint' );
-		}
-
-		if ( OrderType::Refund === $parentOrder->type() ) {
-			$errors[] = __( 'A refund record cannot be renewed.', 'tiermint' );
-		}
-
-		if ( strtoupper( $currency ) !== $parentOrder->currency() ) {
-			$errors[] = __( 'A renewal must use the same currency as its parent order.', 'tiermint' );
-		}
-
-		if ( array() === $parentOrder->items() ) {
-			$errors[] = __( 'A renewal needs a parent order with a line item.', 'tiermint' );
-		}
-
-		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation messages, surfaced as API errors, never echoed as HTML.
-			throw OrderValidationException::withErrors( $errors );
-		}
-
-		// Preserve the parent line identity with the gateway invoice amount.
-		$parentItem = $parentOrder->items()[0];
-		$item       = new OrderItem(
-			null,
-			null,
-			$parentItem->productId(),
-			$parentItem->priceId(),
-			$parentItem->productName(),
-			$parentItem->priceName(),
-			$parentItem->quantity(),
-			$amount,
-			0,
-			0,
-			$amount
-		);
-
-		$order = new Order(
-			null,
-			OrderUuid::generate(),
-			OrderStatus::Pending,
-			$parentOrder->customerId(),
-			$parentOrder->email(),
-			$parentOrder->currency(),
-			$amount,
-			0,
-			0,
-			$amount,
-			$gateway,
-			$gatewayTxnId,
-			null,
-			null,
-			OrderType::Renewal,
-			$parentOrder->id(),
-			null,
-			null,
-			null,
-			null,
-			null,
-			array( $item )
-		);
-
-		$saved = $this->requireOrder( $this->orders->create( $order ) );
-
-		/** This action is documented in {@see createFromCart()}. */
-		do_action( 'tiermint_order_created', $saved );
-
-		return $saved;
-	}
-
-	/**
 	 * Mark an order completed after payment.
 	 *
 	 * One webhook runs side effects. Completion is otherwise idempotent.
@@ -622,8 +530,8 @@ class OrderService {
 	/**
 	 * Complete an order and report whether this call did it.
 	 *
-	 * Callers with their own once-only side effects (a renewal's license
-	 * extension and hook) run them only when this returns the order.
+	 * Callers with once-only side effects of their own run them only when this
+	 * returns the order.
 	 *
 	 * @since 1.0.0
 	 *
@@ -898,53 +806,6 @@ class OrderService {
 	}
 
 	/**
-	 * Get pending purchases that have not received a recovery email.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string      $before      A `Y-m-d H:i:s` UTC cutoff; orders created at/before it match.
-	 * @param string      $sentMetaKey The order-meta key marking an order already emailed.
-	 * @param int         $limit       The maximum number of orders to return (batch cap).
-	 * @param string|null $after       An optional `Y-m-d H:i:s` UTC lower bound; orders created before
-	 *                                 it are excluded (too stale to recover). Null applies no lower bound.
-	 * @return array<int, Order> The matching orders, oldest first.
-	 */
-	public function pendingAwaitingRecoveryEmail( string $before, string $sentMetaKey, int $limit, ?string $after = null ): array {
-		return $this->orders->pendingAwaitingRecoveryEmail( $before, $sentMetaKey, $limit, $after );
-	}
-
-	/**
-	 * Get purchases due for one cart-recovery step.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string             $before           A `Y-m-d H:i:s` UTC cutoff; orders created at/before it match.
-	 * @param string|null        $after            An optional `Y-m-d H:i:s` UTC lower bound; older orders are excluded.
-	 * @param int                $stepsSent        The recovery `steps_sent` count an order must be at for this step.
-	 * @param array<int, string> $terminalStatuses Recovery statuses that make a row terminal (excluded).
-	 * @param string             $legacyMetaKey    The single-email-era sent marker, excluded on the first step only.
-	 * @param int                $limit            The maximum number of orders to return (batch cap).
-	 * @return array<int, Order> The matching orders, oldest first.
-	 */
-	public function purchaseOrdersDueForRecovery( string $before, ?string $after, int $stepsSent, array $terminalStatuses, string $legacyMetaKey, int $limit ): array {
-		return $this->orders->purchaseOrdersDueForRecovery( $before, $after, $stepsSent, $terminalStatuses, $legacyMetaKey, $limit );
-	}
-
-	/**
-	 * Check whether an email has a recent order metadata marker.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string $email   The buyer email to match.
-	 * @param string $metaKey The order-meta key to look for.
-	 * @param string $since   A `Y-m-d H:i:s` UTC cutoff the marker value must be at/after.
-	 * @return bool True when such an order exists.
-	 */
-	public function emailHasOrderWithMetaSince( string $email, string $metaKey, string $since ): bool {
-		return $this->orders->emailHasOrderWithMetaSince( $email, $metaKey, $since );
-	}
-
-	/**
 	 * Run a discount code through the discount engine against priced items.
 	 *
 	 * @since 1.0.0
@@ -964,7 +825,7 @@ class OrderService {
 	 */
 	private function applyDiscount( string $code, array $items, ?\DrPlugin\WP\TierMint\Customers\Customer $customer, ?array $chargeSubtotals = null ): \DrPlugin\WP\TierMint\Discounts\DiscountApplication {
 		if ( null === $this->discounts ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderValidationException::withErrors( array( __( 'Discount codes are not available on this store.', 'tiermint' ) ) );
 		}
 
@@ -1189,14 +1050,16 @@ class OrderService {
 	/**
 	 * Apply extension-provided tax to discounted order lines.
 	 *
-	 * Invalid tax values become zero.
+	 * A line array that breaks a rule is booked as priced with no tax, and a
+	 * checkout logs it once. A quote logs nothing, since it re-runs on every
+	 * field change.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param array<int, OrderItem> $items   The priced, discount-allocated line items.
 	 * @param array<string, mixed>  $context The request context (ip_address, country, discount_code,
 	 *                                        plus anything an extension added at the REST boundary).
-	 * @return array<int, OrderItem> The same lines, each carrying its (possibly zero) tax.
+	 * @return array<int, OrderItem> The lines, each with its (possibly zero) tax.
 	 */
 	private function applyTaxes( array $items, array $context ): array {
 		$items = array_values( $items );
@@ -1204,24 +1067,29 @@ class OrderService {
 		/**
 		 * Filters per-line checkout tax in minor units.
 		 *
-		 * Items already include discounts. Invalid values become zero.
+		 * Items already include discounts. Return one value per line index:
 		 *
-		 * Net mode: each value is minor units added on top. Gross mode (marked by
-		 * `$context['prices_include_tax'] === true`): each value is an int or an
-		 * `array{contained: int, charged?: int}` pair. `contained` is the tax inside
-		 * the line's gross-after-discount amount; `charged` is the tax taken
-		 * (`contained` for a consumer, 0 for a reverse charge). A bare int means
-		 * `contained = charged`. Core caps `contained` at gross-after and `charged`
-		 * at `contained`. Do not do int arithmetic on a pair.
+		 * - An int is tax added on top of the line. A numeric value is cast to
+		 *   whole minor units, a negative one becomes 0, anything else becomes 0.
+		 * - An `array{subtotal: int, discount: int, tax: int}` is the line's final
+		 *   figures, for tax worked out inside the price. Core derives the total as
+		 *   subtotal - discount + tax and books the line only when every figure is
+		 *   an int of zero or more, the discount is not above the subtotal, the
+		 *   subtotal and the discount are not above the priced line's, and the
+		 *   total is not above the priced subtotal - discount the buyer saw.
+		 *   Otherwise the line is booked as priced with no tax.
+		 *
+		 * A listener that meets an array passes it on or replaces it whole. Do not
+		 * do int arithmetic on it.
 		 *
 		 * @since 1.0.0
 		 *
-		 * @param array<int, int|array{contained: int, charged?: int}> $taxes Per-line
+		 * @param array<int, int|array{subtotal: int, discount: int, tax: int}> $taxes Per-line
 		 *        tax in minor units, all zeros by default.
 		 * @param array<int, OrderItem> $items   The priced, discount-allocated line items.
 		 * @param array<string, mixed>  $context The request context (ip_address, country,
-		 *        discount_code, `prices_include_tax` in gross mode, plus any keys an
-		 *        extension added through `tiermint_checkout_intent_context`).
+		 *        discount_code, plus any keys an extension added through
+		 *        `tiermint_checkout_intent_context`).
 		 */
 		$taxes = apply_filters( 'tiermint_checkout_calculate_totals', array_fill( 0, count( $items ), 0 ), $items, $context );
 
@@ -1229,14 +1097,21 @@ class OrderService {
 			return $items;
 		}
 
-		$inclusive = true === ( $context['prices_include_tax'] ?? false );
-		$taxed     = array();
+		$taxed   = array();
+		$refused = array();
 
 		foreach ( $items as $index => $item ) {
 			$value = $taxes[ $index ] ?? 0;
 
-			if ( $inclusive ) {
-				$taxed[] = $this->applyInclusiveTax( $item, $value );
+			if ( is_array( $value ) ) {
+				$line = $this->lineFromFigures( $item, $value );
+
+				if ( null === $line ) {
+					$refused[] = $index;
+					$line      = $item->withTax( 0 );
+				}
+
+				$taxed[] = $line;
 				continue;
 			}
 
@@ -1244,59 +1119,41 @@ class OrderService {
 			$taxed[] = $item->withTax( is_numeric( $value ) ? max( 0, (int) $value ) : 0 );
 		}
 
+		if ( array() !== $refused && null !== $this->logger && true !== ( $context['tiermint_preview'] ?? false ) ) {
+			$this->logger->log(
+				'error',
+				sprintf( 'A checkout totals listener returned an invalid line array, so these lines were booked as priced with no tax: %s.', implode( ', ', $refused ) ),
+				array( 'lines' => $refused )
+			);
+		}
+
 		return $taxed;
 	}
 
 	/**
-	 * Rebase one line to net from a gross-mode filter value.
+	 * Book a listener's line array, or null when it breaks a rule.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param OrderItem $item  The priced, discount-allocated gross line.
-	 * @param mixed     $value The filter value: an int, or a `{contained, charged?}` pair.
-	 * @return OrderItem The line rebased to net.
+	 * @param OrderItem            $item    The priced, discount-allocated line.
+	 * @param array<string, mixed> $figures The listener's `subtotal`, `discount` and `tax`.
+	 * @return OrderItem|null The line with those figures, or null to book it as priced.
 	 */
-	private function applyInclusiveTax( OrderItem $item, $value ): OrderItem {
-		$grossAfter = $item->subtotal() - $item->discount();
+	private function lineFromFigures( OrderItem $item, array $figures ): ?OrderItem {
+		$subtotal = $figures['subtotal'] ?? null;
+		$discount = $figures['discount'] ?? null;
+		$tax      = $figures['tax'] ?? null;
 
-		if ( is_array( $value ) ) {
-			$contained = is_numeric( $value['contained'] ?? null ) ? (int) $value['contained'] : 0;
-			// No `charged` means charge the contained tax.
-			$charged = array_key_exists( 'charged', $value ) && is_numeric( $value['charged'] )
-				? (int) $value['charged']
-				: $contained;
-		} else {
-			// A bare int is contained = charged.
-			$contained = is_numeric( $value ) ? (int) $value : 0;
-			$charged   = $contained;
+		if ( ! is_int( $subtotal ) || ! is_int( $discount ) || ! is_int( $tax ) || $subtotal < 0 || $discount < 0 || $tax < 0 ) {
+			return null;
 		}
 
-		// Clamp: negatives to zero, contained to gross-after, charged to contained.
-		$contained = max( 0, min( $contained, $grossAfter ) );
-		$charged   = max( 0, min( $charged, $contained ) );
+		$valid = $discount <= $subtotal
+			&& $subtotal <= $item->subtotal()
+			&& $discount <= $item->discount()
+			&& $subtotal - $discount + $tax <= $item->subtotal() - $item->discount();
 
-		return $item->withInclusiveTax( $contained, $charged );
-	}
-
-	/**
-	 * Mark the context with the applied pricing mode.
-	 *
-	 * A caller-supplied marker is overwritten: the filter decides gross mode, not
-	 * a request param.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array<string, mixed> $context The checkout context.
-	 * @return array<string, mixed> The context, marked when gross mode is on.
-	 */
-	private function markPricingMode( array $context ): array {
-		unset( $context['prices_include_tax'] );
-
-		if ( PricingMode::includesTax() ) {
-			$context['prices_include_tax'] = true;
-		}
-
-		return $context;
+		return $valid ? $item->withAmounts( $subtotal, $discount, $tax ) : null;
 	}
 
 	/**
@@ -1325,9 +1182,9 @@ class OrderService {
 	}
 
 	/**
-	 * The gross discount the buyer sees, from the code and automatic amounts.
+	 * The discount the buyer sees, from the code and automatic amounts.
 	 *
-	 * This is the REST `discount_total` in both modes, not the order row's net share.
+	 * This is the REST `discount_total`, which a rebased line can book lower.
 	 *
 	 * @since 1.0.0
 	 *
@@ -1392,9 +1249,6 @@ class OrderService {
 		$errors       = array();
 		$clampNotices = array();
 
-		// Do not sell a recurring tier when this installation cannot bill renewals.
-		$recurringSupported = ProductService::recurringTiersSupported();
-
 		foreach ( $cart->lines() as $line ) {
 			$product = $this->products->get( $line->productId() );
 
@@ -1409,12 +1263,6 @@ class OrderService {
 			if ( null === $price ) {
 				/* translators: %d: the product id. */
 				$errors[] = sprintf( __( 'The selected price for product %d is no longer available.', 'tiermint' ), $line->productId() );
-				continue;
-			}
-
-			// Reject recurring tiers when recurring billing is unavailable.
-			if ( ! $price->isPurchasable( $recurringSupported ) ) {
-				$errors[] = __( 'This subscription plan is temporarily unavailable.', 'tiermint' );
 				continue;
 			}
 
@@ -1444,7 +1292,7 @@ class OrderService {
 		}
 
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation messages, surfaced as API errors, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderValidationException::withErrors( $errors );
 		}
 
@@ -1536,7 +1384,7 @@ class OrderService {
 		$order = $this->orders->find( $id );
 
 		if ( null === $order ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation message, surfaced as a structured error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderNotFoundException::forId( $id );
 		}
 

@@ -120,6 +120,7 @@ final class LicenseController extends AbstractRestController {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'validate' ),
+					// Public because customers' sites call it; the license key is the credential.
 					'permission_callback' => '__return_true',
 					'args'                => $this->commonArgs(),
 				),
@@ -133,6 +134,7 @@ final class LicenseController extends AbstractRestController {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'activate' ),
+					// Public because customers' sites call it; the license key is the credential.
 					'permission_callback' => '__return_true',
 					'args'                => array_merge( $this->commonArgs(), $this->environmentArg() ),
 				),
@@ -146,6 +148,7 @@ final class LicenseController extends AbstractRestController {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'deactivate' ),
+					// Public because customers' sites call it; the license key is the credential.
 					'permission_callback' => '__return_true',
 					'args'                => $this->commonArgs(),
 				),
@@ -476,7 +479,7 @@ final class LicenseController extends AbstractRestController {
 		if ( LicenseStatus::Expired === $current->status() ) {
 			return $this->error(
 				'tiermint_license_expired',
-				__( 'This license has expired. Renew it to activate new sites.', 'tiermint' ),
+				__( 'This license has expired. To activate new sites, buy a new license and use its key.', 'tiermint' ),
 				403,
 				array( 'expires_at' => $this->formatUtc( $current->expiresAt() ) )
 			);

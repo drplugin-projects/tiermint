@@ -29,7 +29,7 @@ defined( 'ABSPATH' ) || exit;
 					<?php
 					printf(
 						/* translators: %s: product name. */
-						esc_html__( 'You are renewing your license for %s.', 'tiermint' ),
+						esc_html__( 'You are buying a new license for %s. It comes with a new license key.', 'tiermint' ),
 						esc_html( $data['renewal']['product_name'] )
 					);
 					?>
@@ -39,9 +39,9 @@ defined( 'ABSPATH' ) || exit;
 						<input type="hidden" name="tiermint_cart_action" value="add">
 						<input type="hidden" name="product_id" value="<?php echo esc_attr( (string) $data['renewal']['product_id'] ); ?>">
 						<input type="hidden" name="price_id" value="<?php echo esc_attr( (string) $data['renewal']['price_id'] ); ?>">
-						<?php echo wp_nonce_field( \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_ACTION, \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_FIELD, true, false ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_nonce_field() returns escaped markup. ?>
+						<?php wp_nonce_field( \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_ACTION, \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_FIELD ); ?>
 						<button type="submit" class="tiermint-checkout__renewal-add tiermint-button tiermint-button--primary">
-							<?php esc_html_e( 'Add it to the cart to renew', 'tiermint' ); ?>
+							<?php esc_html_e( 'Add it to the cart', 'tiermint' ); ?>
 						</button>
 					</form>
 				<?php endif; ?>
@@ -96,7 +96,7 @@ defined( 'ABSPATH' ) || exit;
 						<span class="tiermint-checkout__login-cta"><?php esc_html_e( 'Log in', 'tiermint' ); ?></span>
 					</summary>
 					<div class="tiermint-checkout__login-body">
-						<?php echo $data['login_html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- LoginForm::render() returns escaped component markup. ?>
+						<?php echo wp_kses( $data['login_html'], \DrPlugin\WP\TierMint\Frontend\Kses::allowed() ); ?>
 					</div>
 				</details>
 			<?php endif; ?>
@@ -105,7 +105,7 @@ defined( 'ABSPATH' ) || exit;
 				<div class="tiermint-checkout__login tiermint-checkout__login--required tiermint-card">
 					<h3 class="tiermint-checkout__login-heading"><?php esc_html_e( 'Please log in to check out', 'tiermint' ); ?></h3>
 					<p><?php esc_html_e( 'An account is required to complete your purchase.', 'tiermint' ); ?></p>
-					<?php echo $data['login_html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- LoginForm::render() returns escaped component markup. ?>
+					<?php echo wp_kses( $data['login_html'], \DrPlugin\WP\TierMint\Frontend\Kses::allowed() ); ?>
 				</div>
 			<?php else : ?>
 				<?php if ( ! empty( $data['account_notice'] ) ) : ?>
@@ -426,7 +426,7 @@ defined( 'ABSPATH' ) || exit;
 									echo esc_html( $data['button_text'] );
 								} else {
 									printf(
-										/* translators: %s: payment gateway name, e.g. PayPal. */
+										/* translators: %s: payment gateway name. */
 										esc_html__( 'Continue with %s', 'tiermint' ),
 										esc_html( (string) $tiermint_glabel )
 									);
@@ -549,7 +549,7 @@ defined( 'ABSPATH' ) || exit;
 							data-tax-minor="<?php echo esc_attr( (string) ( $data['tax_minor'] ?? 0 ) ); ?>"
 							<?php echo empty( $data['tax_minor'] ) ? 'hidden' : ''; ?>
 						>
-							<span><?php echo esc_html( ! empty( $data['prices_include_tax'] ) ? __( 'Includes tax', 'tiermint' ) : __( 'Tax', 'tiermint' ) ); ?></span>
+							<span><?php echo esc_html( $data['tax_label'] ?? __( 'Tax', 'tiermint' ) ); ?></span>
 							<strong data-tiermint-tax-amount><?php echo esc_html( (string) ( $data['tax'] ?? '' ) ); ?></strong>
 						</p>
 						<p class="tiermint-checkout__total">

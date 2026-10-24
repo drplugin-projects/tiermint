@@ -238,7 +238,6 @@ final class AccountDashboard extends AbstractComponent {
 		return new RenderContext(
 			null,
 			static fn (): array => array(),
-			array(),
 			true,
 			null,
 			static fn (): ?Product => $ctx->product(),
@@ -480,15 +479,15 @@ final class AccountDashboard extends AbstractComponent {
 	 */
 	private function tab( string $base, string $key, string $label ): array {
 		return array(
-			'key'         => $key,
-			'tab_id'      => $base . '-' . $key . '-tab',
-			'panel_id'    => $base . '-' . $key,
-			'label'       => $label,
-			'purchases'   => array(),
-			'html'        => '',
-			// Live markup leaves all panels visible without JavaScript.
-			'tab_attrs'   => '',
-			'panel_attrs' => '',
+			'key'       => $key,
+			'tab_id'    => $base . '-' . $key . '-tab',
+			'panel_id'  => $base . '-' . $key,
+			'label'     => $label,
+			'purchases' => array(),
+			'html'      => '',
+			// Live markup sets no tab state and leaves all panels visible without JavaScript.
+			'selected'  => null,
+			'hidden'    => false,
 		);
 	}
 
@@ -502,14 +501,8 @@ final class AccountDashboard extends AbstractComponent {
 	 */
 	private function markFirstTabActive( array &$tabs ): void {
 		foreach ( array_keys( $tabs ) as $index ) {
-			$active = 0 === $index;
-
-			$tabs[ $index ]['tab_attrs']   = sprintf(
-				' aria-selected="%s" tabindex="%s"',
-				$active ? 'true' : 'false',
-				$active ? '0' : '-1'
-			);
-			$tabs[ $index ]['panel_attrs'] = $active ? '' : ' hidden';
+			$tabs[ $index ]['selected'] = 0 === $index;
+			$tabs[ $index ]['hidden']   = 0 !== $index;
 		}
 	}
 

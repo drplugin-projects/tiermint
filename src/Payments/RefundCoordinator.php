@@ -271,7 +271,7 @@ class RefundCoordinator {
 		$reloaded = $this->orders->find( $orderId );
 
 		if ( null === $reloaded ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer-facing message, surfaced as a structured error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderNotFoundException::forId( $orderId );
 		}
 

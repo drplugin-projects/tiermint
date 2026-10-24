@@ -8,7 +8,7 @@
 /**
  * External dependencies
  */
-import { useMemo, useReducer, useEffect } from '@wordpress/element';
+import { useMemo, useEffect, useSyncExternalStore } from '@wordpress/element';
 import { QueryClientProvider } from '@tanstack/react-query';
 
 /**
@@ -30,6 +30,10 @@ import {
 	createProductFieldRendererRegistry,
 	ProductFieldRendererContext,
 } from '../products/fieldRenderers';
+import {
+	createPriceTierExtensionRegistry,
+	PriceTierExtensionContext,
+} from '../products/priceTierExtensions';
 import { replaceHash } from './navigate';
 import CacheSeam from './cacheSeam';
 import {
@@ -40,6 +44,10 @@ import {
 	createOrderDetailActionRegistry,
 	OrderDetailActionContext,
 } from './orderDetailActions';
+import {
+	createReleaseRowExtensionRegistry,
+	ReleaseRowExtensionContext,
+} from './releaseRowExtensions';
 import ErrorBoundary from './ErrorBoundary';
 import NotFound from './NotFound';
 import AccessDenied from './AccessDenied';
@@ -79,12 +87,24 @@ function AdminShell( { boot } ) {
 		[ boot ]
 	);
 
-	// Late route registration occurs outside React.
-	const [ , forceRender ] = useReducer( ( tick ) => tick + 1, 0 );
-	useEffect( () => registry.subscribe( forceRender ), [ registry ] );
+	const releaseRowExtensions = useMemo(
+		() => createReleaseRowExtensionRegistry( boot ),
+		[ boot ]
+	);
+
+	const priceTierExtensions = useMemo(
+		() => createPriceTierExtensionRegistry( boot ),
+		[ boot ]
+	);
+
+	// Late route registration occurs outside React, and can land between the
+	// first render and the subscription.
+	const routes = useSyncExternalStore(
+		registry.subscribe,
+		registry.getRoutes
+	);
 
 	const hash = useHashRoute();
-	const routes = registry.getRoutes();
 	const match = matchRoute( routes, hash );
 
 	// Redirect only empty landing hashes. Keep denied deep links visible.
@@ -112,18 +132,28 @@ function AdminShell( { boot } ) {
 	return (
 		<DashboardPanelContext.Provider value={ dashboardPanels }>
 			<OrderDetailActionContext.Provider value={ orderDetailActions }>
-				<FieldRendererContext.Provider value={ fieldRenderers }>
-					<ProductFieldRendererContext.Provider
-						value={ productFieldRenderers }
+				<ReleaseRowExtensionContext.Provider
+					value={ releaseRowExtensions }
+				>
+					<PriceTierExtensionContext.Provider
+						value={ priceTierExtensions }
 					>
-						<div className="tiermint-admin">
-							<UpsellBanner boot={ boot } />
-							<main className="tiermint-admin-content">
-								<ErrorBoundary>{ content }</ErrorBoundary>
-							</main>
-						</div>
-					</ProductFieldRendererContext.Provider>
-				</FieldRendererContext.Provider>
+						<FieldRendererContext.Provider value={ fieldRenderers }>
+							<ProductFieldRendererContext.Provider
+								value={ productFieldRenderers }
+							>
+								<div className="tiermint-admin">
+									<UpsellBanner boot={ boot } />
+									<main className="tiermint-admin-content">
+										<ErrorBoundary>
+											{ content }
+										</ErrorBoundary>
+									</main>
+								</div>
+							</ProductFieldRendererContext.Provider>
+						</FieldRendererContext.Provider>
+					</PriceTierExtensionContext.Provider>
+				</ReleaseRowExtensionContext.Provider>
 			</OrderDetailActionContext.Provider>
 		</DashboardPanelContext.Provider>
 	);

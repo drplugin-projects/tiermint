@@ -1,6 +1,6 @@
 <?php
 /**
- * Canonical definitions of every custom TierMint table.
+ * Canonical definitions of the core TierMint tables.
  *
  * @package DrPlugin\WP\TierMint
  */
@@ -43,7 +43,6 @@ final class Schema {
 			'licenses',
 			'license_meta',
 			'activations',
-			'subscriptions',
 			'terms',
 			'term_relationships',
 			'discounts',
@@ -51,11 +50,6 @@ final class Schema {
 			'gateway_events',
 			'api_keys',
 			'logs',
-			'affiliates',
-			'commissions',
-			'recoveries',
-			'recovery_emails',
-			'affiliate_payouts',
 		);
 	}
 
@@ -128,10 +122,6 @@ final class Schema {
 			amount bigint(20) NOT NULL,
 			activation_limit int(10) unsigned DEFAULT NULL,
 			license_length varchar(20) DEFAULT '+1 year',
-			is_subscription tinyint(1) NOT NULL DEFAULT 0,
-			billing_period varchar(10) DEFAULT NULL,
-			billing_interval tinyint(3) unsigned DEFAULT NULL,
-			trial_days smallint(5) unsigned NOT NULL DEFAULT 0,
 			sort_order smallint(5) unsigned NOT NULL DEFAULT 0,
 			min_quantity smallint(5) unsigned NOT NULL DEFAULT 1,
 			max_quantity smallint(5) unsigned DEFAULT NULL,
@@ -243,7 +233,6 @@ final class Schema {
 			activation_limit int(10) unsigned DEFAULT NULL,
 			activation_count int(10) unsigned NOT NULL DEFAULT 0,
 			expires_at datetime DEFAULT NULL,
-			parent_id bigint(20) unsigned DEFAULT NULL,
 			created_at datetime NOT NULL,
 			updated_at datetime NOT NULL,
 			PRIMARY KEY  (id),
@@ -251,8 +240,7 @@ final class Schema {
 			KEY status_expires (status,expires_at),
 			KEY product_id (product_id),
 			KEY order_id (order_id),
-			KEY customer_id (customer_id),
-			KEY parent_id (parent_id)
+			KEY customer_id (customer_id)
 			SQL,
 
 			// WP-style meta table.
@@ -281,39 +269,6 @@ final class Schema {
 			PRIMARY KEY  (id),
 			UNIQUE KEY license_site (license_id,site_hash),
 			KEY last_checked_at (last_checked_at)
-			SQL,
-
-			// core-created, Pro-written.
-			'subscriptions'      => <<<'SQL'
-			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			customer_id bigint(20) unsigned NOT NULL,
-			product_id bigint(20) unsigned NOT NULL,
-			price_id bigint(20) unsigned DEFAULT NULL,
-			initial_order_id bigint(20) unsigned NOT NULL,
-			license_id bigint(20) unsigned DEFAULT NULL,
-			status varchar(20) NOT NULL DEFAULT 'pending',
-			gateway varchar(32) NOT NULL,
-			gateway_subscription_id varchar(191) DEFAULT NULL,
-			gateway_customer_id varchar(191) DEFAULT NULL,
-			amount bigint(20) NOT NULL,
-			currency char(3) NOT NULL,
-			billing_period varchar(10) NOT NULL,
-			billing_interval tinyint(3) unsigned NOT NULL DEFAULT 1,
-			trial_ends_at datetime DEFAULT NULL,
-			current_period_end datetime DEFAULT NULL,
-			cancel_at_period_end tinyint(1) NOT NULL DEFAULT 0,
-			cancelled_at datetime DEFAULT NULL,
-			pending_price_id bigint(20) unsigned DEFAULT NULL,
-			pending_change_at datetime DEFAULT NULL,
-			created_at datetime NOT NULL,
-			updated_at datetime NOT NULL,
-			PRIMARY KEY  (id),
-			UNIQUE KEY gateway_subscription_id (gateway_subscription_id),
-			KEY customer_id (customer_id),
-			KEY product_id (product_id),
-			KEY license_id (license_id),
-			KEY status_period (status,current_period_end),
-			KEY gateway_customer_id (gateway_customer_id)
 			SQL,
 
 			// custom taxonomy store (category|tag discriminator).
@@ -370,7 +325,6 @@ final class Schema {
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			product_id bigint(20) unsigned NOT NULL,
 			version varchar(32) NOT NULL,
-			channel varchar(20) NOT NULL DEFAULT 'stable',
 			storage_provider varchar(32) NOT NULL DEFAULT 'local',
 			storage_key varchar(500) NOT NULL,
 			filesize bigint(20) unsigned DEFAULT NULL,
@@ -379,14 +333,13 @@ final class Schema {
 			tested_up_to varchar(12) DEFAULT NULL,
 			requires_php varchar(12) DEFAULT NULL,
 			changelog longtext,
-			rollout_percent tinyint(3) unsigned NOT NULL DEFAULT 100,
 			status varchar(20) NOT NULL DEFAULT 'draft',
 			released_at datetime DEFAULT NULL,
 			created_at datetime NOT NULL,
 			updated_at datetime NOT NULL,
 			PRIMARY KEY  (id),
 			UNIQUE KEY product_version (product_id,version),
-			KEY latest_lookup (product_id,channel,status,released_at)
+			KEY latest_lookup (product_id,status,released_at)
 			SQL,
 
 			// inbound webhook idempotency ledger.
@@ -434,108 +387,6 @@ final class Schema {
 			PRIMARY KEY  (id),
 			KEY type (type),
 			KEY object (object_type,object_id),
-			KEY created_at (created_at)
-			SQL,
-
-			// affiliate program: one row per affiliate. Core-created, Pro-written.
-			'affiliates'         => <<<'SQL'
-			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			customer_id bigint(20) unsigned NOT NULL,
-			code varchar(32) NOT NULL,
-			status varchar(20) NOT NULL DEFAULT 'pending',
-			rate_bps int(10) unsigned DEFAULT NULL,
-			payout_note varchar(255) DEFAULT NULL,
-			payout_email varchar(190) DEFAULT NULL,
-			payout_method varchar(20) DEFAULT NULL,
-			approved_at datetime DEFAULT NULL,
-			created_at datetime NOT NULL,
-			updated_at datetime NOT NULL,
-			PRIMARY KEY  (id),
-			UNIQUE KEY customer_id (customer_id),
-			UNIQUE KEY code (code),
-			KEY status (status)
-			SQL,
-
-			// affiliate program: the commission ledger, one row per attributed order.
-			'commissions'        => <<<'SQL'
-			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			affiliate_id bigint(20) unsigned NOT NULL,
-			order_id bigint(20) unsigned NOT NULL,
-			currency char(3) NOT NULL,
-			base_amount bigint(20) NOT NULL DEFAULT 0,
-			rate_bps int(10) unsigned NOT NULL DEFAULT 0,
-			amount bigint(20) NOT NULL DEFAULT 0,
-			status varchar(20) NOT NULL DEFAULT 'pending',
-			payout_id bigint(20) unsigned DEFAULT NULL,
-			paid_at datetime DEFAULT NULL,
-			reversed_at datetime DEFAULT NULL,
-			created_at datetime NOT NULL,
-			updated_at datetime NOT NULL,
-			PRIMARY KEY  (id),
-			UNIQUE KEY order_id (order_id),
-			KEY affiliate_id (affiliate_id),
-			KEY status (status),
-			KEY payout_id (payout_id),
-			KEY created_at (created_at)
-			SQL,
-
-			// cart recovery: one row per recovery-tracked order (the drip state machine). Core-created, Pro-written.
-			'recoveries'         => <<<'SQL'
-			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			order_id bigint(20) unsigned NOT NULL,
-			status varchar(20) NOT NULL DEFAULT 'pending',
-			steps_sent tinyint(3) unsigned NOT NULL DEFAULT 0,
-			last_step_at datetime DEFAULT NULL,
-			recovered_order_id bigint(20) unsigned DEFAULT NULL,
-			recovered_at datetime DEFAULT NULL,
-			created_at datetime NOT NULL,
-			updated_at datetime NOT NULL,
-			PRIMARY KEY  (id),
-			UNIQUE KEY order_id (order_id),
-			KEY status (status),
-			KEY created_at (created_at),
-			KEY last_step_at (last_step_at)
-			SQL,
-
-			// cart recovery: the append-only per-step send ledger. Core-created, Pro-written.
-			'recovery_emails'    => <<<'SQL'
-			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			recovery_id bigint(20) unsigned NOT NULL,
-			step tinyint(3) unsigned NOT NULL,
-			discount_id bigint(20) unsigned DEFAULT NULL,
-			sent_at datetime NOT NULL,
-			PRIMARY KEY  (id),
-			UNIQUE KEY recovery_step (recovery_id,step),
-			KEY sent_at (sent_at),
-			KEY step (step)
-			SQL,
-
-			// affiliate payouts: one row per affiliate per currency per run. Core-created, Pro-written.
-			'affiliate_payouts'  => <<<'SQL'
-			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			run_id char(32) NOT NULL,
-			affiliate_id bigint(20) unsigned NOT NULL,
-			provider varchar(20) NOT NULL,
-			currency char(3) NOT NULL,
-			amount bigint(20) NOT NULL DEFAULT 0,
-			status varchar(20) NOT NULL DEFAULT 'queued',
-			sender_batch_id varchar(64) NOT NULL,
-			sender_item_id varchar(64) NOT NULL,
-			provider_batch_id varchar(64) DEFAULT NULL,
-			provider_item_id varchar(64) DEFAULT NULL,
-			payout_email varchar(190) DEFAULT NULL,
-			error text,
-			note varchar(255) DEFAULT NULL,
-			created_at datetime NOT NULL,
-			updated_at datetime NOT NULL,
-			paid_at datetime DEFAULT NULL,
-			PRIMARY KEY  (id),
-			UNIQUE KEY sender_item_id (sender_item_id),
-			KEY run_id (run_id),
-			KEY affiliate_id (affiliate_id),
-			KEY status (status),
-			KEY sender_batch_id (sender_batch_id),
-			KEY provider_batch_id (provider_batch_id),
 			KEY created_at (created_at)
 			SQL,
 		);

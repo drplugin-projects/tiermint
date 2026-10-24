@@ -107,7 +107,7 @@ final class Container {
 		}
 
 		if ( ! isset( $this->bindings[ $id ] ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer exception; $id is a trusted internal service id, never user input or HTML output.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ServiceNotFoundException::forId( $id );
 		}
 
@@ -136,7 +136,7 @@ final class Container {
 	/**
 	 * Decorate an existing binding.
 	 *
-	 * Pro uses this to wrap a core service. The next resolution rebuilds the service.
+	 * Lets an extension wrap a core service. The next resolution rebuilds the service.
 	 *
 	 * @since 1.0.0
 	 *
@@ -148,7 +148,7 @@ final class Container {
 	 */
 	public function extend( string $id, callable $decorator ): void {
 		if ( ! isset( $this->bindings[ $id ] ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer exception; $id is a trusted internal service id, never user input or HTML output.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ServiceNotFoundException::forId( $id );
 		}
 

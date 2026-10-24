@@ -1,48 +1,54 @@
 /**
  * Pricing panel for the product editor.
  *
- * Product saves include the complete price-tier list.
+ * Product saves include the complete price-tier list. Extensions add their own
+ * controls to each tier card through the price tier registry.
  */
 
 /**
  * External dependencies
  */
 import { __, sprintf } from '@wordpress/i18n';
-import {
-	Button,
-	TextControl,
-	SelectControl,
-	CheckboxControl,
-	ToggleControl,
-} from '@wordpress/components';
+import { Button, TextControl, SelectControl } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
 import EmptyState from '../components/EmptyState';
 import { toInt, blankPrice } from './productForm';
-import {
-	LICENSE_LENGTH_BILLING,
-	parseLicenseLength,
-	formatLicenseLength,
-} from './licenseLength';
+import { parseLicenseLength, formatLicenseLength } from './licenseLength';
+import { usePriceTierExtensions } from './priceTierExtensions';
 
 /**
  * Render the pricing panel.
  *
- * @param {Object}   props                       Component props.
- * @param {Object}   props.form                  The current product form state.
- * @param {Function} props.setForm               The form state setter.
- * @param {string}   props.currency              The store currency code.
- * @param {boolean}  props.recurringTiersEnabled Whether recurring controls are editable.
+ * @param {Object}   props          Component props.
+ * @param {Object}   props.form     The current product form state.
+ * @param {Function} props.setForm  The form state setter.
+ * @param {string}   props.currency The store currency code.
  * @return {Element} The pricing panel element.
  */
-export default function PricingPanel( {
-	form,
-	setForm,
-	currency,
-	recurringTiersEnabled,
-} ) {
+export default function PricingPanel( { form, setForm, currency } ) {
+	const extensions = usePriceTierExtensions();
+
+	/**
+	 * Merge changes into the price row at a given index.
+	 *
+	 * @param {number}          index   The price row index.
+	 * @param {Object|Function} changes The fields to merge, or a function of the
+	 *                                  current row that returns them.
+	 * @return {void}
+	 */
+	const mergePrice = ( index, changes ) =>
+		setForm( ( prev ) => {
+			const prices = prev.prices.slice();
+			const current = prices[ index ];
+			const patch =
+				typeof changes === 'function' ? changes( current ) : changes;
+			prices[ index ] = { ...current, ...patch };
+			return { ...prev, prices };
+		} );
+
 	/**
 	 * Update one field of the price row at a given index.
 	 *
@@ -52,33 +58,19 @@ export default function PricingPanel( {
 	 * @return {void}
 	 */
 	const updatePrice = ( index, key, value ) =>
-		setForm( ( prev ) => {
-			const prices = prev.prices.slice();
-			prices[ index ] = { ...prices[ index ], [ key ]: value };
-			return { ...prev, prices };
-		} );
+		mergePrice( index, { [ key ]: value } );
 
 	/**
-	 * Toggle subscription status and clear its billing-period sentinel.
+	 * Replace the product settings with what an updater returns.
 	 *
-	 * @param {number}  index   The price row index.
-	 * @param {boolean} checked Whether the tier is now a subscription.
+	 * @param {Function} updater Receives the current settings, returns the new ones.
 	 * @return {void}
 	 */
-	const setSubscription = ( index, checked ) =>
-		setForm( ( prev ) => {
-			const prices = prev.prices.slice();
-			const current = prices[ index ];
-			const next = { ...current, is_subscription: checked };
-			if (
-				! checked &&
-				current.license_length === LICENSE_LENGTH_BILLING
-			) {
-				next.license_length = '';
-			}
-			prices[ index ] = next;
-			return { ...prev, prices };
-		} );
+	const updateSettings = ( updater ) =>
+		setForm( ( prev ) => ( {
+			...prev,
+			settings: updater( prev.settings || {} ),
+		} ) );
 
 	// Store singular duration units but show plural labels.
 	const licenseUnitOptions = [
@@ -98,10 +90,8 @@ export default function PricingPanel( {
 	const renderLicenseLength = ( price, index ) => {
 		const raw = price.license_length;
 		const parsed = parseLicenseLength( raw );
-		// Ask for a length after clearing the subscription sentinel.
-		const isPrompt =
-			raw === '' ||
-			( parsed.mode === 'billing' && ! price.is_subscription );
+		// An empty value asks the merchant to pick a length.
+		const isPrompt = raw === '';
 
 		// Preserve an unrecognised value until the merchant replaces it.
 		if ( parsed.mode === 'custom' && ! isPrompt ) {
@@ -145,14 +135,6 @@ export default function PricingPanel( {
 				: [] ),
 			{ label: __( 'Lifetime', 'tiermint' ), value: 'lifetime' },
 			{ label: __( 'Duration', 'tiermint' ), value: 'duration' },
-			...( price.is_subscription
-				? [
-						{
-							label: __( 'Same as billing interval', 'tiermint' ),
-							value: 'billing',
-						},
-				  ]
-				: [] ),
 		];
 
 		/**
@@ -164,8 +146,6 @@ export default function PricingPanel( {
 		const onModeChange = ( value ) => {
 			if ( value === 'lifetime' ) {
 				updatePrice( index, 'license_length', null );
-			} else if ( value === 'billing' ) {
-				updatePrice( index, 'license_length', LICENSE_LENGTH_BILLING );
 			} else if ( value === 'duration' ) {
 				updatePrice(
 					index,
@@ -223,58 +203,6 @@ export default function PricingPanel( {
 			</div>
 		);
 	};
-
-	/**
-	 * Get selected switch-target IDs for a source tier.
-	 *
-	 * @param {number} sourceId The source tier's price id.
-	 * @return {number[]} The selected target price ids.
-	 */
-	const upgradeTargetsFor = ( sourceId ) => {
-		const paths =
-			form.settings && form.settings.upgrade_paths
-				? form.settings.upgrade_paths
-				: {};
-		const list = paths[ String( sourceId ) ] || paths[ sourceId ] || [];
-		return Array.isArray( list ) ? list.map( Number ) : [];
-	};
-
-	/**
-	 * Toggle an allowed switch target for a source tier.
-	 *
-	 * @param {number}  sourceId The source tier's price id.
-	 * @param {number}  targetId The target tier's price id.
-	 * @param {boolean} checked  Whether the target is now allowed.
-	 * @return {void}
-	 */
-	const toggleUpgradeTarget = ( sourceId, targetId, checked ) =>
-		setForm( ( prev ) => {
-			const paths = {
-				...( ( prev.settings && prev.settings.upgrade_paths ) || {} ),
-			};
-			const key = String( sourceId );
-			const current = new Set(
-				( paths[ key ] || paths[ sourceId ] || [] ).map( Number )
-			);
-			if ( checked ) {
-				current.add( targetId );
-			} else {
-				current.delete( targetId );
-			}
-			// Keep only the canonical string key.
-			delete paths[ sourceId ];
-			delete paths[ key ];
-			if ( current.size > 0 ) {
-				paths[ key ] = Array.from( current );
-			}
-			const settings = { ...prev.settings };
-			if ( Object.keys( paths ).length > 0 ) {
-				settings.upgrade_paths = paths;
-			} else {
-				delete settings.upgrade_paths;
-			}
-			return { ...prev, settings };
-		} );
 
 	const addPriceButton = (
 		<Button
@@ -350,16 +278,12 @@ export default function PricingPanel( {
 							}
 						/>
 						{ renderLicenseLength( price, index ) }
-						{ /* Subscriptions always have a quantity of one. */ }
 						<TextControl
 							__nextHasNoMarginBottom
 							__next40pxDefaultSize
 							type="number"
 							label={ __( 'Minimum quantity', 'tiermint' ) }
-							value={ String(
-								price.is_subscription ? 1 : price.min_quantity
-							) }
-							disabled={ price.is_subscription }
+							value={ String( price.min_quantity ) }
 							onChange={ ( value ) =>
 								updatePrice(
 									index,
@@ -376,10 +300,7 @@ export default function PricingPanel( {
 								'Maximum quantity (0 = unlimited)',
 								'tiermint'
 							) }
-							value={ String(
-								price.is_subscription ? 1 : price.max_quantity
-							) }
-							disabled={ price.is_subscription }
+							value={ String( price.max_quantity ) }
 							onChange={ ( value ) =>
 								updatePrice(
 									index,
@@ -388,187 +309,19 @@ export default function PricingPanel( {
 								)
 							}
 						/>
-						{ /* Show existing recurring data when Pro controls are unavailable. */ }
-						{ ( recurringTiersEnabled ||
-							price.is_subscription ) && (
-							<>
-								<ToggleControl
-									__nextHasNoMarginBottom
-									label={ __( 'Subscription', 'tiermint' ) }
-									checked={ price.is_subscription }
-									disabled={ ! recurringTiersEnabled }
-									onChange={ ( value ) =>
-										setSubscription( index, value )
-									}
-								/>
-								{ ! recurringTiersEnabled &&
-									price.is_subscription && (
-										<p className="tiermint-recurring-pro-hint">
-											{ __(
-												'Recurring billing requires TierMint Pro.',
-												'tiermint'
-											) }
-										</p>
-									) }
-								{ price.is_subscription && (
-									<>
-										<SelectControl
-											__nextHasNoMarginBottom
-											__next40pxDefaultSize
-											label={ __(
-												'Billing period',
-												'tiermint'
-											) }
-											value={ price.billing_period }
-											disabled={ ! recurringTiersEnabled }
-											options={ [
-												{
-													label: __(
-														'Day',
-														'tiermint'
-													),
-													value: 'day',
-												},
-												{
-													label: __(
-														'Week',
-														'tiermint'
-													),
-													value: 'week',
-												},
-												{
-													label: __(
-														'Month',
-														'tiermint'
-													),
-													value: 'month',
-												},
-												{
-													label: __(
-														'Year',
-														'tiermint'
-													),
-													value: 'year',
-												},
-											] }
-											onChange={ ( value ) =>
-												updatePrice(
-													index,
-													'billing_period',
-													value
-												)
-											}
-										/>
-										<TextControl
-											__nextHasNoMarginBottom
-											__next40pxDefaultSize
-											type="number"
-											label={ __(
-												'Billing interval',
-												'tiermint'
-											) }
-											value={ String(
-												price.billing_interval
-											) }
-											disabled={ ! recurringTiersEnabled }
-											onChange={ ( value ) =>
-												updatePrice(
-													index,
-													'billing_interval',
-													toInt( value )
-												)
-											}
-										/>
-										<TextControl
-											__nextHasNoMarginBottom
-											__next40pxDefaultSize
-											type="number"
-											label={ __(
-												'Trial days',
-												'tiermint'
-											) }
-											value={ String( price.trial_days ) }
-											disabled={ ! recurringTiersEnabled }
-											onChange={ ( value ) =>
-												updatePrice(
-													index,
-													'trial_days',
-													toInt( value )
-												)
-											}
-										/>
-										{ /* Only saved recurring tiers can be switch targets. */ }
-										{ recurringTiersEnabled &&
-											!! price.id &&
-											form.prices.some(
-												( other ) =>
-													!! other.id &&
-													other.is_subscription &&
-													other.id !== price.id
-											) && (
-												<fieldset className="tiermint-switch-targets">
-													<legend>
-														{ __(
-															'Allowed switch targets',
-															'tiermint'
-														) }
-													</legend>
-													<p className="tiermint-switch-targets__help">
-														{ __(
-															'Subscribers on this tier can switch to the tiers selected here.',
-															'tiermint'
-														) }
-													</p>
-													{ form.prices
-														.filter(
-															( other ) =>
-																!! other.id &&
-																other.is_subscription &&
-																other.id !==
-																	price.id
-														)
-														.map( ( other ) => (
-															<CheckboxControl
-																__nextHasNoMarginBottom
-																key={ other.id }
-																label={ sprintf(
-																	/* translators: %s: the name of the target price tier. */
-																	__(
-																		'Allow switching to %s',
-																		'tiermint'
-																	),
-																	other.name ||
-																		sprintf(
-																			/* translators: %d: the target price tier id, used when the tier has no name. */
-																			__(
-																				'Price #%d',
-																				'tiermint'
-																			),
-																			other.id
-																		)
-																) }
-																checked={ upgradeTargetsFor(
-																	price.id
-																).includes(
-																	other.id
-																) }
-																onChange={ (
-																	checked
-																) =>
-																	toggleUpgradeTarget(
-																		price.id,
-																		other.id,
-																		checked
-																	)
-																}
-															/>
-														) ) }
-												</fieldset>
-											) }
-									</>
-								) }
-							</>
-						) }
+						{ extensions.map( ( { id, component: Extension } ) => (
+							<Extension
+								key={ id }
+								price={ price }
+								index={ index }
+								prices={ form.prices }
+								settings={ form.settings || {} }
+								updatePrice={ ( changes ) =>
+									mergePrice( index, changes )
+								}
+								updateSettings={ updateSettings }
+							/>
+						) ) }
 						<SelectControl
 							__nextHasNoMarginBottom
 							__next40pxDefaultSize

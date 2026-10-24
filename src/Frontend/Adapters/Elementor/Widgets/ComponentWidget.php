@@ -11,6 +11,7 @@ namespace DrPlugin\WP\TierMint\Frontend\Adapters\Elementor\Widgets;
 
 use DrPlugin\WP\TierMint\Frontend\Adapters\Elementor\Registrar;
 use DrPlugin\WP\TierMint\Frontend\Adapters\Elementor\WidgetRenderer;
+use DrPlugin\WP\TierMint\Frontend\Kses;
 use Elementor\Controls_Manager;
 use Elementor\Widget_Base;
 use RuntimeException;
@@ -126,7 +127,6 @@ abstract class ComponentWidget extends Widget_Base {
 	 * @return void
 	 */
 	protected function render(): void {
-		// The component renderer returns escaped markup for Elementor to echo.
-		echo self::renderer()->renderFor( $this->componentSlug(), $this->get_settings_for_display() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- component render() output is already escaped.
+		echo wp_kses( self::renderer()->renderFor( $this->componentSlug(), $this->get_settings_for_display() ), Kses::allowed() );
 	}
 }

@@ -84,16 +84,6 @@ class RenderContextResolver {
 			return $this->licenses->listByCustomer( $customer->id() );
 		};
 
-		/**
- * Filters subscriptions exposed to front-end components.
-		 *
-		 * @since 1.0.0
-		 *
-		 * @param object[]                                       $subscriptions Subscriptions, empty in core.
-		 * @param \DrPlugin\WP\TierMint\Customers\Customer|null $customer      Current customer, null when anonymous.
-		 */
-		$subscriptions = apply_filters( 'tiermint_render_context_subscriptions', array(), $customer );
-
 		$editorPreview = $this->isEditorPreview() || $this->isElementorPreview();
 
 		// Preview products load only when a component needs one.
@@ -108,7 +98,6 @@ class RenderContextResolver {
 		$this->context = new RenderContext(
 			$customer,
 			$licenseLoader,
-			is_array( $subscriptions ) ? $subscriptions : array(),
 			$editorPreview,
 			$routedProduct,
 			$productLoader

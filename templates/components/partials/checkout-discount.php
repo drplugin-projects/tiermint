@@ -32,7 +32,7 @@ $tiermint_action_url     = (string) ( $data['action_url'] ?? '' );
 		<?php // A normal POST keeps Apply working without JavaScript. ?>
 		<form class="tiermint-checkout__discount-apply-form" method="post" action="<?php echo esc_url( $tiermint_action_url ); ?>">
 			<input type="hidden" name="tiermint_cart_action" value="apply_discount">
-			<?php echo wp_nonce_field( \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_ACTION, \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_FIELD, true, false ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_nonce_field() returns escaped markup. ?>
+			<?php wp_nonce_field( \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_ACTION, \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_FIELD ); ?>
 			<div class="tiermint-checkout__discount-row"<?php echo $tiermint_is_applied ? ' hidden' : ''; ?>>
 				<input
 					type="text"
@@ -59,7 +59,7 @@ $tiermint_action_url     = (string) ( $data['action_url'] ?? '' );
 			</span>
 			<form class="tiermint-checkout__discount-remove-form" method="post" action="<?php echo esc_url( $tiermint_action_url ); ?>">
 				<input type="hidden" name="tiermint_cart_action" value="remove_discount">
-				<?php echo wp_nonce_field( \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_ACTION, \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_FIELD, true, false ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_nonce_field() returns escaped markup. ?>
+				<?php wp_nonce_field( \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_ACTION, \DrPlugin\WP\TierMint\Frontend\CartActionListener::NONCE_FIELD ); ?>
 				<button type="submit" class="tiermint-checkout__discount-remove tiermint-button tiermint-button--ghost tiermint-button--small" data-tiermint-discount-remove>
 					<?php esc_html_e( 'Remove', 'tiermint' ); ?>
 				</button>

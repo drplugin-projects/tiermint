@@ -24,14 +24,14 @@ use Throwable;
 final class Migrator {
 
 	/**
-	 * Option name holding the integer schema version (autoload no).
+	 * Default option name holding the integer schema version (autoload no).
 	 *
 	 * @var string
 	 */
 	private const VERSION_OPTION = 'tiermint_db_version';
 
 	/**
-	 * Option name used as the migration mutex (autoload no).
+	 * Default option name used as the migration mutex (autoload no).
 	 *
 	 * @var string
 	 */
@@ -59,16 +59,36 @@ final class Migrator {
 	private array $migrations;
 
 	/**
+	 * Option name holding this runner's schema version.
+	 *
+	 * @var string
+	 */
+	private string $versionOption;
+
+	/**
+	 * Option name used as this runner's mutex.
+	 *
+	 * @var string
+	 */
+	private string $lockOption;
+
+	/**
 	 * Wire the runner with its database handle and migration set.
+	 *
+	 * A schema with its own version needs its own options, or it reads the core version.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param \wpdb                 $wpdb       WordPress database abstraction.
-	 * @param array<int, Migration> $migrations Migrations to consider (any order).
+	 * @param \wpdb                 $wpdb          WordPress database abstraction.
+	 * @param array<int, Migration> $migrations    Migrations to consider (any order).
+	 * @param string                $versionOption Option that stores the schema version.
+	 * @param string                $lockOption    Option used as the migration mutex.
 	 */
-	public function __construct( \wpdb $wpdb, array $migrations ) {
-		$this->wpdb       = $wpdb;
-		$this->migrations = $migrations;
+	public function __construct( \wpdb $wpdb, array $migrations, string $versionOption = self::VERSION_OPTION, string $lockOption = self::LOCK_OPTION ) {
+		$this->wpdb          = $wpdb;
+		$this->migrations    = $migrations;
+		$this->versionOption = $versionOption;
+		$this->lockOption    = $lockOption;
 	}
 
 	/**
@@ -79,7 +99,7 @@ final class Migrator {
 	 * @return void
 	 */
 	public function migrate(): void {
-		$current = (int) get_option( self::VERSION_OPTION, 0 );
+		$current = (int) get_option( $this->versionOption, 0 );
 
 		// Fast path: nothing to do, so never take the lock or write any option.
 		if ( $current >= $this->targetVersion() ) {
@@ -105,7 +125,7 @@ final class Migrator {
 					return;
 				}
 
-				update_option( self::VERSION_OPTION, $migration->version(), false );
+				update_option( $this->versionOption, $migration->version(), false );
 				$current = $migration->version();
 			}
 		} finally {
@@ -156,13 +176,13 @@ final class Migrator {
 	 * @return bool True when the lock was acquired; false when a fresh lease is held.
 	 */
 	private function acquireLock(): bool {
-		$held = get_option( self::LOCK_OPTION );
+		$held = get_option( $this->lockOption );
 
 		if ( is_numeric( $held ) && ( time() - (int) $held ) < self::LOCK_TTL ) {
 			return false;
 		}
 
-		update_option( self::LOCK_OPTION, time(), false );
+		update_option( $this->lockOption, time(), false );
 
 		return true;
 	}
@@ -175,7 +195,7 @@ final class Migrator {
 	 * @return void
 	 */
 	private function releaseLock(): void {
-		delete_option( self::LOCK_OPTION );
+		delete_option( $this->lockOption );
 	}
 
 	/**
@@ -189,8 +209,9 @@ final class Migrator {
 	 */
 	private function logFailure( Migration $migration, Throwable $error ): void {
 		$message = sprintf(
-			'TierMint migration to version %d failed: %s',
+			'TierMint migration to version %d (%s) failed: %s',
 			$migration->version(),
+			$this->versionOption,
 			$error->getMessage()
 		);
 
@@ -200,11 +221,11 @@ final class Migrator {
 
 		try {
 			// Escape underscores so LIKE treats the table name literally.
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-off table-existence probe on the migration error path; there is nothing to cache.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Migration error path, nothing to cache.
 			$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ) === $table;
 
 			if ( $exists ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Appending a single record to the append-only log table; caching does not apply.
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Migration error path, nothing to cache.
 				$wpdb->insert(
 					$table,
 					array(
@@ -213,6 +234,7 @@ final class Migrator {
 						'context'    => wp_json_encode(
 							array(
 								'version'   => $migration->version(),
+								'option'    => $this->versionOption,
 								'exception' => get_class( $error ),
 							)
 						),
@@ -226,7 +248,7 @@ final class Migrator {
 			// Intentionally empty. See the phpcs justification above.
 		}
 
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- The _logs table does not exist yet if migration 0001 failed (or the write above failed), so error_log is all that is left.
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- The logs table may not exist yet, so the PHP error log is the only place left.
 		error_log( $message );
 	}
 }

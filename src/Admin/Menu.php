@@ -24,6 +24,15 @@ use DrPlugin\WP\TierMint\Core\Hookable;
 final class Menu implements Hookable {
 
 	/**
+	 * The menu icon, a 20x20 SVG of two stacked layers as a base64 data URI.
+	 *
+	 * A literal, so no admin page encodes it at runtime. wp-admin recolours it.
+	 *
+	 * @var string
+	 */
+	private const ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PHBhdGggZmlsbD0iYmxhY2siIGQ9Ik0xMCAyIDIgNmw4IDQgOC00LTgtNHptLTggOCA4IDQgOC00djJsLTggNC04LTR2LTJ6Ii8+PC9zdmc+';
+
+	/**
 	 * The SPA controller rendering the mount page.
 	 *
 	 * @var SpaController
@@ -66,7 +75,7 @@ final class Menu implements Hookable {
 			$this->parentCapability(),
 			SpaController::PAGE_SLUG,
 			array( $this->spa, 'render' ),
-			$this->icon(),
+			self::ICON,
 			56
 		);
 
@@ -206,18 +215,5 @@ final class Menu implements Hookable {
 		}
 
 		return Capabilities::MANAGE;
-	}
-
-	/**
-	 * Return the menu icon. wp-admin recolours the base64 SVG.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return string The data URI.
-	 */
-	private function icon(): string {
-		$svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="black" d="M10 2 2 6l8 4 8-4-8-4zm-8 8 8 4 8-4v2l-8 4-8-4v-2z"/></svg>';
-
-		return 'data:image/svg+xml;base64,' . base64_encode( $svg ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Standard wp-admin menu icon embedding, not obfuscation.
 	}
 }

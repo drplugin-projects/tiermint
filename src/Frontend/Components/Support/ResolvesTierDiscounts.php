@@ -13,7 +13,6 @@ use DrPlugin\WP\TierMint\Discounts\AutomaticDiscountResolver;
 use DrPlugin\WP\TierMint\Discounts\DiscountPersistenceException;
 use DrPlugin\WP\TierMint\Discounts\DiscountSettings;
 use DrPlugin\WP\TierMint\Products\Product;
-use DrPlugin\WP\TierMint\Products\ProductService;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -72,12 +71,10 @@ trait ResolvesTierDiscounts {
 			return array();
 		}
 
-		$recurringSupported = ProductService::recurringTiersSupported();
-
 		$nodes    = array();
 		$priceIds = array();
 		foreach ( $product->prices() as $price ) {
-			if ( ! $price->isPurchasable( $recurringSupported ) ) {
+			if ( ! $price->isPurchasable() ) {
 				continue;
 			}
 

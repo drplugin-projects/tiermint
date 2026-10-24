@@ -34,13 +34,6 @@ use DrPlugin\WP\TierMint\Products\ProductRepository;
 class CustomerDownloads {
 
 	/**
-	 * Core update channel.
-	 *
-	 * @var string
-	 */
-	private const CHANNEL = 'stable';
-
-	/**
 	 * Orders in each purchased-file page.
 	 *
 	 * @var int
@@ -198,7 +191,7 @@ class CustomerDownloads {
 				continue;
 			}
 
-			$release = $this->releases->latestPublished( $license->productId(), self::CHANNEL );
+			$release = $this->releases->latestPublished( $license->productId() );
 
 			if ( null === $release || null === $release->id() ) {
 				continue;

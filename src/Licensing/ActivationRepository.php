@@ -61,7 +61,6 @@ class ActivationRepository {
 	 * @throws LicensePersistenceException  When the insert fails for any other reason.
 	 */
 	public function create( Activation $activation ): int {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Repository-owned custom table write; caching is handled here.
 		$inserted = $this->wpdb->insert(
 			$this->table(),
 			array(
@@ -81,16 +80,17 @@ class ActivationRepository {
 		if ( false === $inserted ) {
 			// Discriminate the composite-unique clash (a concurrent activation of
 			// the same site) from other faults, mirroring the license repository.
-			$sql = 'SELECT id FROM ' . $this->table() . ' WHERE license_id = %d AND site_hash = %s';
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); a one-off existence probe on the write failure path.
-			$existing = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $activation->licenseId(), $activation->siteHash() ) );
+			$wpdb = $this->wpdb;
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$existing = $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE license_id = %d AND site_hash = %s', $this->table(), $activation->licenseId(), $activation->siteHash() ) );
 
 			if ( null !== $existing ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only message built from typed ids; never echoed as HTML.
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw DuplicateActivationException::forSite( $activation->licenseId(), $activation->siteHash() );
 			}
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Failed to insert activation: ' . $this->wpdb->last_error );
 		}
 
@@ -116,8 +116,10 @@ class ActivationRepository {
 			return $cached;
 		}
 
-		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE id = %d';
-		$row = $this->getRowOrFail( $this->wpdb->prepare( $sql, $id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->getRowOrFail( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $this->table(), $id ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -149,8 +151,10 @@ class ActivationRepository {
 			}
 		}
 
-		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE license_id = %d AND site_hash = %s';
-		$row = $this->getRowOrFail( $this->wpdb->prepare( $sql, $licenseId, $siteHash ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->getRowOrFail( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE license_id = %d AND site_hash = %s', $this->table(), $licenseId, $siteHash ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -172,15 +176,15 @@ class ActivationRepository {
 	 * @return array<int, Activation> The activations.
 	 */
 	public function listForLicense( int $licenseId, ?ActivationStatus $status = null ): array {
-		if ( null === $status ) {
-			$sql    = 'SELECT * FROM ' . $this->table() . ' WHERE license_id = %d ORDER BY id DESC';
-			$values = array( $licenseId );
-		} else {
-			$sql    = 'SELECT * FROM ' . $this->table() . ' WHERE license_id = %d AND status = %s ORDER BY id DESC';
-			$values = array( $licenseId, $status->value );
-		}
+		$wpdb = $this->wpdb;
 
-		$rows = $this->getResultsOrFail( $this->wpdb->prepare( $sql, $values ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		if ( null === $status ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$rows = $this->getResultsOrFail( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE license_id = %d ORDER BY id DESC', $this->table(), $licenseId ) ) );
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$rows = $this->getResultsOrFail( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE license_id = %d AND status = %s ORDER BY id DESC', $this->table(), $licenseId, $status->value ) ) );
+		}
 
 		return array_map( array( $this, 'fromRow' ), $rows );
 	}
@@ -195,14 +199,17 @@ class ActivationRepository {
 	 * @return int The number of active activations.
 	 */
 	public function countActiveForLicense( int $licenseId, bool $excludeLocal = false ): int {
-		$sql = 'SELECT COUNT(*) FROM ' . $this->table() . " WHERE license_id = %d AND status = 'active'";
+		$wpdb = $this->wpdb;
 
 		if ( $excludeLocal ) {
-			$sql .= ' AND is_local = 0';
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM %i WHERE license_id = %d AND status = 'active' AND is_local = 0", $this->table(), $licenseId ) );
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM %i WHERE license_id = %d AND status = 'active'", $this->table(), $licenseId ) );
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); a consistency-check count, deliberately uncached.
-		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $licenseId ) );
+		return (int) $count;
 	}
 
 	/**
@@ -222,11 +229,9 @@ class ActivationRepository {
 		$id = $activation->id();
 
 		if ( null === $id ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
 			throw new LicenseException( 'Cannot update an activation that has not been persisted.' );
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Repository-owned custom table write; caching is handled here.
 		$updated = $this->wpdb->update(
 			$this->table(),
 			array(
@@ -241,7 +246,7 @@ class ActivationRepository {
 		);
 
 		if ( false === $updated ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Failed to update activation: ' . $this->wpdb->last_error );
 		}
 
@@ -267,7 +272,6 @@ class ActivationRepository {
 		// anything derived from the erased site URL.
 		$anonHash = hash( 'sha256', 'tiermint-anon-' . $id . '-' . wp_generate_uuid4() );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Repository-owned custom table write; caching is handled here.
 		$updated = $this->wpdb->update(
 			$this->table(),
 			array(
@@ -280,7 +284,7 @@ class ActivationRepository {
 		);
 
 		if ( false === $updated ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Failed to anonymize activation: ' . $this->wpdb->last_error );
 		}
 
@@ -309,14 +313,20 @@ class ActivationRepository {
 	public function markDeactivated( Activation $activation, string $deactivatedAt ): bool {
 		$id = $this->requireId( $activation );
 
-		$sql = 'UPDATE ' . $this->table() .
-			" SET status = 'deactivated', deactivated_at = %s WHERE id = %d AND status = 'active'";
+		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); cache invalidated below.
-		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $deactivatedAt, $id ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$affected = $wpdb->query(
+			$wpdb->prepare(
+				"UPDATE %i SET status = 'deactivated', deactivated_at = %s WHERE id = %d AND status = 'active'",
+				$this->table(),
+				$deactivatedAt,
+				$id
+			)
+		);
 
 		if ( false === $affected ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Failed to deactivate activation: ' . $this->wpdb->last_error );
 		}
 
@@ -344,23 +354,35 @@ class ActivationRepository {
 	public function markReactivated( Activation $activation, string $activatedAt, ?array $environment ): bool {
 		$id = $this->requireId( $activation );
 
+		$wpdb = $this->wpdb;
+
 		if ( null === $environment ) {
-			$sql    = 'UPDATE ' . $this->table() .
-				" SET status = 'active', deactivated_at = NULL, activated_at = %s" .
-				" WHERE id = %d AND status = 'deactivated'";
-			$values = array( $activatedAt, $id );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$affected = $wpdb->query(
+				$wpdb->prepare(
+					"UPDATE %i SET status = 'active', deactivated_at = NULL, activated_at = %s" .
+					" WHERE id = %d AND status = 'deactivated'",
+					$this->table(),
+					$activatedAt,
+					$id
+				)
+			);
 		} else {
-			$sql    = 'UPDATE ' . $this->table() .
-				" SET status = 'active', deactivated_at = NULL, activated_at = %s, environment = %s" .
-				" WHERE id = %d AND status = 'deactivated'";
-			$values = array( $activatedAt, wp_json_encode( $environment ), $id );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$affected = $wpdb->query(
+				$wpdb->prepare(
+					"UPDATE %i SET status = 'active', deactivated_at = NULL, activated_at = %s, environment = %s" .
+					" WHERE id = %d AND status = 'deactivated'",
+					$this->table(),
+					$activatedAt,
+					wp_json_encode( $environment ),
+					$id
+				)
+			);
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); cache invalidated below.
-		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $values ) );
-
 		if ( false === $affected ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Failed to reactivate activation: ' . $this->wpdb->last_error );
 		}
 
@@ -383,7 +405,6 @@ class ActivationRepository {
 		$id = $activation->id();
 
 		if ( null === $id ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
 			throw new LicenseException( 'Cannot write an activation that has not been persisted.' );
 		}
 
@@ -405,14 +426,21 @@ class ActivationRepository {
 	public function touchLastChecked( int $id, string $now, int $throttleHours ): bool {
 		$cutoff = gmdate( 'Y-m-d H:i:s', (int) strtotime( $now . ' UTC' ) - ( $throttleHours * HOUR_IN_SECONDS ) );
 
-		$sql = 'UPDATE ' . $this->table() .
-			' SET last_checked_at = %s WHERE id = %d AND (last_checked_at IS NULL OR last_checked_at < %s)';
+		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); cache invalidated below.
-		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $now, $id, $cutoff ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; this class decides what to cache.
+		$affected = $wpdb->query(
+			$wpdb->prepare(
+				'UPDATE %i SET last_checked_at = %s WHERE id = %d AND (last_checked_at IS NULL OR last_checked_at < %s)',
+				$this->table(),
+				$now,
+				$id,
+				$cutoff
+			)
+		);
 
 		if ( false === $affected ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Failed to stamp activation last_checked_at: ' . $this->wpdb->last_error );
 		}
 
@@ -433,19 +461,18 @@ class ActivationRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $preparedSql The already-prepared SQL.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return object|null The row, or null when it genuinely does not exist.
 	 *
 	 * @throws LicensePersistenceException When the read faulted at the database.
 	 */
-	private function getRowOrFail( string $preparedSql ): ?object {
+	private function getRowOrFail( callable $query ): ?object {
 		$this->wpdb->last_error = '';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Callers prepare the SQL; the repository fronts reads with wp_cache where the hot path needs it.
-		$row = $this->wpdb->get_row( $preparedSql );
+		$row = $query();
 
 		if ( '' !== $this->wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Activation read failed: ' . $this->wpdb->last_error );
 		}
 
@@ -458,19 +485,18 @@ class ActivationRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $preparedSql The already-prepared SQL.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return array<int, object> The rows (possibly empty).
 	 *
 	 * @throws LicensePersistenceException When the read faulted at the database.
 	 */
-	private function getResultsOrFail( string $preparedSql ): array {
+	private function getResultsOrFail( callable $query ): array {
 		$this->wpdb->last_error = '';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Callers prepare the SQL; list reads are deliberately uncached.
-		$rows = $this->wpdb->get_results( $preparedSql );
+		$rows = $query();
 
 		if ( '' !== $this->wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicensePersistenceException( 'Activation read failed: ' . $this->wpdb->last_error );
 		}
 

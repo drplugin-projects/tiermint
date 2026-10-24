@@ -54,8 +54,8 @@ defined( 'ABSPATH' ) || exit;
 		<?php endif; ?>
 
 		<?php
-		// Core login markup needs its form controls intact.
-		echo $data['login_form']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core-generated, self-escaping wp_login_form() markup; kses would strip its form controls.
+		// The form subset keeps the login fields and plain form markup, and drops scripts and handlers.
+		echo wp_kses( $data['login_form'], \DrPlugin\WP\TierMint\Frontend\Kses::form() );
 		?>
 
 		<p class="tiermint-login-form__lost-password">

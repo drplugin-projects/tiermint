@@ -45,8 +45,7 @@ class ControlMap {
 		$controls = array();
 
 		foreach ( $schema as $name => $definition ) {
-			// The reserved Pro gating bucket is not an attribute.
-			if ( 'pro' === $name || ! is_array( $definition ) ) {
+			if ( ! is_array( $definition ) ) {
 				continue;
 			}
 

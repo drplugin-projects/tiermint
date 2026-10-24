@@ -12,6 +12,7 @@ namespace DrPlugin\WP\TierMint\Webhooks;
 // Prevent direct file access.
 defined( 'ABSPATH' ) || exit;
 
+use DrPlugin\WP\TierMint\Admin\SpaController;
 use DrPlugin\WP\TierMint\Core\Hookable;
 
 /**
@@ -70,6 +71,8 @@ class WebhookFailureNotice implements Hookable {
 			echo '<li><code>' . esc_html( $endpoint['url'] ) . '</code></li>';
 		}
 
-		echo '</ul></div>';
+		echo '</ul><p><a href="' . esc_url( admin_url( 'admin.php?page=' . SpaController::PAGE_SLUG . '#/settings/webhooks' ) ) . '">';
+		echo esc_html__( 'Open the webhook settings', 'tiermint' );
+		echo '</a></p></div>';
 	}
 }

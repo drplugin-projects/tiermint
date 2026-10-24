@@ -12,7 +12,6 @@ namespace DrPlugin\WP\TierMint\Frontend\Components\Support;
 use DrPlugin\WP\TierMint\Frontend\CartActionListener;
 use DrPlugin\WP\TierMint\Products\Product;
 use DrPlugin\WP\TierMint\Products\ProductPrice;
-use DrPlugin\WP\TierMint\Products\ProductService;
 use DrPlugin\WP\TierMint\Util\Money;
 
 defined( 'ABSPATH' ) || exit;
@@ -29,7 +28,7 @@ final class ProductTierSelector {
 	 *
 	 * @param Product                  $product             The product whose tiers to render.
 	 * @param Money                    $money               The store-currency formatter.
-	 * @param array<string, bool>|null $flags               The four tier-meta display flags keyed by
+	 * @param array<string, bool>|null $flags               The tier-meta display flags keyed by
 	 *                                                      attribute name, or null to show every line.
 	 * @param array<int, int>|null     $discountedByPriceId The discounted unit price per tier (price id => minor), or null.
 	 * @param bool                     $strike              Whether the strikethrough display toggle is on.
@@ -55,18 +54,16 @@ final class ProductTierSelector {
 	 *
 	 * @param Product              $product             The product whose tiers to reduce.
 	 * @param Money                $money               The store-currency formatter.
-	 * @param array<string, bool>  $flags               The four tier-meta display flags keyed by attribute name.
+	 * @param array<string, bool>  $flags               The tier-meta display flags keyed by attribute name.
 	 * @param array<int, int>|null $discountedByPriceId The discounted unit price per tier (price id => minor), or null.
 	 * @param bool                 $strike              Whether the strikethrough display toggle is on.
 	 * @return array<int, array{id: int, name: string, price_html: string, is_default: bool, min: int, max: int|null, fixed_single: bool, meta: array<int, string>}>
 	 */
 	private static function purchasableTiers( Product $product, Money $money, array $flags, ?array $discountedByPriceId, bool $strike ): array {
-		$recurringSupported = ProductService::recurringTiersSupported();
-
 		$purchasable = array_values(
 			array_filter(
 				$product->prices(),
-				static fn ( ProductPrice $price ): bool => $price->isPurchasable( $recurringSupported )
+				static fn ( ProductPrice $price ): bool => $price->isPurchasable()
 			)
 		);
 

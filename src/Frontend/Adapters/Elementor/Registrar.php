@@ -17,6 +17,8 @@ use DrPlugin\WP\TierMint\Frontend\Adapters\Elementor\Tags\TagValues;
 use DrPlugin\WP\TierMint\Frontend\Adapters\Elementor\Widgets\BuyButtonWidget;
 use DrPlugin\WP\TierMint\Frontend\Adapters\Elementor\Widgets\CheckoutWidget;
 use DrPlugin\WP\TierMint\Frontend\Adapters\Elementor\Widgets\ComponentWidget;
+use DrPlugin\WP\TierMint\Frontend\Adapters\Elementor\Widgets\DownloadsWidget;
+use DrPlugin\WP\TierMint\Frontend\Adapters\Elementor\Widgets\LicensesWidget;
 use DrPlugin\WP\TierMint\Frontend\Adapters\Elementor\Widgets\LoginWidget;
 use DrPlugin\WP\TierMint\Frontend\Adapters\Elementor\Widgets\PasswordResetWidget;
 use DrPlugin\WP\TierMint\Frontend\Adapters\Elementor\Widgets\PricingTableWidget;
@@ -45,7 +47,7 @@ class Registrar implements Hookable {
 	public const CATEGORY_SLUG = 'tiermint';
 
 	/**
-	 * Free widget classes, kept separate from Pro components.
+	 * Widget classes core registers with Elementor.
 	 *
 	 * @var array<int, class-string<ComponentWidget>>
 	 */
@@ -58,6 +60,8 @@ class Registrar implements Hookable {
 		LoginWidget::class,
 		RegistrationWidget::class,
 		PasswordResetWidget::class,
+		LicensesWidget::class,
+		DownloadsWidget::class,
 	);
 
 	/**
@@ -152,7 +156,7 @@ class Registrar implements Hookable {
 	}
 
 	/**
-	 * Register free widgets after setting their render delegate.
+	 * Register the widgets after setting their render delegate.
 	 *
 	 * @param \Elementor\Widgets_Manager $widgetsManager Elementor's widgets manager.
 	 * @return void
@@ -166,7 +170,7 @@ class Registrar implements Hookable {
 	}
 
 	/**
-	 * Register free tags after setting their value delegate.
+	 * Register the tags after setting their value delegate.
 	 *
 	 * @param \Elementor\Core\DynamicTags\Manager $tagsManager Elementor's dynamic-tags manager.
 	 * @return void

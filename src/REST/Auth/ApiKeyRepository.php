@@ -54,7 +54,6 @@ class ApiKeyRepository {
 	 * @throws ApiKeyPersistenceException When the insert fails.
 	 */
 	public function create( ApiKey $key ): int {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Repository-owned custom table write.
 		$inserted = $this->wpdb->insert(
 			$this->table(),
 			array(
@@ -70,7 +69,7 @@ class ApiKeyRepository {
 		);
 
 		if ( false === $inserted ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ApiKeyPersistenceException( 'Failed to insert API key: ' . $this->wpdb->last_error );
 		}
 
@@ -86,8 +85,10 @@ class ApiKeyRepository {
 	 * @return ApiKey|null The key, or null when it does not exist.
 	 */
 	public function find( int $id ): ?ApiKey {
-		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE id = %d';
-		$row = $this->getRowOrFail( $this->wpdb->prepare( $sql, $id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->getRowOrFail( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $this->table(), $id ) ) );
 
 		return null !== $row ? $this->fromRow( $row ) : null;
 	}
@@ -101,8 +102,10 @@ class ApiKeyRepository {
 	 * @return ApiKey|null The key, or null when none carries it.
 	 */
 	public function findByPublicKey( string $publicKey ): ?ApiKey {
-		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE public_key = %s';
-		$row = $this->getRowOrFail( $this->wpdb->prepare( $sql, $publicKey ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->getRowOrFail( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE public_key = %s', $this->table(), $publicKey ) ) );
 
 		return null !== $row ? $this->fromRow( $row ) : null;
 	}
@@ -115,7 +118,10 @@ class ApiKeyRepository {
 	 * @return array<int, ApiKey> Every key, including revoked audit rows.
 	 */
 	public function all(): array {
-		$rows = $this->getResultsOrFail( 'SELECT * FROM ' . $this->table() . ' ORDER BY id DESC' );
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->getResultsOrFail( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC', $this->table() ) ) );
 
 		return array_map( array( $this, 'fromRow' ), $rows );
 	}
@@ -132,7 +138,6 @@ class ApiKeyRepository {
 	 * @throws ApiKeyPersistenceException When the update fails.
 	 */
 	public function updateStatus( int $id, ApiKeyStatus $status ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Repository-owned custom table write.
 		$updated = $this->wpdb->update(
 			$this->table(),
 			array( 'status' => $status->value ),
@@ -140,7 +145,7 @@ class ApiKeyRepository {
 		);
 
 		if ( false === $updated ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ApiKeyPersistenceException( 'Failed to update API key status: ' . $this->wpdb->last_error );
 		}
 	}
@@ -155,7 +160,6 @@ class ApiKeyRepository {
 	 * @return void
 	 */
 	public function stampLastUsed( int $id, string $utc ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Repository-owned custom table write; best-effort telemetry.
 		$this->wpdb->update(
 			$this->table(),
 			array( 'last_used_at' => $utc ),
@@ -179,19 +183,18 @@ class ApiKeyRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $sql The prepared SQL.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return object|null The row, or null on a real miss.
 	 *
 	 * @throws ApiKeyPersistenceException When the read faulted.
 	 */
-	private function getRowOrFail( string $sql ): ?object {
+	private function getRowOrFail( callable $query ): ?object {
 		$before = $this->wpdb->last_error;
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared by the caller; management auth reads are deliberately uncached.
-		$row   = $this->wpdb->get_row( $sql );
-		$after = $this->wpdb->last_error;
+		$row    = $query();
+		$after  = $this->wpdb->last_error;
 
 		if ( null === $row && '' !== $after && $after !== $before ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ApiKeyPersistenceException( 'API key read failed: ' . $after );
 		}
 
@@ -203,19 +206,18 @@ class ApiKeyRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $sql The SQL (values bound by the caller where present).
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return array<int, object> The rows.
 	 *
 	 * @throws ApiKeyPersistenceException When the read faulted.
 	 */
-	private function getResultsOrFail( string $sql ): array {
+	private function getResultsOrFail( callable $query ): array {
 		$before = $this->wpdb->last_error;
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Static or caller-prepared SQL; management auth reads are deliberately uncached.
-		$rows  = $this->wpdb->get_results( $sql );
-		$after = $this->wpdb->last_error;
+		$rows   = $query();
+		$after  = $this->wpdb->last_error;
 
 		if ( ( null === $rows || array() === $rows ) && '' !== $after && $after !== $before ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ApiKeyPersistenceException( 'API key read failed: ' . $after );
 		}
 

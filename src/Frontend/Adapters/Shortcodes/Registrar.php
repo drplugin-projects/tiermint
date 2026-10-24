@@ -14,6 +14,7 @@ use DrPlugin\WP\TierMint\Frontend\AssetManager;
 use DrPlugin\WP\TierMint\Frontend\AttributeResolver;
 use DrPlugin\WP\TierMint\Frontend\Component;
 use DrPlugin\WP\TierMint\Frontend\ComponentRegistry;
+use DrPlugin\WP\TierMint\Frontend\Kses;
 use DrPlugin\WP\TierMint\Frontend\RenderContextResolver;
 
 defined( 'ABSPATH' ) || exit;
@@ -176,7 +177,7 @@ class Registrar implements Hookable {
 
 			$this->assets->enqueueFor( $component );
 
-			return $component->render( $resolved, $this->context->resolve() );
+			return wp_kses( $component->render( $resolved, $this->context->resolve() ), Kses::allowed() );
 		};
 	}
 }

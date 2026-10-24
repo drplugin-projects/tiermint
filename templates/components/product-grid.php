@@ -61,17 +61,28 @@ $tiermint_notices = \DrPlugin\WP\TierMint\Frontend\CartNotices::view();
 				<li class="tiermint-product-grid__item tiermint-card">
 					<?php
 					// Hide duplicate media links from screen readers.
-					$tiermint_media = ( isset( $tiermint_product['image'] ) && '' !== (string) $tiermint_product['image'] )
-						? (string) $tiermint_product['image']
-						: '<span class="tiermint-product-grid__monogram">' . esc_html( (string) ( $tiermint_product['monogram'] ?? '' ) ) . '</span>';
+					$tiermint_image    = isset( $tiermint_product['image'] ) ? (string) $tiermint_product['image'] : '';
+					$tiermint_monogram = (string) ( $tiermint_product['monogram'] ?? '' );
 					?>
 					<?php if ( isset( $tiermint_product['url'] ) && '' !== (string) $tiermint_product['url'] ) : ?>
 						<a class="tiermint-product-grid__media" href="<?php echo esc_url( (string) $tiermint_product['url'] ); ?>" aria-hidden="true" tabindex="-1">
-							<?php echo $tiermint_media; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Image markup comes escaped from wp_get_attachment_image(); the monogram is esc_html()'d just above. ?>
+							<?php
+							if ( '' !== $tiermint_image ) {
+								echo wp_kses( $tiermint_image, \DrPlugin\WP\TierMint\Frontend\Kses::image() );
+							} else {
+								printf( '<span class="tiermint-product-grid__monogram">%s</span>', esc_html( $tiermint_monogram ) );
+							}
+							?>
 						</a>
 					<?php else : ?>
 						<div class="tiermint-product-grid__media" aria-hidden="true">
-							<?php echo $tiermint_media; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Image markup comes escaped from wp_get_attachment_image(); the monogram is esc_html()'d just above. ?>
+							<?php
+							if ( '' !== $tiermint_image ) {
+								echo wp_kses( $tiermint_image, \DrPlugin\WP\TierMint\Frontend\Kses::image() );
+							} else {
+								printf( '<span class="tiermint-product-grid__monogram">%s</span>', esc_html( $tiermint_monogram ) );
+							}
+							?>
 						</div>
 					<?php endif; ?>
 
@@ -86,7 +97,7 @@ $tiermint_notices = \DrPlugin\WP\TierMint\Frontend\CartNotices::view();
 					<?php endif; ?>
 
 					<?php if ( isset( $tiermint_product['price_html'] ) && null !== $tiermint_product['price_html'] ) : ?>
-						<p class="tiermint-product-grid__price"><?php echo $tiermint_product['price_html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PriceDisplay returns markup it has already escaped. ?></p>
+						<p class="tiermint-product-grid__price"><?php echo wp_kses( $tiermint_product['price_html'], \DrPlugin\WP\TierMint\Frontend\Kses::allowed() ); ?></p>
 					<?php endif; ?>
 
 					<?php if ( isset( $tiermint_product['buy'] ) && is_array( $tiermint_product['buy'] ) ) : ?>

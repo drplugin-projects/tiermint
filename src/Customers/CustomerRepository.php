@@ -101,10 +101,10 @@ class CustomerRepository {
 			return $cached;
 		}
 
-		$row = $this->fetchRow(
-			'SELECT * FROM ' . $this->customersTable() . ' WHERE id = %d',
-			array( $id )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->fetchRow( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $this->customersTable(), $id ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -133,11 +133,11 @@ class CustomerRepository {
 			return array();
 		}
 
-		$rows = $this->fetchRows(
-			'SELECT * FROM ' . $this->customersTable()
-				. ' WHERE id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')',
-			$unique
-		);
+		$wpdb   = $this->wpdb;
+		$values = array_merge( array( $this->customersTable() ), $unique );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->fetchRows( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')', $values ) ) );
 
 		$customers = array();
 
@@ -169,10 +169,10 @@ class CustomerRepository {
 			return $cached;
 		}
 
-		$row = $this->fetchRow(
-			'SELECT * FROM ' . $this->customersTable() . ' WHERE email = %s',
-			array( $normalized )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->fetchRow( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE email = %s', $this->customersTable(), $normalized ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -205,10 +205,10 @@ class CustomerRepository {
 			return $cached;
 		}
 
-		$row = $this->fetchRow(
-			'SELECT * FROM ' . $this->customersTable() . ' WHERE user_id = %d',
-			array( $userId )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->fetchRow( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE user_id = %d', $this->customersTable(), $userId ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -238,14 +238,14 @@ class CustomerRepository {
 		$id = $customer->id();
 
 		if ( null === $id ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new CustomerException( __( 'Cannot update a customer that has no id.', 'tiermint' ) );
 		}
 
-		$previous = $this->fetchRow(
-			'SELECT email, user_id FROM ' . $this->customersTable() . ' WHERE id = %d',
-			array( $id )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$previous = $this->fetchRow( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT email, user_id FROM %i WHERE id = %d', $this->customersTable(), $id ) ) );
 
 		$row = $customer->toRow();
 
@@ -350,12 +350,16 @@ class CustomerRepository {
 		$existing = $this->find( $customerId );
 		$wpdb     = $this->wpdb;
 
-		$sql = 'UPDATE ' . $this->customersTable()
-			. ' SET purchase_count = purchase_count + 1, purchase_total = purchase_total + %d, updated_at = %s'
-			. ' WHERE id = %d';
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Arithmetic UPDATE on a Schema-defined table (not expressible via $wpdb->update); all runtime values are bound via prepare(); the cache is invalidated immediately below.
-		$wpdb->query( $wpdb->prepare( $sql, $amount, gmdate( 'Y-m-d H:i:s' ), $customerId ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$wpdb->query(
+			$wpdb->prepare(
+				'UPDATE %i SET purchase_count = purchase_count + 1, purchase_total = purchase_total + %d, updated_at = %s WHERE id = %d',
+				$this->customersTable(),
+				$amount,
+				gmdate( 'Y-m-d H:i:s' ),
+				$customerId
+			)
+		);
 
 		$this->forget(
 			$customerId,
@@ -380,17 +384,15 @@ class CustomerRepository {
 			return false;
 		}
 
-		$sql    = 'SELECT id FROM ' . $this->customersTable() . ' WHERE email = %s';
-		$params = array( $normalized );
+		$wpdb = $this->wpdb;
 
-		if ( null !== $exceptId ) {
-			$sql     .= ' AND id != %d';
-			$params[] = $exceptId;
+		if ( null === $exceptId ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			return null !== $this->fetchVar( fn () => $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE email = %s LIMIT 1', $this->customersTable(), $normalized ) ) );
 		}
 
-		$sql .= ' LIMIT 1';
-
-		return null !== $this->fetchVar( $sql, $params );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		return null !== $this->fetchVar( fn () => $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE email = %s AND id != %d LIMIT 1', $this->customersTable(), $normalized, $exceptId ) ) );
 	}
 
 	/**
@@ -407,17 +409,15 @@ class CustomerRepository {
 			return false;
 		}
 
-		$sql    = 'SELECT id FROM ' . $this->customersTable() . ' WHERE user_id = %d';
-		$params = array( $userId );
+		$wpdb = $this->wpdb;
 
-		if ( null !== $exceptId ) {
-			$sql     .= ' AND id != %d';
-			$params[] = $exceptId;
+		if ( null === $exceptId ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			return null !== $this->fetchVar( fn () => $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE user_id = %d LIMIT 1', $this->customersTable(), $userId ) ) );
 		}
 
-		$sql .= ' LIMIT 1';
-
-		return null !== $this->fetchVar( $sql, $params );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		return null !== $this->fetchVar( fn () => $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE user_id = %d AND id != %d LIMIT 1', $this->customersTable(), $userId, $exceptId ) ) );
 	}
 
 	/**
@@ -431,21 +431,47 @@ class CustomerRepository {
 	 * @return array<int, Customer> The matching, hydrated customers.
 	 */
 	public function query( array $args ): array {
-		list( $where, $params ) = $this->buildFilters( $args );
-
 		$orderby = $this->whitelistOrderby( $args['orderby'] ?? 'created_at' );
-		$order   = $this->whitelistOrder( $args['order'] ?? 'DESC' );
 		$perPage = $this->perPage( $args );
-		$page    = max( 1, (int) ( $args['page'] ?? 1 ) );
+		$offset  = ( max( 1, (int) ( $args['page'] ?? 1 ) ) - 1 ) * $perPage;
+		$wpdb    = $this->wpdb;
 
-		$sql = 'SELECT * FROM ' . $this->customersTable() . $where
-			. ' ORDER BY ' . $orderby . ' ' . $order . ', id ' . $order
-			. ' LIMIT %d OFFSET %d';
+		list( $bySearch, $like ) = $this->filters( $args );
 
-		$params[] = $perPage;
-		$params[] = ( $page - 1 ) * $perPage;
-
-		$rows = $this->fetchRows( $sql, $params );
+		// The WHERE is the one in countQuery(); keep the copies in step.
+		if ( 'ASC' === $this->whitelistOrder( $args['order'] ?? 'DESC' ) ) {
+			$rows = $this->fetchRows(
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+				fn () => $wpdb->get_results(
+					$wpdb->prepare(
+						'SELECT * FROM %i WHERE ( %d = 0 OR email LIKE %s OR name LIKE %s ) ORDER BY %i ASC, id ASC LIMIT %d OFFSET %d',
+						$this->customersTable(),
+						$bySearch,
+						$like,
+						$like,
+						$orderby,
+						$perPage,
+						$offset
+					)
+				)
+			);
+		} else {
+			$rows = $this->fetchRows(
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+				fn () => $wpdb->get_results(
+					$wpdb->prepare(
+						'SELECT * FROM %i WHERE ( %d = 0 OR email LIKE %s OR name LIKE %s ) ORDER BY %i DESC, id DESC LIMIT %d OFFSET %d',
+						$this->customersTable(),
+						$bySearch,
+						$like,
+						$like,
+						$orderby,
+						$perPage,
+						$offset
+					)
+				)
+			);
+		}
 
 		return array_map( static fn ( object $r ): Customer => Customer::fromRow( $r ), $rows );
 	}
@@ -459,35 +485,31 @@ class CustomerRepository {
 	 * @return int The total matching customer count.
 	 */
 	public function countQuery( array $args ): int {
-		list( $where, $params ) = $this->buildFilters( $args );
+		$wpdb = $this->wpdb;
 
-		$sql = 'SELECT COUNT(*) FROM ' . $this->customersTable() . $where;
+		list( $bySearch, $like ) = $this->filters( $args );
 
-		return (int) $this->fetchVar( $sql, $params );
+		return (int) $this->fetchVar(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE ( %d = 0 OR email LIKE %s OR name LIKE %s )', $this->customersTable(), $bySearch, $like, $like ) )
+		);
 	}
 
 	/**
-	 * Build the WHERE clause and bound params for the collection query.
+	 * Read the search filter for the fixed WHERE in query() and countQuery().
+	 *
+	 * An empty search turns the filter off, through a flag, because MySQL collations
+	 * compare a zero-width space equal to ''. MySQL drops the clause before it plans the query.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param array<string, mixed> $args The query args.
-	 * @return array{0: string, 1: array<int, mixed>} The clause (with leading space) and params.
+	 * @return array{0: int, 1: string} The search flag and the LIKE pattern.
 	 */
-	private function buildFilters( array $args ): array {
-		$clauses = array();
-		$params  = array();
+	private function filters( array $args ): array {
+		$search = isset( $args['search'] ) ? trim( (string) $args['search'] ) : '';
 
-		if ( isset( $args['search'] ) && '' !== trim( (string) $args['search'] ) ) {
-			$like      = '%' . $this->wpdb->esc_like( trim( (string) $args['search'] ) ) . '%';
-			$clauses[] = '(email LIKE %s OR name LIKE %s)';
-			$params[]  = $like;
-			$params[]  = $like;
-		}
-
-		$where = array() === $clauses ? '' : ' WHERE ' . implode( ' AND ', $clauses );
-
-		return array( $where, $params );
+		return array( '' === $search ? 0 : 1, '%' . $this->wpdb->esc_like( $search ) . '%' );
 	}
 
 	/**
@@ -646,11 +668,11 @@ class CustomerRepository {
 	private function insertInto( string $table, array $data ): int {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Insert into a Schema-defined table; $wpdb->insert escapes every value; there is nothing to cache on a write.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; this class decides what to cache.
 		$inserted = $wpdb->insert( $table, $data );
 
 		if ( false === $inserted ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- $table is a Schema-derived internal identifier, never user input or HTML output; this is a developer-facing failure kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new CustomerPersistenceException( 'Failed to insert a row into ' . $table . '.' );
 		}
 
@@ -673,11 +695,11 @@ class CustomerRepository {
 	private function updateWhere( string $table, array $data, array $where ): void {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Update on a Schema-defined table; $wpdb->update escapes values and conditions; the write path invalidates the cache in the caller.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
 		$updated = $wpdb->update( $table, $data, $where );
 
 		if ( false === $updated ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- $table is a Schema-derived internal identifier, never user input or HTML output; this is a developer-facing failure kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new CustomerPersistenceException( 'Failed to update a row in ' . $table . '.' );
 		}
 	}
@@ -696,63 +718,51 @@ class CustomerRepository {
 	private function deleteWhere( string $table, array $where ): void {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Delete on a Schema-defined table; $wpdb->delete escapes the conditions; the write path invalidates the cache in the caller.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
 		$deleted = $wpdb->delete( $table, $where );
 
 		if ( false === $deleted ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- $table is a Schema-derived internal identifier, never user input or HTML output; this is a developer-facing failure kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new CustomerPersistenceException( 'Failed to delete a row from ' . $table . '.' );
 		}
 	}
 
 	/**
-	 * Fetch a single row, binding all values through prepare().
+	 * Fetch a single row.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return object|null The row object, or null.
 	 */
-	private function fetchRow( string $sql, array $args = array() ): ?object {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); find()/findByEmail()/findByUserId() own the read-through cache.
-		return $wpdb->get_row( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchRow( callable $query ): ?object {
+		return $query();
 	}
 
 	/**
-	 * Fetch a result set, binding all values through prepare().
+	 * Fetch a result set.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return array<int, object> The rows (empty on no match).
 	 */
-	private function fetchRows( string $sql, array $args = array() ): array {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); these are bounded admin/collection reads.
-		$rows = $wpdb->get_results( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchRows( callable $query ): array {
+		$rows = $query();
 
 		return is_array( $rows ) ? $rows : array();
 	}
 
 	/**
-	 * Fetch a single scalar, binding all values through prepare().
+	 * Fetch a single scalar.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return string|null The scalar value, or null.
 	 */
-	private function fetchVar( string $sql, array $args = array() ): ?string {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); existence/count probes have nothing to cache.
-		$value = $wpdb->get_var( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchVar( callable $query ): ?string {
+		$value = $query();
 
 		return null === $value ? null : (string) $value;
 	}

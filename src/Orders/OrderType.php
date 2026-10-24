@@ -26,14 +26,9 @@ enum OrderType: string {
 	case Purchase = 'purchase';
 
 	/**
-	 * Pro renewal.
+	 * Renewal of an earlier purchase.
 	 */
 	case Renewal = 'renewal';
-
-	/**
-	 * Pro upgrade.
-	 */
-	case Upgrade = 'upgrade';
 
 	/**
 	 * Negative refund row linked by `parent_id`.

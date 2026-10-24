@@ -18,8 +18,6 @@ use DrPlugin\WP\TierMint\Core\Capabilities;
 use DrPlugin\WP\TierMint\Core\Hookable;
 use DrPlugin\WP\TierMint\Products\Fields\CoreProductFields;
 use DrPlugin\WP\TierMint\Products\Fields\ProductFieldRegistry;
-use DrPlugin\WP\TierMint\Products\ProductService;
-use DrPlugin\WP\TierMint\Updates\ReleaseService;
 use DrPlugin\WP\TierMint\Upsell\Dismissals;
 use DrPlugin\WP\TierMint\Upsell\ProFeatures;
 use DrPlugin\WP\TierMint\Upsell\ProStatus;
@@ -276,13 +274,6 @@ class SpaController implements Hookable {
 			// bundles read it from here rather than each writing their own.
 			'listSeparator' => wp_get_list_item_separator(),
 			'pro'           => $this->proStatus->isActive(),
-			'features'      => array(
-				// Rides the same filter the save path enforces, so the tier
-				// editor never shows controls whose values would be refused.
-				'recurring_tiers'  => ProductService::recurringTiersSupported(),
-				// Same idea for the release editor's channel and rollout controls.
-				'release_channels' => ReleaseService::channelsSupported(),
-			),
 			// The product editor renders these fields and their panels; the same
 			// registry sanitizes them on save, so the two never drift.
 			'productFields' => array(

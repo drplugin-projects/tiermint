@@ -1,6 +1,6 @@
 <?php
 /**
- * Free-core reasons a customer cannot be deleted.
+ * TierMint's own reasons a customer cannot be deleted.
  *
  * @package DrPlugin\WP\TierMint
  */

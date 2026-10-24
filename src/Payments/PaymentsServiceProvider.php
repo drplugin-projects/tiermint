@@ -14,6 +14,7 @@ defined( 'ABSPATH' ) || exit;
 
 use DrPlugin\WP\TierMint\Core\Container;
 use DrPlugin\WP\TierMint\Core\ServiceProvider;
+use DrPlugin\WP\TierMint\Database\Logger;
 use DrPlugin\WP\TierMint\Orders\OrderRepository;
 use DrPlugin\WP\TierMint\Orders\OrderService;
 use DrPlugin\WP\TierMint\Orders\RefundService;
@@ -105,7 +106,8 @@ final class PaymentsServiceProvider implements ServiceProvider {
 			StripeEventHandlers::class,
 			static fn ( Container $c ): StripeEventHandlers => new StripeEventHandlers(
 				$c->get( OrderService::class ),
-				$c->get( RefundCoordinator::class )
+				$c->get( RefundCoordinator::class ),
+				$c->get( Logger::class )
 			)
 		);
 

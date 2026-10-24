@@ -20,7 +20,7 @@ use DrPlugin\WP\TierMint\Orders\OrderType;
 use DrPlugin\WP\TierMint\Util\Money;
 
 /**
- * Builds the free admin sales report in minor units and UTC days.
+ * Builds the admin sales report in minor units and UTC days.
  *
  * Keep currencies separate. Refund rows reduce revenue only through the refund total.
  *
@@ -236,22 +236,25 @@ class ReportService {
 	 * @throws ReportPersistenceException When the query fails.
 	 */
 	private function salesByDay( string $from, string $to, string $storeCurrency ): array {
-		$statusPlaceholders = implode( ', ', array_fill( 0, count( self::SALE_STATUSES ), '%s' ) );
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The SQL embeds only the Schema-derived table name and %s placeholders; every runtime value is bound via prepare() below.
-		$sql = 'SELECT DATE(completed_at) AS bucket, currency, SUM(total) AS gross_revenue, COUNT(*) AS order_count'
-			. ' FROM ' . $this->ordersTable()
-			. ' WHERE type <> %s AND status IN (' . $statusPlaceholders . ')'
-			. ' AND completed_at >= %s AND completed_at <= %s'
-			. ' GROUP BY DATE(completed_at), currency';
-
-		$params = array_merge(
-			array( OrderType::Refund->value ),
-			self::SALE_STATUSES,
+		$wpdb     = $this->wpdb;
+		$statuses = self::SALE_STATUSES;
+		$values   = array_merge(
+			array( $this->ordersTable(), OrderType::Refund->value ),
+			$statuses,
 			array( $from . ' 00:00:00', $to . ' 23:59:59' )
 		);
 
-		$rows = $this->fetchRows( $sql, $params );
+		$rows = $this->fetchRows(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT DATE(completed_at) AS bucket, currency, SUM(total) AS gross_revenue, COUNT(*) AS order_count' .
+					' FROM %i WHERE type <> %s AND status IN (' . implode( ', ', array_fill( 0, count( $statuses ), '%s' ) ) . ')' .
+					' AND completed_at >= %s AND completed_at <= %s GROUP BY DATE(completed_at), currency',
+					$values
+				)
+			)
+		);
 
 		$store    = array();
 		$excluded = array();
@@ -300,15 +303,20 @@ class ReportService {
 	 * @throws ReportPersistenceException When the query fails.
 	 */
 	private function refundsByDay( string $from, string $to, string $storeCurrency ): array {
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The SQL embeds only the Schema-derived table name and %s placeholders; every runtime value is bound via prepare() below.
-		$sql = 'SELECT DATE(created_at) AS bucket, currency, SUM(ABS(total)) AS refund_total, COUNT(*) AS refund_count'
-			. ' FROM ' . $this->ordersTable()
-			. ' WHERE type = %s AND created_at >= %s AND created_at <= %s'
-			. ' GROUP BY DATE(created_at), currency';
-
-		$params = array( OrderType::Refund->value, $from . ' 00:00:00', $to . ' 23:59:59' );
-
-		$rows = $this->fetchRows( $sql, $params );
+		$wpdb = $this->wpdb;
+		$rows = $this->fetchRows(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT DATE(created_at) AS bucket, currency, SUM(ABS(total)) AS refund_total, COUNT(*) AS refund_count' .
+					' FROM %i WHERE type = %s AND created_at >= %s AND created_at <= %s GROUP BY DATE(created_at), currency',
+					$this->ordersTable(),
+					OrderType::Refund->value,
+					$from . ' 00:00:00',
+					$to . ' 23:59:59'
+				)
+			)
+		);
 
 		$store    = array();
 		$excluded = array();
@@ -414,7 +422,7 @@ class ReportService {
 		}
 
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- REST validation messages.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ReportValidationException::withErrors( $errors );
 		}
 
@@ -469,20 +477,17 @@ class ReportService {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql    SQL with placeholders.
-	 * @param array<int, mixed> $params Query values.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return array<int, object> Result rows.
 	 *
 	 * @throws ReportPersistenceException When the query fails.
 	 */
-	private function fetchRows( string $sql, array $params ): array {
+	private function fetchRows( callable $query ): array {
 		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Table names are schema-derived and values use prepare().
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $params ) );
+		$rows = $query();
 
 		if ( '' !== (string) $wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only database error.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ReportPersistenceException( 'A sales report query failed: ' . $wpdb->last_error );
 		}
 

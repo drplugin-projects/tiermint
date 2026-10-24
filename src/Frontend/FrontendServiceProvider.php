@@ -214,7 +214,8 @@ class FrontendServiceProvider implements ServiceProvider {
 			static fn ( Container $c ): RegistrationActionListener => new RegistrationActionListener(
 				$c->get( RateLimiter::class ),
 				null,
-				$c->get( CustomerService::class )
+				$c->get( CustomerService::class ),
+				$c->get( PasswordResetLinks::class )
 			)
 		);
 
@@ -255,7 +256,8 @@ class FrontendServiceProvider implements ServiceProvider {
 				$c->get( PageResolver::class ),
 				$c->get( PasswordResetCookie::class ),
 				null,
-				$c->get( Logger::class )
+				$c->get( Logger::class ),
+				$c->get( PasswordResetLinks::class )
 			)
 		);
 
@@ -492,7 +494,7 @@ class FrontendServiceProvider implements ServiceProvider {
 	}
 
 	/**
-	 * Bind the free Elementor adapter services.
+	 * Bind the Elementor adapter services.
 	 *
 	 * @param Container $container The plugin container.
 	 * @return void

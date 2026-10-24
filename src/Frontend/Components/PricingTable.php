@@ -142,15 +142,12 @@ final class PricingTable extends AbstractComponent {
 	public function render( array $attrs, RenderContext $ctx ): string {
 		$highlightId  = (int) $attrs['highlight_id'];
 		$showFeatures = (bool) $attrs['show_features'];
-
-		// Do not offer recurring tiers this store cannot bill.
-		$recurringSupported = ProductService::recurringTiersSupported();
-		$metaFlags          = TierMetaPresenter::flagsFrom( $attrs );
+		$metaFlags    = TierMetaPresenter::flagsFrom( $attrs );
 
 		$plans = array();
 
 		foreach ( (array) $attrs['product_ids'] as $rawId ) {
-			$plan = $this->buildPlan( (int) $rawId, $highlightId, $showFeatures, $recurringSupported, $metaFlags );
+			$plan = $this->buildPlan( (int) $rawId, $highlightId, $showFeatures, $metaFlags );
 			if ( null !== $plan ) {
 				$plans[] = $plan;
 			}
@@ -241,11 +238,11 @@ final class PricingTable extends AbstractComponent {
 	 *
 	 * @param array<string, mixed> $attrs        Resolved attribute values.
 	 * @param bool                 $showFeatures Whether to include the feature list.
-	 * @param array<string, bool>  $metaFlags    The four tier-meta display flags.
+	 * @param array<string, bool>  $metaFlags    The tier-meta display flags.
 	 * @return array<string, mixed>
 	 */
 	private function sampleData( array $attrs, bool $showFeatures, array $metaFlags ): array {
-		$labels   = array( __( 'Starter', 'tiermint' ), __( 'Pro', 'tiermint' ) );
+		$labels   = array( __( 'Starter', 'tiermint' ), __( 'Business', 'tiermint' ) );
 		$features = array(
 			array( __( 'Core features', 'tiermint' ), __( 'One year of updates', 'tiermint' ) ),
 			array( __( 'Everything in Starter', 'tiermint' ), __( 'Priority support', 'tiermint' ) ),
@@ -292,14 +289,13 @@ final class PricingTable extends AbstractComponent {
 	/**
 	 * Build one purchasable plan column.
 	 *
-	 * @param int                 $productId          The candidate product id.
-	 * @param int                 $highlightId        The product id to mark as most popular.
-	 * @param bool                $showFeatures       Whether to include the feature list.
-	 * @param bool                $recurringSupported Whether recurring tiers can be billed on this install.
-	 * @param array<string, bool> $metaFlags          The four tier-meta display flags keyed by attribute name.
+	 * @param int                 $productId    The candidate product id.
+	 * @param int                 $highlightId  The product id to mark as most popular.
+	 * @param bool                $showFeatures Whether to include the feature list.
+	 * @param array<string, bool> $metaFlags    The tier-meta display flags keyed by attribute name.
 	 * @return array<string, mixed>|null The plan view data, or null to skip.
 	 */
-	private function buildPlan( int $productId, int $highlightId, bool $showFeatures, bool $recurringSupported, array $metaFlags ): ?array {
+	private function buildPlan( int $productId, int $highlightId, bool $showFeatures, array $metaFlags ): ?array {
 		if ( $productId <= 0 ) {
 			return null;
 		}
@@ -309,7 +305,7 @@ final class PricingTable extends AbstractComponent {
 			return null;
 		}
 
-		$price = $product->defaultPrice( $recurringSupported );
+		$price = $product->defaultPrice();
 		if ( null === $price ) {
 			return null;
 		}

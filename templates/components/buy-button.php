@@ -20,11 +20,11 @@ $tiermint_notices = \DrPlugin\WP\TierMint\Frontend\CartNotices::view();
 		<input type="hidden" name="product_id" value="<?php echo esc_attr( (string) $data['product_id'] ); ?>">
 		<input type="hidden" name="price_id" value="<?php echo esc_attr( (string) $data['price_id'] ); ?>">
 		<input type="hidden" name="quantity" value="<?php echo esc_attr( (string) ( $data['quantity'] ?? 1 ) ); ?>">
-		<?php echo wp_nonce_field( $data['nonce_action'], $data['nonce_field'], true, false ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_nonce_field() returns escaped markup. ?>
+		<?php wp_nonce_field( $data['nonce_action'], $data['nonce_field'] ); ?>
 		<button type="submit" class="tiermint-buy-button__button tiermint-button tiermint-button--primary">
 			<span class="tiermint-buy-button__label"><?php echo esc_html( $data['label'] ); ?></span>
 			<?php if ( '' !== $data['price_html'] ) : ?>
-				<span class="tiermint-buy-button__price"><?php echo $data['price_html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PriceDisplay returns markup it has already escaped. ?></span>
+				<span class="tiermint-buy-button__price"><?php echo wp_kses( $data['price_html'], \DrPlugin\WP\TierMint\Frontend\Kses::allowed() ); ?></span>
 			<?php endif; ?>
 		</button>
 	</form>

@@ -86,7 +86,7 @@ if ( ! class_exists( 'TierMint_Update_Client' ) ) {
 		private $licenseKey;
 
 		/**
-		 * Optional release channel.
+		 * Optional release channel to ask the store for.
 		 *
 		 * @var string
 		 */
@@ -111,8 +111,8 @@ if ( ! class_exists( 'TierMint_Update_Client' ) ) {
 		 *     @type string $product_slug The product's catalog slug.
 		 *     @type string $plugin_file  The host plugin's `__FILE__`.
 		 *     @type string $license_key  The license key credential (optional; empty allowed).
-		 *     @type string $channel      The release channel to opt into (optional; empty means
-		 *                                stable). Honored only with TierMint Pro active.
+		 *     @type string $channel      The release channel to ask for (optional). A store that
+		 *                                runs TierMint Pro reads it; other stores ignore it.
 		 * }
 		 */
 		public function __construct( array $options ) {

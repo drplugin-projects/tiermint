@@ -16,7 +16,7 @@ use DrPlugin\WP\TierMint\Catalog\Countries;
 /**
  * Reads checkout field and account settings.
  *
- * Tax extensions can request billing country and VAT through a filter.
+ * An extension can turn the billing country and VAT on through a filter.
  *
  * @since 1.0.0
  */
@@ -28,6 +28,16 @@ class CheckoutFieldSettings {
 	 * @var string
 	 */
 	private const SETTINGS_OPTION = 'tiermint_settings';
+
+	/**
+	 * The toggle behind each billing field the collect seam answers for.
+	 *
+	 * @var array<string, string>
+	 */
+	private const COLLECT_TOGGLES = array(
+		'billing_country' => 'collect_country',
+		'vat_number'      => 'collect_vat',
+	);
 
 	/**
 	 * Whether the buyer must accept the terms before paying.
@@ -118,38 +128,46 @@ class CheckoutFieldSettings {
 	}
 
 	/**
-	 * Whether to collect a billing country: the merchant's own toggle, or a tax
-	 * engine asking for it through the seam.
+	 * Whether to collect a billing country: the merchant's own toggle, or an
+	 * extension asking for it through the collect seam.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @return bool
 	 */
 	public function collectCountry(): bool {
-		return $this->toggle( 'collect_country' ) || $this->billingRequestedByExtension();
+		return $this->collect( 'billing_country' );
 	}
 
 	/**
-	 * Whether to collect a VAT or tax id: the merchant's own toggle, or a tax
-	 * engine asking for it through the seam.
+	 * Whether to collect a VAT or tax id: the merchant's own toggle, or an
+	 * extension asking for it through the collect seam.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @return bool
 	 */
 	public function collectVat(): bool {
-		return $this->toggle( 'collect_vat' ) || $this->billingRequestedByExtension();
+		return $this->collect( 'vat_number' );
 	}
 
 	/**
-	 * Whether a tax extension requires the billing country.
+	 * Whether a billing field is collected only because an extension asked for it.
+	 *
+	 * The settings screen uses this to say the merchant's toggle is not what is
+	 * in force.
 	 *
 	 * @since 1.0.0
 	 *
+	 * @param string $key The field key: `billing_country` or `vat_number`.
 	 * @return bool
 	 */
-	public function countryRequired(): bool {
-		return $this->billingRequestedByExtension();
+	public function collectedByExtension( string $key ): bool {
+		if ( ! isset( self::COLLECT_TOGGLES[ $key ] ) ) {
+			return false;
+		}
+
+		return ! $this->toggle( self::COLLECT_TOGGLES[ $key ] ) && $this->collect( $key );
 	}
 
 	/**
@@ -259,21 +277,33 @@ class CheckoutFieldSettings {
 	}
 
 	/**
-	 * Whether an extension asks core to collect billing fields.
+	 * Whether a billing field is collected: its toggle, or the collect seam.
 	 *
 	 * @since 1.0.0
 	 *
+	 * @param string $key The field key: `billing_country` or `vat_number`.
 	 * @return bool
 	 */
-	private function billingRequestedByExtension(): bool {
+	private function collect( string $key ): bool {
+		$stored = $this->toggle( self::COLLECT_TOGGLES[ $key ] );
+
 		/**
- * Filters whether core collects billing country and VAT.
+		 * Filters whether checkout collects a billing field.
+		 *
+		 * Seeded with the merchant's toggle. A listener can turn collection on,
+		 * not off: core keeps the field while the toggle is on. As with the
+		 * address seam, a later listener that returns false undoes an earlier
+		 * listener's request, so answer for your own need and pass the value on
+		 * otherwise.
 		 *
 		 * @since 1.0.0
 		 *
-		 * @param bool $collects Whether core should collect the billing fields.
+		 * @param bool   $collect Whether the merchant's toggle collects the field.
+		 * @param string $key     The field key: `billing_country` or `vat_number`.
 		 */
-		return (bool) apply_filters( 'tiermint_core_collects_billing', false );
+		$collect = (bool) apply_filters( 'tiermint_checkout_collect_field', $stored, $key );
+
+		return $stored || $collect;
 	}
 
 	/**

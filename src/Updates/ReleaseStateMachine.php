@@ -76,7 +76,7 @@ final class ReleaseStateMachine {
 	 */
 	public function assertAllowed( ReleaseStatus $from, ReleaseStatus $to ): void {
 		if ( ! $this->allows( $from, $to ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer-facing message, surfaced as a structured API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ReleaseTransitionException::between( $from, $to );
 		}
 	}

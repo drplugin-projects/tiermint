@@ -16,8 +16,5 @@ if ( '' === $tiermint_image ) {
 }
 ?>
 <figure class="tiermint-component tiermint-product-images">
-	<?php
-	// wp_get_attachment_image() returns escaped markup.
-	echo $tiermint_image; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_attachment_image() returns escaped markup.
-	?>
+	<?php echo wp_kses( $tiermint_image, \DrPlugin\WP\TierMint\Frontend\Kses::image() ); ?>
 </figure>

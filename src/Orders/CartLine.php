@@ -86,27 +86,27 @@ final class CartLine {
 		?string $priceName
 	) {
 		if ( $productId <= 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'A cart line requires a valid product id.', 'tiermint' ) );
 		}
 
 		if ( $priceId <= 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'A cart line requires a valid price id.', 'tiermint' ) );
 		}
 
 		if ( $quantity < 1 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'A cart line quantity must be at least 1.', 'tiermint' ) );
 		}
 
 		if ( $unitAmount < 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'A cart line unit amount cannot be negative.', 'tiermint' ) );
 		}
 
 		if ( '' === trim( $productName ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'A cart line requires a product name.', 'tiermint' ) );
 		}
 

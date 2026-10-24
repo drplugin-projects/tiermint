@@ -16,12 +16,7 @@ use DrPlugin\WP\TierMint\Core\Container;
 use DrPlugin\WP\TierMint\Core\ServiceProvider;
 use DrPlugin\WP\TierMint\Database\Migrations\Migration_0001_CreateCoreTables;
 use DrPlugin\WP\TierMint\Database\Migrations\Migration_0002_AddReportIndexes;
-use DrPlugin\WP\TierMint\Database\Migrations\Migration_0003_AddSubscriptionPendingChange;
 use DrPlugin\WP\TierMint\Database\Migrations\Migration_0004_AddOrderMetaKeyOrderIndex;
-use DrPlugin\WP\TierMint\Database\Migrations\Migration_0005_AddLicenseParentIdIndex;
-use DrPlugin\WP\TierMint\Database\Migrations\Migration_0006_CreateAffiliateTables;
-use DrPlugin\WP\TierMint\Database\Migrations\Migration_0007_CreateRecoveryTables;
-use DrPlugin\WP\TierMint\Database\Migrations\Migration_0008_CreatePayoutTables;
 
 /**
  * Registers database services and runs pending migrations.
@@ -93,7 +88,8 @@ final class DatabaseServiceProvider implements ServiceProvider {
 	/**
 	 * The ordered set of migrations shipped by the core.
 	 *
-	 * The {@see Migrator} sorts this set by version.
+	 * The {@see Migrator} sorts this set by version. Numbers 3, 5, 6, 7 and 8 are
+	 * retired. A database that ran them stores 5 or 8, so a new migration takes 9 or higher.
 	 *
 	 * @since 1.0.0
 	 *
@@ -103,12 +99,7 @@ final class DatabaseServiceProvider implements ServiceProvider {
 		return array(
 			new Migration_0001_CreateCoreTables(),
 			new Migration_0002_AddReportIndexes(),
-			new Migration_0003_AddSubscriptionPendingChange(),
 			new Migration_0004_AddOrderMetaKeyOrderIndex(),
-			new Migration_0005_AddLicenseParentIdIndex(),
-			new Migration_0006_CreateAffiliateTables(),
-			new Migration_0007_CreateRecoveryTables(),
-			new Migration_0008_CreatePayoutTables(),
 		);
 	}
 }

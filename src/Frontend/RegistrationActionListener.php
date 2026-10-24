@@ -110,18 +110,27 @@ class RegistrationActionListener implements Hookable {
 	private ?CustomerService $customers;
 
 	/**
+	 * Puts the reset page link in the set-password email, or null.
+	 *
+	 * @var PasswordResetLinks|null
+	 */
+	private ?PasswordResetLinks $links;
+
+	/**
 	 * Wire registration services.
 	 *
-	 * @param RateLimiter          $limiter    The transient-backed rate limiter.
-	 * @param callable|null        $terminator Replaces exit in tests.
-	 * @param CustomerService|null $customers   The customer service, or null to skip the split-name sync.
+	 * @param RateLimiter             $limiter    The transient-backed rate limiter.
+	 * @param callable|null           $terminator Replaces exit in tests.
+	 * @param CustomerService|null    $customers  The customer service, or null to skip the split-name sync.
+	 * @param PasswordResetLinks|null $links      The email link rewriter, or null to send WordPress's own link.
 	 */
-	public function __construct( RateLimiter $limiter, ?callable $terminator = null, ?CustomerService $customers = null ) {
+	public function __construct( RateLimiter $limiter, ?callable $terminator = null, ?CustomerService $customers = null, ?PasswordResetLinks $links = null ) {
 		$this->limiter    = $limiter;
 		$this->terminator = $terminator ?? static function (): void {
 			exit;
 		};
 		$this->customers  = $customers;
+		$this->links      = $links;
 	}
 
 	/**
@@ -172,7 +181,7 @@ class RegistrationActionListener implements Hookable {
 			return;
 		}
 
-		$email = isset( $_POST[ self::EMAIL_FIELD ] ) ? sanitize_email( wp_unslash( $_POST[ self::EMAIL_FIELD ] ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- wp_unslash applied inline.
+		$email = isset( $_POST[ self::EMAIL_FIELD ] ) && is_string( $_POST[ self::EMAIL_FIELD ] ) ? sanitize_email( wp_unslash( $_POST[ self::EMAIL_FIELD ] ) ) : '';
 		if ( '' === $email || ! is_email( $email ) ) {
 			$this->redirect( 'invalid' );
 
@@ -251,7 +260,14 @@ class RegistrationActionListener implements Hookable {
 
 		// The 'user' notification sends only the set-password link; no plaintext
 		// password is ever emailed.
-		wp_send_new_user_notifications( $userId, 'user' );
+		$send = static function () use ( $userId ): void {
+			wp_send_new_user_notifications( $userId, 'user' );
+		};
+		if ( null !== $this->links ) {
+			$this->links->withBrandedLinks( $send );
+		} else {
+			$send();
+		}
 
 		$this->syncSplitNames( $userId, $email );
 
@@ -311,14 +327,13 @@ class RegistrationActionListener implements Hookable {
 	}
 
 	/**
-	 * The honeypot field's trimmed value, or '' when absent.
+	 * The honeypot field's sanitized value, or '' when absent.
 	 *
 	 * @return string
 	 */
 	private function honeypotValue(): string {
-		return isset( $_POST[ self::HONEYPOT_FIELD ] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in maybeHandle before this runs.
-			? trim( (string) wp_unslash( $_POST[ self::HONEYPOT_FIELD ] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Trap field: only its emptiness matters, never its content.
-			: '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in maybeHandle before this runs.
+		return isset( $_POST[ self::HONEYPOT_FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::HONEYPOT_FIELD ] ) ) : '';
 	}
 
 	/**

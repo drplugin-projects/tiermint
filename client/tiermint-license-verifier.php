@@ -214,8 +214,12 @@ if ( ! class_exists( 'TierMint_License_Verifier' ) ) {
 				$url = '//' . $url;
 			}
 
+			// Parse "//host" with a placeholder scheme, as wp_parse_url() does, so a
+			// trailing ":digits" in the path is not read as a port.
+			$relative = 0 === strpos( $url, '//' );
+
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- dependency-free drop-in; reads only host, port, and path, consistent across PHP versions.
-			$parts = parse_url( $url );
+			$parts = parse_url( $relative ? 'placeholder:' . $url : $url );
 
 			if ( false === $parts || empty( $parts['host'] ) ) {
 				return '';

@@ -264,8 +264,11 @@ final class ReleasePackageDownloadController extends AbstractRestController {
 			$this->storage->for( $pending['provider'] )->stream( $pending['key'] );
 		} catch ( Throwable $t ) {
 			// Headers can already be sent.
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- last-resort visibility for a failed stream after headers.
-			error_log( 'TierMint: release package stream failed: ' . $t->getMessage() );
+			$this->logger->log(
+				'error',
+				'Release package stream failed: ' . $this->redactKey( $t->getMessage(), $pending['key'] ),
+				array( 'provider' => $pending['provider'] )
+			);
 		}
 
 		return true;

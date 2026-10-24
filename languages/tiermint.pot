@@ -9,25 +9,25 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-14T19:19:54+00:00\n"
+"POT-Creation-Date: 2026-10-24T16:47:56+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: tiermint\n"
 
 #. Plugin Name of the plugin
 #: tiermint.php
-#: src/Admin/Menu.php:64
-#: src/Admin/Menu.php:65
+#: src/Admin/Menu.php:73
+#: src/Admin/Menu.php:74
 #: src/Frontend/Adapters/Blocks/Patterns.php:42
 #: src/Frontend/Adapters/Blocks/Registrar.php:158
-#: src/Frontend/Adapters/Elementor/Registrar.php:148
-#: src/Frontend/Adapters/Elementor/Registrar.php:177
+#: src/Frontend/Adapters/Elementor/Registrar.php:152
+#: src/Frontend/Adapters/Elementor/Registrar.php:181
 msgid "TierMint"
 msgstr ""
 
 #. Plugin URI of the plugin
 #: tiermint.php
-msgid "https://drplugin.com/docs/tiermint"
+msgid "https://github.com/drplugin-projects/tiermint"
 msgstr ""
 
 #. Description of the plugin
@@ -46,7 +46,7 @@ msgid "https://drplugin.com"
 msgstr ""
 
 #: patterns/account-page.php:13
-#: src/Admin/SettingsSchema.php:272
+#: src/Admin/SettingsSchema.php:307
 msgid "Account page"
 msgstr ""
 
@@ -55,8 +55,8 @@ msgid "A complete customer account page: purchase receipt (after checkout), purc
 msgstr ""
 
 #: patterns/checkout-page.php:13
-#: src/Admin/SettingsSchema.php:262
-#: src/Frontend/Components/CartSummary.php:115
+#: src/Admin/SettingsSchema.php:297
+#: src/Frontend/Components/CartSummary.php:114
 msgid "Checkout page"
 msgstr ""
 
@@ -96,7 +96,7 @@ msgstr ""
 msgid "A product details page built from the granular product blocks: image, overview, plans, description, screenshots, and meta."
 msgstr ""
 
-#: src/Admin/Menu.php:139
+#: src/Admin/Menu.php:148
 #: assets/admin/build/index.js:2
 #: assets/admin/build/index.js:3
 #: assets/admin/src/screens/Dashboard.js:233
@@ -104,24 +104,24 @@ msgstr ""
 msgid "Dashboard"
 msgstr ""
 
-#: src/Admin/Menu.php:145
+#: src/Admin/Menu.php:154
 #: src/Frontend/Components/PricingTable.php:103
 #: assets/admin/build/index.js:13
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:818
 #: assets/admin/src/screens/Products.js:408
 #: assets/admin/src/screens/Products.js:627
 msgid "Products"
 msgstr ""
 
-#: src/Admin/Menu.php:151
+#: src/Admin/Menu.php:160
 msgid "Categories & Tags"
 msgstr ""
 
-#: src/Admin/Menu.php:157
+#: src/Admin/Menu.php:166
 #: assets/admin/build/index.js:4
-#: assets/admin/build/index.js:33
-#: assets/admin/build/index.js:68
+#: assets/admin/build/index.js:31
+#: assets/admin/build/index.js:66
 #: assets/admin/src/screens/Dashboard.js:347
 #: assets/admin/src/screens/Orders.js:246
 #: assets/admin/src/screens/Orders.js:378
@@ -129,40 +129,40 @@ msgstr ""
 msgid "Orders"
 msgstr ""
 
-#: src/Admin/Menu.php:163
-#: assets/admin/build/index.js:40
+#: src/Admin/Menu.php:172
+#: assets/admin/build/index.js:38
 #: assets/admin/src/screens/Customers.js:604
 #: assets/admin/src/screens/Customers.js:790
 msgid "Customers"
 msgstr ""
 
-#: src/Admin/Menu.php:169
-#: src/Frontend/Components/AccountDashboard.php:283
-#: src/Frontend/Components/AccountDashboard.php:398
-#: assets/admin/build/index.js:43
+#: src/Admin/Menu.php:178
+#: src/Frontend/Components/AccountDashboard.php:282
+#: src/Frontend/Components/AccountDashboard.php:397
+#: assets/admin/build/index.js:41
 #: assets/admin/src/screens/Licenses.js:300
 #: assets/admin/src/screens/Licenses.js:471
 msgid "Licenses"
 msgstr ""
 
-#: src/Admin/Menu.php:175
+#: src/Admin/Menu.php:184
 #: src/Admin/SettingsSchema.php:71
-#: assets/admin/build/index.js:63
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:61
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:1208
 #: assets/admin/src/screens/Discounts.js:1316
 #: assets/admin/src/screens/Discounts.js:1497
 msgid "Discounts"
 msgstr ""
 
-#: src/Admin/Menu.php:181
-#: assets/admin/build/index.js:67
+#: src/Admin/Menu.php:190
+#: assets/admin/build/index.js:65
 #: assets/admin/src/screens/Reports.js:338
 msgid "Reports"
 msgstr ""
 
-#: src/Admin/Menu.php:187
-#: assets/admin/build/index.js:84
+#: src/Admin/Menu.php:196
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:1137
 #: assets/admin/src/screens/Settings.js:1252
 #: assets/admin/src/screens/Settings.js:1264
@@ -265,481 +265,500 @@ msgstr ""
 msgid "Integrations"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:212
+#: src/Admin/SettingsSchema.php:215
 msgid "Whether to ask the buyer for a full billing address at checkout. The address is currently required by another setting, so this choice takes effect only when that setting is turned off."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:215
+#: src/Admin/SettingsSchema.php:218
 msgid "Whether to ask the buyer for a full billing address at checkout."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:232
-msgid "Store currency"
+#: src/Admin/SettingsSchema.php:231
+msgid "Ask the buyer for their country at checkout. The country is currently collected for another setting, so this choice takes effect only when that setting is turned off."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:233
-msgid "The currency used for all prices. Pick it from the list."
+#: src/Admin/SettingsSchema.php:234
+msgid "Ask the buyer for their country at checkout."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:242
-msgid "Store page"
+#: src/Admin/SettingsSchema.php:247
+msgid "Ask the buyer for a VAT, GST, or tax registration number at checkout. The number is currently collected for another setting, so this choice takes effect only when that setting is turned off."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:243
-msgid "The page listing your products. Set automatically when the store is provisioned."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:252
-msgid "Product details page"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:253
-msgid "The page a single product opens on from the store grid."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:263
-msgid "The page carrying the checkout block or shortcode; used for renewal and cart links."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:273
-msgid "Where customers manage their purchases, downloads, and license keys."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:282
-msgid "Sign-in page"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:283
-msgid "The page carrying the sign-in form. Leave unset to use the WordPress login screen."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:292
-msgid "Registration page"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:293
-msgid "The page carrying the account registration form."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:302
-msgid "Password reset page"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:303
-msgid "The page carrying the lost-password and set-new-password form. While it is published, every password email links to it; unset it to use the WordPress screens. wp-login.php?tiermint_wp_login=1 always reaches the WordPress screen."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:312
-msgid "Terms page"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:313
-msgid "Your terms and conditions page, linked from checkout."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:322
-msgid "Privacy policy page"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:323
-msgid "Your privacy policy page. Falls back to the WordPress privacy policy page when left unset."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:332
-msgid "Hide the admin toolbar for customers"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:333
-msgid "Hide the WordPress toolbar on the front end for logged-in users who cannot edit posts. Administrators and editors always keep it."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:342
-msgid "Use the sign-in page instead of wp-login"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:343
-msgid "Redirect front-end sign-in and password-reset requests to your pages. Requires published pages; logout, confirmations and admin logins keep working, and wp-login.php?tiermint_wp_login=1 always shows the WordPress screen."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:352
-msgid "Show buy buttons in the product grid"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:353
-msgid "The store-wide default for add-to-cart buttons on product grid cards. A block or shortcode can still override it."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:362
-msgid "After adding to the cart"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:363
-msgid "What happens after a shopper adds a product to the cart."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:367
-msgid "Stay on the page and show a confirmation"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:371
-msgid "Go straight to the checkout page"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:382
-msgid "Product page heading"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:383
-msgid "Where the product name shows as the heading on the product details page. Show it in the block keeps the theme page title hidden there so the block is the only heading. Use the theme page title puts the product name in the theme title instead (so a Post Title block and breadcrumbs show it), and the block hides its own; pick this only if your theme renders the page title."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:387
-msgid "Show the product name in the block"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:391
-msgid "Use the theme page title for the product name"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:402
-msgid "Require terms acceptance at checkout"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:403
-msgid "Show a checkbox the buyer must tick to accept your terms and privacy policy before paying."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:412
-msgid "Collect a billing country"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:413
-msgid "Ask the buyer for their country at checkout. Always collected when a tax engine is active."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:422
-msgid "Collect a VAT or tax ID"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:423
+#: src/Admin/SettingsSchema.php:250
 msgid "Ask the buyer for a VAT, GST, or tax registration number at checkout."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:432
-msgid "Collect a billing address"
+#: src/Admin/SettingsSchema.php:267
+msgid "Store currency"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:268
+msgid "The currency used for all prices. Pick it from the list."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:277
+msgid "Store page"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:278
+msgid "The page listing your products. Set automatically when the store is provisioned."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:287
+msgid "Product details page"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:288
+msgid "The page a single product opens on from the store grid."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:298
+msgid "The page with the checkout block or shortcode. Cart links and links to buy a new license open it."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:308
+msgid "Where customers manage their purchases, downloads, and license keys."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:317
+msgid "Sign-in page"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:318
+msgid "The page carrying the sign-in form. Leave unset to use the WordPress login screen."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:327
+msgid "Registration page"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:328
+msgid "The page carrying the account registration form."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:337
+msgid "Password reset page"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:338
+msgid "The page carrying the lost-password and set-new-password form. While it is published, TierMint's own forms and emails link to it, and WordPress password emails do too when wp-login is replaced. Unset it to use the WordPress screens. wp-login.php?tiermint_wp_login=1 always reaches the WordPress screen."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:347
+msgid "Terms page"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:348
+msgid "Your terms and conditions page, linked from checkout."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:357
+msgid "Privacy policy page"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:358
+msgid "Your privacy policy page. Falls back to the WordPress privacy policy page when left unset."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:367
+msgid "Hide the admin toolbar for customers"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:368
+msgid "Hide the WordPress toolbar on the front end for logged-in users who cannot edit posts. Administrators and editors always keep it."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:377
+msgid "Use the sign-in page instead of wp-login"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:378
+msgid "Redirect front-end sign-in and password-reset requests, and the links in WordPress password emails, to your pages. Requires published pages; logout, confirmations and admin logins keep working, and wp-login.php?tiermint_wp_login=1 always shows the WordPress screen."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:387
+msgid "Show buy buttons in the product grid"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:388
+msgid "The store-wide default for add-to-cart buttons on product grid cards. A block or shortcode can still override it."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:397
+msgid "After adding to the cart"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:398
+msgid "What happens after a shopper adds a product to the cart."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:402
+msgid "Stay on the page and show a confirmation"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:406
+msgid "Go straight to the checkout page"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:417
+msgid "Product page heading"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:418
+msgid "Where the product name shows as the heading on the product details page. Show it in the block keeps the theme page title hidden there so the block is the only heading. Use the theme page title puts the product name in the theme title instead (so a Post Title block and breadcrumbs show it), and the block hides its own; pick this only if your theme renders the page title."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:422
+msgid "Show the product name in the block"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:426
+msgid "Use the theme page title for the product name"
 msgstr ""
 
 #: src/Admin/SettingsSchema.php:437
-msgid "Do not collect an address"
+msgid "Require terms acceptance at checkout"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:441
-msgid "Collect an optional address"
+#: src/Admin/SettingsSchema.php:438
+msgid "Show a checkbox the buyer must tick to accept your terms and privacy policy before paying."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:445
-msgid "Require an address"
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:456
-msgid "Show a login panel at checkout"
+#: src/Admin/SettingsSchema.php:447
+msgid "Collect a billing country"
 msgstr ""
 
 #: src/Admin/SettingsSchema.php:457
-msgid "Let existing customers log in from the checkout page before they pay."
-msgstr ""
-
-#: src/Admin/SettingsSchema.php:466
-msgid "Create an account for guests"
+msgid "Collect a VAT or tax ID"
 msgstr ""
 
 #: src/Admin/SettingsSchema.php:467
-msgid "When a guest completes a purchase, create a WordPress account for them (or link one that already uses their email) so their orders and licenses appear in the account area. They set a password from a link emailed to them."
+msgid "Collect a billing address"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:472
+msgid "Do not collect an address"
 msgstr ""
 
 #: src/Admin/SettingsSchema.php:476
+msgid "Collect an optional address"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:480
+msgid "Require an address"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:491
+msgid "Show a login panel at checkout"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:492
+msgid "Let existing customers log in from the checkout page before they pay."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:501
+msgid "Create an account for guests"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:502
+msgid "When a guest completes a purchase, create a WordPress account for them (or link one that already uses their email) so their orders and licenses appear in the account area. They set a password from a link emailed to them."
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:511
 msgid "Allow guest checkout"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:477
+#: src/Admin/SettingsSchema.php:512
 msgid "Let buyers check out without an account. Turn this off to require an account, through login, auto-registration, or a registration page. Without a registration page or auto-registration, only existing users can buy."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:486
+#: src/Admin/SettingsSchema.php:521
 msgid "Require a first name at checkout"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:487
+#: src/Admin/SettingsSchema.php:522
 msgid "Make the first name field mandatory. Left off, it is offered but optional."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:496
+#: src/Admin/SettingsSchema.php:531
 msgid "Require a last name at checkout"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:497
+#: src/Admin/SettingsSchema.php:532
 msgid "Make the last name field mandatory. Left off, it is offered but optional."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:506
+#: src/Admin/SettingsSchema.php:541
 msgid "Offer a company purchase option"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:507
+#: src/Admin/SettingsSchema.php:542
 msgid "Show an \"I am buying as a company\" checkbox that reveals a company name field and the tax ID field. Turn off to always show the tax ID field on its own instead."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:516
+#: src/Admin/SettingsSchema.php:551
 msgid "Delete all data on uninstall"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:517
+#: src/Admin/SettingsSchema.php:552
 msgid "When enabled, deleting the plugin removes every TierMint table, option, capability, and stored package file. Leave off to keep customer and license data."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:525
+#: src/Admin/SettingsSchema.php:560
 msgid "Codes and automatic discounts"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:526
+#: src/Admin/SettingsSchema.php:561
 msgid "What happens when a shopper has a discount code and an automatic discount also matches their cart."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:530
+#: src/Admin/SettingsSchema.php:565
 msgid "A discount code replaces automatic discounts"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:534
+#: src/Admin/SettingsSchema.php:569
 msgid "A discount code stacks with automatic discounts"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:544
+#: src/Admin/SettingsSchema.php:579
 msgid "Show the original price struck through"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:545
+#: src/Admin/SettingsSchema.php:580
 msgid "When an automatic discount applies, show the original price struck through with the discounted price next to it on product pages and the store grid."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:553
+#: src/Admin/SettingsSchema.php:588
 #: src/Frontend/Adapters/Elementor/StyleControlMap.php:40
 msgid "Primary color"
 msgstr ""
 
 #. translators: %s: the shipped default colour, a hex code.
-#: src/Admin/SettingsSchema.php:556
+#: src/Admin/SettingsSchema.php:591
 #, php-format
 msgid "The main accent for buttons, links, and selected states. Its hover, soft, and focus shades are derived automatically, so pick a reasonably dark colour for readable button labels. Leave empty for the default (%s)."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:566
+#: src/Admin/SettingsSchema.php:601
 #: src/Frontend/Adapters/Elementor/StyleControlMap.php:45
 msgid "Text color"
 msgstr ""
 
 #. translators: %s: the shipped default colour, a hex code.
-#: src/Admin/SettingsSchema.php:569
+#: src/Admin/SettingsSchema.php:604
 #, php-format
 msgid "The body text colour inside storefront components. Leave empty for the default (%s)."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:579
+#: src/Admin/SettingsSchema.php:614
 #: src/Frontend/Adapters/Elementor/StyleControlMap.php:50
 msgid "Surface color"
 msgstr ""
 
 #. translators: %s: the shipped default colour, a hex code.
-#: src/Admin/SettingsSchema.php:582
+#: src/Admin/SettingsSchema.php:617
 #, php-format
 msgid "The background for cards, panels, and form fields. Leave empty for the default (%s)."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:592
+#: src/Admin/SettingsSchema.php:627
 msgid "Page background"
 msgstr ""
 
 #. translators: %s: the shipped default colour, a hex code.
-#: src/Admin/SettingsSchema.php:595
+#: src/Admin/SettingsSchema.php:630
 #, php-format
 msgid "The page wash behind full-page surfaces such as the checkout and account areas. Leave empty for the default (%s)."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:605
+#: src/Admin/SettingsSchema.php:640
 msgid "Border color"
 msgstr ""
 
 #. translators: %s: the shipped default colour, a hex code.
-#: src/Admin/SettingsSchema.php:608
+#: src/Admin/SettingsSchema.php:643
 #, php-format
 msgid "Borders and dividers. The stronger control border is derived from it. Leave empty for the default (%s)."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:618
+#: src/Admin/SettingsSchema.php:653
 msgid "Success color"
 msgstr ""
 
 #. translators: %s: the shipped default colour, a hex code.
-#: src/Admin/SettingsSchema.php:621
+#: src/Admin/SettingsSchema.php:656
 #, php-format
 msgid "The accent for success notices and badges; its tinted background is derived. Leave empty for the default (%s)."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:631
+#: src/Admin/SettingsSchema.php:666
 msgid "Error color"
 msgstr ""
 
 #. translators: %s: the shipped default colour, a hex code.
-#: src/Admin/SettingsSchema.php:634
+#: src/Admin/SettingsSchema.php:669
 #, php-format
 msgid "The accent for error notices and badges; its tinted background is derived. Leave empty for the default (%s)."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:644
+#: src/Admin/SettingsSchema.php:679
 #: src/Frontend/Adapters/Elementor/StyleControlMap.php:55
 msgid "Corner radius"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:645
+#: src/Admin/SettingsSchema.php:680
 msgid "How rounded corners are on buttons, inputs, and cards."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:649
+#: src/Admin/SettingsSchema.php:684
 #: src/Frontend/Adapters/Elementor/ControlOptions.php:164
-#: assets/admin/build/index.js:78
+#: assets/admin/build/index.js:76
 #: assets/admin/src/screens/Settings.js:166
 #: assets/blocks/build/index.js:1
 #: assets/blocks/src/index.js:296
 msgid "Default"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:653
+#: src/Admin/SettingsSchema.php:688
 msgid "Small"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:657
+#: src/Admin/SettingsSchema.php:692
 msgid "Large"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:667
+#: src/Admin/SettingsSchema.php:702
 msgid "Font family"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:668
+#: src/Admin/SettingsSchema.php:703
 msgid "A CSS font-family stack for every storefront component, for example: Inter, Arial, sans-serif. Leave empty for the built-in system font."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:676
+#: src/Admin/SettingsSchema.php:711
 msgid "From name"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:677
+#: src/Admin/SettingsSchema.php:712
 msgid "The sender name on store emails. Defaults to the site title when empty."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:685
+#: src/Admin/SettingsSchema.php:720
 msgid "From address"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:686
+#: src/Admin/SettingsSchema.php:721
 msgid "The sender address on store emails. Defaults to the site admin address when empty."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:694
+#: src/Admin/SettingsSchema.php:729
 msgid "Send purchase receipts"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:695
+#: src/Admin/SettingsSchema.php:730
 msgid "Email buyers a receipt with their downloads and license keys after a completed purchase."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:703
+#: src/Admin/SettingsSchema.php:738
 msgid "Send license delivery emails"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:704
+#: src/Admin/SettingsSchema.php:739
 msgid "Email keys that are generated after the receipt already went out."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:713
+#: src/Admin/SettingsSchema.php:747
+#: src/Admin/SettingsSchema.php:768
+#: src/Admin/SettingsSchema.php:780
+#: src/Admin/SettingsSchema.php:792
+#: src/Admin/SettingsSchema.php:807
+#: src/Admin/SettingsSchema.php:822
+#: src/Admin/SettingsSchema.php:837
+#: src/Payments/Stripe/StripeGateway.php:67
+msgid "Stripe"
+msgstr ""
+
+#: src/Admin/SettingsSchema.php:749
 msgid "Stripe mode"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:714
+#: src/Admin/SettingsSchema.php:750
 msgid "Test mode uses your test keys and charges nothing real."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:718
+#: src/Admin/SettingsSchema.php:754
 msgid "Test"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:722
+#: src/Admin/SettingsSchema.php:758
 msgid "Live"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:734
-#: src/Payments/Stripe/StripeGateway.php:244
+#: src/Admin/SettingsSchema.php:771
+#: src/Payments/Stripe/StripeGateway.php:239
 msgid "Test publishable key"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:735
+#: src/Admin/SettingsSchema.php:772
 msgid "Starts with pk_test_."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:745
-#: src/Payments/Stripe/StripeGateway.php:262
+#: src/Admin/SettingsSchema.php:783
+#: src/Payments/Stripe/StripeGateway.php:257
 msgid "Live publishable key"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:746
+#: src/Admin/SettingsSchema.php:784
 msgid "Starts with pk_live_."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:756
-#: src/Payments/Stripe/StripeGateway.php:250
+#: src/Admin/SettingsSchema.php:795
+#: src/Payments/Stripe/StripeGateway.php:245
 msgid "Test secret key"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:757
+#: src/Admin/SettingsSchema.php:796
 msgid "Starts with sk_test_ or rk_test_. Stored encrypted; only the last characters are ever shown again."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:770
-#: src/Payments/Stripe/StripeGateway.php:268
+#: src/Admin/SettingsSchema.php:810
+#: src/Payments/Stripe/StripeGateway.php:263
 msgid "Live secret key"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:771
+#: src/Admin/SettingsSchema.php:811
 msgid "Starts with sk_live_ or rk_live_. Stored encrypted; only the last characters are ever shown again."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:784
-#: src/Payments/Stripe/StripeGateway.php:256
+#: src/Admin/SettingsSchema.php:825
+#: src/Payments/Stripe/StripeGateway.php:251
 msgid "Test webhook signing secret"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:785
-#: src/Admin/SettingsSchema.php:799
+#: src/Admin/SettingsSchema.php:826
+#: src/Admin/SettingsSchema.php:841
 msgid "Starts with whsec_. From the Stripe dashboard webhook endpoint."
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:798
-#: src/Payments/Stripe/StripeGateway.php:274
+#: src/Admin/SettingsSchema.php:840
+#: src/Payments/Stripe/StripeGateway.php:269
 msgid "Live webhook signing secret"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:810
+#: src/Admin/SettingsSchema.php:852
 msgid "Elementor widgets"
 msgstr ""
 
-#: src/Admin/SettingsSchema.php:811
-msgid "Add the TierMint widgets, dynamic tags, and display conditions to the Elementor editor. Turn off to remove them without deactivating Elementor."
+#: src/Admin/SettingsSchema.php:853
+msgid "Add the TierMint widgets and dynamic tags to the Elementor editor. Turn off to remove them without deactivating Elementor."
 msgstr ""
 
-#: src/Admin/SpaController.php:120
+#: src/Admin/SpaController.php:118
 msgid "The TierMint admin requires JavaScript. Please enable it to manage your store."
 msgstr ""
 
-#: src/Admin/SpaController.php:390
+#: src/Admin/SpaController.php:381
 #: src/REST/CatalogController.php:138
 msgid "(no title)"
 msgstr ""
@@ -1977,8 +1996,8 @@ msgid "CFP Franc"
 msgstr ""
 
 #: src/Core/PageProvisioner.php:146
-#: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:214
+#: assets/admin/build/index.js:67
+#: assets/admin/src/screens/settings/values.js:229
 msgid "Store"
 msgstr ""
 
@@ -1986,24 +2005,24 @@ msgstr ""
 #: src/Frontend/Adapters/Elementor/Tags/AbstractProductTag.php:87
 #: src/Frontend/Components/AbstractProductComponent.php:58
 #: src/Frontend/Components/BuyButton.php:100
-#: templates/components/cart-summary.php:78
-#: templates/components/cart-summary.php:91
+#: templates/components/cart-summary.php:79
+#: templates/components/cart-summary.php:92
 #: assets/admin/build/index.js:4
-#: assets/admin/build/index.js:33
-#: assets/admin/build/index.js:36
-#: assets/admin/build/index.js:45
+#: assets/admin/build/index.js:31
+#: assets/admin/build/index.js:34
+#: assets/admin/build/index.js:43
 #: assets/admin/src/screens/Dashboard.js:398
 #: assets/admin/src/screens/Licenses.js:393
-#: assets/admin/src/screens/OrderDetail.js:524
+#: assets/admin/src/screens/OrderDetail.js:541
 #: assets/admin/src/screens/Orders.js:269
 #: assets/admin/src/screens/Orders.js:335
 msgid "Product"
 msgstr ""
 
 #: src/Core/PageProvisioner.php:154
-#: src/Frontend/Components/Checkout.php:186
-#: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:220
+#: src/Frontend/Components/Checkout.php:185
+#: assets/admin/build/index.js:67
+#: assets/admin/src/screens/settings/values.js:235
 msgid "Checkout"
 msgstr ""
 
@@ -2012,7 +2031,7 @@ msgid "Account"
 msgstr ""
 
 #: src/Core/PageProvisioner.php:162
-#: templates/components/password-reset-form.php:39
+#: templates/components/password-reset-form.php:40
 #: templates/components/purchase-confirmation.php:42
 msgid "Sign in"
 msgstr ""
@@ -2176,7 +2195,7 @@ msgstr ""
 msgid "The discount status must be either \"active\" or \"inactive\"."
 msgstr ""
 
-#: src/Discounts/DiscountService.php:555
+#: src/Discounts/DiscountService.php:554
 msgid "That is not a valid discount code."
 msgstr ""
 
@@ -2224,13 +2243,21 @@ msgstr ""
 msgid "TierMint Checkout"
 msgstr ""
 
-#: src/Frontend/Adapters/Elementor/Widgets/ComponentWidget.php:97
+#: src/Frontend/Adapters/Elementor/Widgets/ComponentWidget.php:98
 #: src/Products/Fields/CoreProductFields.php:91
 msgid "Content"
 msgstr ""
 
-#: src/Frontend/Adapters/Elementor/Widgets/ComponentWidget.php:111
+#: src/Frontend/Adapters/Elementor/Widgets/ComponentWidget.php:112
 msgid "Style"
+msgstr ""
+
+#: src/Frontend/Adapters/Elementor/Widgets/DownloadsWidget.php:36
+msgid "TierMint Downloads"
+msgstr ""
+
+#: src/Frontend/Adapters/Elementor/Widgets/LicensesWidget.php:36
+msgid "TierMint Licenses"
 msgstr ""
 
 #: src/Frontend/Adapters/Elementor/Widgets/LoginWidget.php:36
@@ -2262,14 +2289,14 @@ msgid "Added to your cart."
 msgstr ""
 
 #: src/Frontend/CartNotices.php:86
-#: src/Frontend/Components/Checkout.php:645
-#: templates/components/cart-summary.php:30
+#: src/Frontend/Components/Checkout.php:682
+#: templates/components/cart-summary.php:31
 msgid "That item could not be added to the cart."
 msgstr ""
 
 #: src/Frontend/CartNotices.php:87
-#: src/Frontend/Components/Checkout.php:647
-#: templates/components/cart-summary.php:31
+#: src/Frontend/Components/Checkout.php:684
+#: templates/components/cart-summary.php:32
 msgid "Something went wrong updating your cart. Please try again."
 msgstr ""
 
@@ -2325,30 +2352,30 @@ msgstr ""
 msgid "Show the licenses panel."
 msgstr ""
 
-#: src/Frontend/Components/AccountDashboard.php:269
-#: src/Frontend/Components/AccountDashboard.php:384
-#: assets/admin/build/index.js:41
+#: src/Frontend/Components/AccountDashboard.php:268
+#: src/Frontend/Components/AccountDashboard.php:383
+#: assets/admin/build/index.js:39
 #: assets/admin/src/screens/Customers.js:709
 msgid "Purchases"
 msgstr ""
 
-#: src/Frontend/Components/AccountDashboard.php:276
-#: src/Frontend/Components/AccountDashboard.php:391
+#: src/Frontend/Components/AccountDashboard.php:275
+#: src/Frontend/Components/AccountDashboard.php:390
 msgid "Downloads"
 msgstr ""
 
 #. translators: %s: the customer's display name.
-#: src/Frontend/Components/AccountDashboard.php:305
-#: src/Frontend/Components/AccountDashboard.php:437
+#: src/Frontend/Components/AccountDashboard.php:304
+#: src/Frontend/Components/AccountDashboard.php:436
 #, php-format
 msgid "Hi, %s"
 msgstr ""
 
-#: src/Frontend/Components/AccountDashboard.php:306
+#: src/Frontend/Components/AccountDashboard.php:305
 msgid "Sample customer"
 msgstr ""
 
-#: src/Frontend/Components/AccountDashboard.php:327
+#: src/Frontend/Components/AccountDashboard.php:326
 #: src/Frontend/Components/DownloadsList.php:145
 #: src/Frontend/Components/DownloadsList.php:156
 #: src/Frontend/Components/LicenseManager.php:162
@@ -2360,20 +2387,20 @@ msgstr ""
 msgid "Sample product"
 msgstr ""
 
-#: src/Frontend/Components/AccountDashboard.php:333
-#: src/Frontend/Components/AccountDashboard.php:732
+#: src/Frontend/Components/AccountDashboard.php:332
+#: src/Frontend/Components/AccountDashboard.php:725
 #: assets/admin/build/index.js:2
-#: assets/admin/build/index.js:33
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:489
+#: assets/admin/build/index.js:31
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:488
 #: assets/admin/src/screens/Orders.js:58
 #: assets/admin/src/utils/orderStatus.js:23
 msgid "Completed"
 msgstr ""
 
-#: src/Frontend/Components/AccountDashboard.php:733
+#: src/Frontend/Components/AccountDashboard.php:726
 #: assets/admin/build/index.js:2
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/Orders.js:63
 #: assets/admin/src/utils/orderStatus.js:27
 msgid "Partially refunded"
@@ -2393,7 +2420,7 @@ msgstr ""
 
 #: src/Frontend/Components/BuyButton.php:112
 #: src/Frontend/Components/PricingTable.php:128
-#: templates/components/product-grid.php:107
+#: templates/components/product-grid.php:118
 msgid "Buy now"
 msgstr ""
 
@@ -2406,125 +2433,149 @@ msgstr ""
 msgid "Show price"
 msgstr ""
 
-#: src/Frontend/Components/CartSummary.php:108
+#: src/Frontend/Components/CartSummary.php:107
 msgid "Show cart actions"
 msgstr ""
 
-#: src/Frontend/Components/CartSummary.php:109
+#: src/Frontend/Components/CartSummary.php:108
 msgid "Show remove and quantity-update controls for each line."
 msgstr ""
 
-#: src/Frontend/Components/CartSummary.php:116
+#: src/Frontend/Components/CartSummary.php:115
 msgid "The page the checkout link points to. Leave at the default to use the site-wide checkout page setting."
 msgstr ""
 
-#: src/Frontend/Components/CartSummary.php:118
+#: src/Frontend/Components/CartSummary.php:117
 msgid "Default (site checkout page)"
 msgstr ""
 
-#: src/Frontend/Components/CartSummary.php:122
+#: src/Frontend/Components/CartSummary.php:121
 msgid "Your cart"
 msgstr ""
 
-#: src/Frontend/Components/CartSummary.php:123
-#: src/Frontend/Components/Checkout.php:187
+#: src/Frontend/Components/CartSummary.php:122
+#: src/Frontend/Components/Checkout.php:186
 #: src/Frontend/Components/DownloadsList.php:64
 msgid "Title"
 msgstr ""
 
-#: src/Frontend/Components/CartSummary.php:124
+#: src/Frontend/Components/CartSummary.php:123
 msgid "Heading shown above the cart. Leave empty to hide the heading."
 msgstr ""
 
-#: src/Frontend/Components/CartSummary.php:130
-#: src/Frontend/Components/Checkout.php:215
+#: src/Frontend/Components/CartSummary.php:129
+#: src/Frontend/Components/Checkout.php:214
 msgid "Show plan details"
 msgstr ""
 
-#: src/Frontend/Components/CartSummary.php:131
-msgid "Show each line's license length, activation limit, and billing under the product name."
+#: src/Frontend/Components/CartSummary.php:130
+msgid "Show each line's license length and activation limit under the product name."
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:188
+#: src/Frontend/Components/CartSummary.php:200
+#: src/Privacy/PersonalDataExporter.php:263
+#: templates/components/cart-summary.php:162
+#: templates/components/checkout.php:556
+#: templates/components/purchase-confirmation.php:121
+#: templates/emails/purchase-receipt.php:52
+#: assets/admin/build/index.js:4
+#: assets/admin/build/index.js:31
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/Dashboard.js:403
+#: assets/admin/src/screens/OrderDetail.js:547
+#: assets/admin/src/screens/OrderDetail.js:595
+#: assets/admin/src/screens/Orders.js:340
+msgid "Total"
+msgstr ""
+
+#: src/Frontend/Components/Checkout.php:187
 msgid "Heading above the checkout. Empty hides it."
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:193
+#: src/Frontend/Components/Checkout.php:192
 msgid "Pay now"
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:194
+#: src/Frontend/Components/Checkout.php:193
 #: src/Frontend/Components/PricingTable.php:130
 msgid "Button text"
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:195
+#: src/Frontend/Components/Checkout.php:194
 msgid "Label of the payment button."
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:201
+#: src/Frontend/Components/Checkout.php:200
 msgid "Show order summary"
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:202
+#: src/Frontend/Components/Checkout.php:201
 msgid "Display the cart contents beside the payment form."
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:208
+#: src/Frontend/Components/Checkout.php:207
 msgid "Editable order summary"
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:209
+#: src/Frontend/Components/Checkout.php:208
 msgid "Let buyers change quantities and remove lines from the order summary."
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:216
-msgid "Repeat each line's license length, activation limit, and billing in the order summary."
+#: src/Frontend/Components/Checkout.php:215
+msgid "Repeat each line's license length and activation limit in the order summary."
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:222
+#: src/Frontend/Components/Checkout.php:221
 msgid "Show discount code field"
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:223
+#: src/Frontend/Components/Checkout.php:222
 msgid "Let buyers enter a discount code before paying."
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:230
+#: src/Frontend/Components/Checkout.php:229
 #: src/Frontend/Components/ProductDetails.php:140
 msgid "Layout"
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:231
+#: src/Frontend/Components/Checkout.php:230
 msgid "Two columns (form beside a sticky summary) where there is room, or a single stacked column."
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:405
+#: src/Frontend/Components/Checkout.php:403
 msgid "We will create an account for you when your purchase completes, so your orders and downloads are saved to it. You will get an email with a link to set a password."
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:469
+#: src/Frontend/Components/Checkout.php:467
 msgid "VAT, GST, or tax ID (optional)"
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:470
+#: src/Frontend/Components/Checkout.php:468
 msgid "Buying as a business? Enter your VAT, GST, or tax registration number."
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:471
+#: src/Frontend/Components/Checkout.php:469
 msgid "For example DE123456789"
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:486
+#: src/Frontend/Components/Checkout.php:484
 msgid "Country"
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:488
+#: src/Frontend/Components/Checkout.php:486
 msgid "Select your country"
 msgstr ""
 
-#: src/Frontend/Components/Checkout.php:495
+#: src/Frontend/Components/Checkout.php:493
 msgid "Company name"
+msgstr ""
+
+#: src/Frontend/Components/Checkout.php:561
+#: templates/components/checkout.php:552
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:546
+#: assets/admin/src/screens/OrderDetail.js:589
+msgid "Tax"
 msgstr ""
 
 #: src/Frontend/Components/DownloadsList.php:62
@@ -2569,18 +2620,18 @@ msgstr ""
 
 #: src/Frontend/Components/LicenseManager.php:165
 #: src/Frontend/Components/LicenseManager.php:284
-#: assets/admin/build/index.js:28
-#: assets/admin/build/index.js:41
-#: assets/admin/build/index.js:45
-#: assets/admin/build/index.js:63
-#: assets/admin/build/index.js:66
-#: assets/admin/build/index.js:81
-#: assets/admin/src/products/PricingPanel.js:579
+#: assets/admin/build/index.js:26
+#: assets/admin/build/index.js:39
+#: assets/admin/build/index.js:43
+#: assets/admin/build/index.js:61
+#: assets/admin/build/index.js:64
+#: assets/admin/build/index.js:79
+#: assets/admin/src/products/PricingPanel.js:332
 #: assets/admin/src/screens/Discounts.js:925
 #: assets/admin/src/screens/Discounts.js:1228
 #: assets/admin/src/screens/Discounts.js:1358
-#: assets/admin/src/screens/LicenseDetail.js:38
-#: assets/admin/src/screens/LicenseDetail.js:49
+#: assets/admin/src/screens/LicenseDetail.js:39
+#: assets/admin/src/screens/LicenseDetail.js:50
 #: assets/admin/src/screens/Licenses.js:48
 #: assets/admin/src/screens/Licenses.js:59
 #: assets/admin/src/screens/Settings.js:455
@@ -2590,7 +2641,7 @@ msgstr ""
 #: src/Frontend/Components/LicenseManager.php:166
 #: src/Frontend/Components/LicenseManager.php:300
 #: assets/admin/build/index.js:24
-#: assets/admin/src/products/PricingPanel.js:146
+#: assets/admin/src/products/PricingPanel.js:136
 msgid "Lifetime"
 msgstr ""
 
@@ -2603,18 +2654,18 @@ msgid "unlimited"
 msgstr ""
 
 #: src/Frontend/Components/LicenseManager.php:285
-#: assets/admin/build/index.js:41
-#: assets/admin/build/index.js:45
-#: assets/admin/src/screens/LicenseDetail.js:39
+#: assets/admin/build/index.js:39
+#: assets/admin/build/index.js:43
+#: assets/admin/src/screens/LicenseDetail.js:40
 #: assets/admin/src/screens/Licenses.js:49
 #: assets/admin/src/screens/Licenses.js:60
 msgid "Expired"
 msgstr ""
 
 #: src/Frontend/Components/LicenseManager.php:286
-#: assets/admin/build/index.js:41
-#: assets/admin/build/index.js:45
-#: assets/admin/src/screens/LicenseDetail.js:40
+#: assets/admin/build/index.js:39
+#: assets/admin/build/index.js:43
+#: assets/admin/src/screens/LicenseDetail.js:41
 #: assets/admin/src/screens/Licenses.js:50
 #: assets/admin/src/screens/Licenses.js:61
 msgid "Disabled"
@@ -2653,39 +2704,39 @@ msgstr ""
 msgid "Where the sign-in links point. Falls back to the sign-in page, then the WordPress login screen."
 msgstr ""
 
-#: src/Frontend/Components/PasswordResetForm.php:254
+#: src/Frontend/Components/PasswordResetForm.php:256
 msgid "We could not process that request. Please check the address and try again."
 msgstr ""
 
-#: src/Frontend/Components/PasswordResetForm.php:255
-#: src/Frontend/Components/RegistrationForm.php:191
+#: src/Frontend/Components/PasswordResetForm.php:257
+#: src/Frontend/Components/RegistrationForm.php:192
 #: templates/components/license-manager.php:24
 msgid "Something went wrong. Please try again."
 msgstr ""
 
-#: src/Frontend/Components/PasswordResetForm.php:256
-#: src/Frontend/Components/RegistrationForm.php:193
+#: src/Frontend/Components/PasswordResetForm.php:258
+#: src/Frontend/Components/RegistrationForm.php:194
 msgid "Too many attempts. Please wait a few minutes and try again."
 msgstr ""
 
-#: src/Frontend/Components/PasswordResetForm.php:257
+#: src/Frontend/Components/PasswordResetForm.php:259
 msgid "The two passwords do not match."
 msgstr ""
 
-#: src/Frontend/Components/PasswordResetForm.php:258
+#: src/Frontend/Components/PasswordResetForm.php:260
 msgid "That password does not meet this site's password rules."
 msgstr ""
 
-#: src/Frontend/Components/PasswordResetForm.php:259
+#: src/Frontend/Components/PasswordResetForm.php:261
 msgid "This password reset link is invalid or has already been used. Please request a new one."
 msgstr ""
 
-#: src/Frontend/Components/PasswordResetForm.php:260
+#: src/Frontend/Components/PasswordResetForm.php:262
 msgid "This password reset link has expired. Please request a new one."
 msgstr ""
 
 #. translators: %d: the minimum password length.
-#: src/Frontend/Components/PasswordResetForm.php:266
+#: src/Frontend/Components/PasswordResetForm.php:268
 #, php-format
 msgid "Please choose a password of at least %d characters (and no more than 4096)."
 msgstr ""
@@ -2711,104 +2762,101 @@ msgstr ""
 msgid "Columns"
 msgstr ""
 
-#: src/Frontend/Components/PricingTable.php:170
-#: src/Frontend/Components/PricingTable.php:284
+#: src/Frontend/Components/PricingTable.php:167
+#: src/Frontend/Components/PricingTable.php:281
 msgid "Most popular"
 msgstr ""
 
-#: src/Frontend/Components/PricingTable.php:248
+#: src/Frontend/Components/PricingTable.php:245
 msgid "Starter"
 msgstr ""
 
-#: src/Frontend/Components/PricingTable.php:248
-msgid "Pro"
+#: src/Frontend/Components/PricingTable.php:245
+msgid "Business"
 msgstr ""
 
-#: src/Frontend/Components/PricingTable.php:250
+#: src/Frontend/Components/PricingTable.php:247
 msgid "Core features"
 msgstr ""
 
-#: src/Frontend/Components/PricingTable.php:250
+#: src/Frontend/Components/PricingTable.php:247
 msgid "One year of updates"
 msgstr ""
 
-#: src/Frontend/Components/PricingTable.php:251
+#: src/Frontend/Components/PricingTable.php:248
 msgid "Everything in Starter"
 msgstr ""
 
-#: src/Frontend/Components/PricingTable.php:251
+#: src/Frontend/Components/PricingTable.php:248
 msgid "Priority support"
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:89
+#: src/Frontend/Components/ProductChangelog.php:82
 msgid "Releases to show"
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:90
+#: src/Frontend/Components/ProductChangelog.php:83
 msgid "How many of the most recent releases to show. 0 shows the full history (up to 20)."
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:96
+#: src/Frontend/Components/ProductChangelog.php:89
 msgid "Show version heading"
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:97
+#: src/Frontend/Components/ProductChangelog.php:90
 msgid "Show each release version as a heading above its notes."
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:103
+#: src/Frontend/Components/ProductChangelog.php:96
 msgid "Show release dates"
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:104
+#: src/Frontend/Components/ProductChangelog.php:97
 msgid "Show the date each release was published."
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:110
+#: src/Frontend/Components/ProductChangelog.php:103
 msgid "Show compatibility"
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:111
+#: src/Frontend/Components/ProductChangelog.php:104
 msgid "Show each release's Requires WordPress, Tested up to, and Requires PHP."
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:202
+#: src/Frontend/Components/ProductChangelog.php:194
 msgid "Faster catalogue queries on large stores."
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:202
+#: src/Frontend/Components/ProductChangelog.php:194
 msgid "Fixed a rare checkout error on slow connections."
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:205
-#: src/Frontend/Components/ProductChangelog.php:263
-#: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:552
-#: assets/admin/src/products/ReleasesPanel.js:923
+#: src/Frontend/Components/ProductChangelog.php:197
+#: src/Frontend/Components/ProductChangelog.php:255
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:518
+#: assets/admin/src/products/ReleasesPanel.js:833
 msgid "Requires WordPress"
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:209
-#: src/Frontend/Components/ProductChangelog.php:224
-#: src/Frontend/Components/ProductChangelog.php:264
-#: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:561
-#: assets/admin/src/products/ReleasesPanel.js:938
+#: src/Frontend/Components/ProductChangelog.php:201
+#: src/Frontend/Components/ProductChangelog.php:216
+#: src/Frontend/Components/ProductChangelog.php:256
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:527
+#: assets/admin/src/products/ReleasesPanel.js:848
 msgid "Tested up to"
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:213
-#: src/Frontend/Components/ProductChangelog.php:265
-#: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:573
-#: assets/admin/src/products/ReleasesPanel.js:953
+#: src/Frontend/Components/ProductChangelog.php:205
+#: src/Frontend/Components/ProductChangelog.php:257
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:539
+#: assets/admin/src/products/ReleasesPanel.js:863
 msgid "Requires PHP"
 msgstr ""
 
-#: src/Frontend/Components/ProductChangelog.php:221
+#: src/Frontend/Components/ProductChangelog.php:213
 msgid "New settings screen for the storefront."
 msgstr ""
 
@@ -2831,8 +2879,8 @@ msgstr ""
 #: src/Frontend/Components/ProductGrid.php:146
 #: templates/components/product-meta.php:59
 #: assets/admin/build/index.js:16
-#: assets/admin/build/index.js:32
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:838
 #: assets/admin/src/screens/Products.js:564
 #: assets/admin/src/screens/Terms.js:416
@@ -2847,8 +2895,8 @@ msgstr ""
 #: src/Frontend/Components/ProductGrid.php:155
 #: templates/components/product-grid.php:42
 #: templates/components/product-meta.php:63
-#: assets/admin/build/index.js:29
-#: assets/admin/build/index.js:32
+#: assets/admin/build/index.js:27
+#: assets/admin/build/index.js:30
 #: assets/admin/src/products/TermsPanel.js:180
 #: assets/admin/src/screens/Terms.js:634
 #: assets/admin/src/screens/Terms.js:637
@@ -2899,13 +2947,13 @@ msgstr ""
 #: src/Privacy/PersonalDataExporter.php:251
 #: templates/components/purchase-confirmation.php:97
 #: assets/admin/build/index.js:4
+#: assets/admin/build/index.js:31
 #: assets/admin/build/index.js:33
-#: assets/admin/build/index.js:35
-#: assets/admin/build/index.js:46
+#: assets/admin/build/index.js:44
 #: assets/admin/src/screens/Dashboard.js:395
-#: assets/admin/src/screens/LicenseDetail.js:242
-#: assets/admin/src/screens/OrderDetail.js:379
-#: assets/admin/src/screens/OrderDetail.js:393
+#: assets/admin/src/screens/LicenseDetail.js:262
+#: assets/admin/src/screens/OrderDetail.js:378
+#: assets/admin/src/screens/OrderDetail.js:392
 #: assets/admin/src/screens/Orders.js:326
 msgid "Order"
 msgstr ""
@@ -2942,19 +2990,19 @@ msgstr ""
 msgid "Link each card to its product details page."
 msgstr ""
 
-#: src/Frontend/Components/ProductGrid.php:339
+#: src/Frontend/Components/ProductGrid.php:334
 msgid "Starter Plugin"
 msgstr ""
 
-#: src/Frontend/Components/ProductGrid.php:340
-msgid "Pro Toolkit"
+#: src/Frontend/Components/ProductGrid.php:335
+msgid "Developer Toolkit"
 msgstr ""
 
-#: src/Frontend/Components/ProductGrid.php:341
+#: src/Frontend/Components/ProductGrid.php:336
 msgid "Premium Suite"
 msgstr ""
 
-#: src/Frontend/Components/ProductGrid.php:351
+#: src/Frontend/Components/ProductGrid.php:346
 msgid "A short description of what this product does and who it is for."
 msgstr ""
 
@@ -2994,19 +3042,19 @@ msgstr ""
 msgid "Show the date of the latest published release."
 msgstr ""
 
-#: src/Frontend/Components/ProductMeta.php:210
+#: src/Frontend/Components/ProductMeta.php:209
 msgid "Plugins"
 msgstr ""
 
-#: src/Frontend/Components/ProductMeta.php:214
+#: src/Frontend/Components/ProductMeta.php:213
 msgid "Productivity"
 msgstr ""
 
-#: src/Frontend/Components/ProductMeta.php:220
+#: src/Frontend/Components/ProductMeta.php:219
 msgid "New"
 msgstr ""
 
-#: src/Frontend/Components/ProductMeta.php:224
+#: src/Frontend/Components/ProductMeta.php:223
 msgid "Popular"
 msgstr ""
 
@@ -3071,16 +3119,16 @@ msgstr ""
 msgid "Where the \"already have an account\" link points. Falls back to the sign-in page."
 msgstr ""
 
-#: src/Frontend/Components/RegistrationForm.php:190
+#: src/Frontend/Components/RegistrationForm.php:191
 msgid "We could not complete your registration. Please check your details and try again."
 msgstr ""
 
-#: src/Frontend/Components/RegistrationForm.php:192
-#: templates/components/registration-form.php:42
+#: src/Frontend/Components/RegistrationForm.php:193
+#: templates/components/registration-form.php:43
 msgid "Registration is currently closed."
 msgstr ""
 
-#: src/Frontend/Components/Support/ProductTierSelector.php:49
+#: src/Frontend/Components/Support/ProductTierSelector.php:48
 msgid "Add to cart"
 msgstr ""
 
@@ -3095,60 +3143,39 @@ msgstr ""
 
 #. translators: %s: the discount code the buyer applied.
 #: src/Frontend/Components/Support/StoredDiscountPreview.php:134
-#: src/Orders/OrderService.php:1137
+#: src/Orders/OrderService.php:998
 #: templates/emails/purchase-receipt.php:75
 #, php-format
 msgid "Discount (%s)"
 msgstr ""
 
 #: src/Frontend/Components/Support/StoredDiscountPreview.php:148
-#: src/Orders/OrderService.php:1132
+#: src/Orders/OrderService.php:993
 msgid "Automatic discount"
 msgstr ""
 
-#: src/Frontend/Components/Support/TierMetaPresenter.php:66
+#: src/Frontend/Components/Support/TierMetaPresenter.php:52
 msgid "Show license length"
 msgstr ""
 
-#: src/Frontend/Components/Support/TierMetaPresenter.php:67
+#: src/Frontend/Components/Support/TierMetaPresenter.php:53
 msgid "Show each plan's license duration."
 msgstr ""
 
-#: src/Frontend/Components/Support/TierMetaPresenter.php:73
+#: src/Frontend/Components/Support/TierMetaPresenter.php:59
 msgid "Show activation limit"
 msgstr ""
 
-#: src/Frontend/Components/Support/TierMetaPresenter.php:74
+#: src/Frontend/Components/Support/TierMetaPresenter.php:60
 msgid "Show how many sites each plan may activate."
 msgstr ""
 
-#: src/Frontend/Components/Support/TierMetaPresenter.php:80
-msgid "Show billing interval"
-msgstr ""
-
-#: src/Frontend/Components/Support/TierMetaPresenter.php:81
-msgid "Show the billing schedule on subscription plans."
-msgstr ""
-
-#: src/Frontend/Components/Support/TierMetaPresenter.php:87
-msgid "Show free trial"
-msgstr ""
-
-#: src/Frontend/Components/Support/TierMetaPresenter.php:88
-msgid "Show the free-trial length on subscription plans."
-msgstr ""
-
-#: src/Frontend/Components/Support/TierMetaPresenter.php:179
-#: src/Frontend/Components/Support/TierMetaPresenter.php:184
+#: src/Frontend/Components/Support/TierMetaPresenter.php:137
 msgid "Lifetime license"
 msgstr ""
 
-#: src/Frontend/Components/Support/TierMetaPresenter.php:180
-msgid "License lasts as long as your subscription"
-msgstr ""
-
 #. translators: %d: number of days. The plural form exists for locales that inflect the compound; English keeps the unit singular.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:200
+#: src/Frontend/Components/Support/TierMetaPresenter.php:153
 #, php-format
 msgid "%d-day license"
 msgid_plural "%d-day license"
@@ -3156,7 +3183,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of weeks. The plural form exists for locales that inflect the compound; English keeps the unit singular.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:203
+#: src/Frontend/Components/Support/TierMetaPresenter.php:156
 #, php-format
 msgid "%d-week license"
 msgid_plural "%d-week license"
@@ -3164,7 +3191,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of months. The plural form exists for locales that inflect the compound; English keeps the unit singular.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:206
+#: src/Frontend/Components/Support/TierMetaPresenter.php:159
 #, php-format
 msgid "%d-month license"
 msgid_plural "%d-month license"
@@ -3172,78 +3199,22 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of years. The plural form exists for locales that inflect the compound; English keeps the unit singular.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:210
+#: src/Frontend/Components/Support/TierMetaPresenter.php:163
 #, php-format
 msgid "%d-year license"
 msgid_plural "%d-year license"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Frontend/Components/Support/TierMetaPresenter.php:224
+#: src/Frontend/Components/Support/TierMetaPresenter.php:177
 msgid "Unlimited activations"
 msgstr ""
 
 #. translators: %d: number of site activations the license allows.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:228
+#: src/Frontend/Components/Support/TierMetaPresenter.php:181
 #, php-format
 msgid "%d activation"
 msgid_plural "%d activations"
-msgstr[0] ""
-msgstr[1] ""
-
-#: src/Frontend/Components/Support/TierMetaPresenter.php:252
-msgid "Billed daily"
-msgstr ""
-
-#: src/Frontend/Components/Support/TierMetaPresenter.php:254
-msgid "Billed weekly"
-msgstr ""
-
-#: src/Frontend/Components/Support/TierMetaPresenter.php:256
-msgid "Billed monthly"
-msgstr ""
-
-#: src/Frontend/Components/Support/TierMetaPresenter.php:259
-msgid "Billed yearly"
-msgstr ""
-
-#. translators: %d: number of days between charges.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:266
-#, php-format
-msgid "Billed every %d day"
-msgid_plural "Billed every %d days"
-msgstr[0] ""
-msgstr[1] ""
-
-#. translators: %d: number of weeks between charges.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:269
-#, php-format
-msgid "Billed every %d week"
-msgid_plural "Billed every %d weeks"
-msgstr[0] ""
-msgstr[1] ""
-
-#. translators: %d: number of months between charges.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:272
-#, php-format
-msgid "Billed every %d month"
-msgid_plural "Billed every %d months"
-msgstr[0] ""
-msgstr[1] ""
-
-#. translators: %d: number of years between charges.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:276
-#, php-format
-msgid "Billed every %d year"
-msgid_plural "Billed every %d years"
-msgstr[0] ""
-msgstr[1] ""
-
-#. translators: %d: number of free-trial days. The plural form exists for locales that inflect the compound; English keeps the unit singular.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:297
-#, php-format
-msgid "%d-day free trial"
-msgid_plural "%d-day free trial"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -3279,12 +3250,12 @@ msgstr ""
 msgid "The site %s is not activated for this license."
 msgstr ""
 
-#: src/Licensing/ActivationService.php:313
-#: src/REST/LicenseController.php:479
-msgid "This license has expired. Renew it to activate new sites."
+#: src/Licensing/ActivationService.php:312
+#: src/REST/LicenseController.php:482
+msgid "This license has expired. To activate new sites, buy a new license and use its key."
 msgstr ""
 
-#: src/Licensing/ActivationService.php:318
+#: src/Licensing/ActivationService.php:317
 msgid "This license has been disabled and cannot be activated."
 msgstr ""
 
@@ -3293,44 +3264,44 @@ msgid "A license key cannot be empty."
 msgstr ""
 
 #: src/Licensing/KeyGenerator.php:67
-#: src/Licensing/License.php:179
+#: src/Licensing/License.php:170
 msgid "A license key cannot be longer than 35 characters."
 msgstr ""
 
-#: src/Licensing/License.php:172
+#: src/Licensing/License.php:163
 msgid "A license must have a key."
 msgstr ""
 
-#: src/Licensing/License.php:184
+#: src/Licensing/License.php:175
 msgid "A license must belong to a product."
 msgstr ""
 
-#: src/Licensing/License.php:189
+#: src/Licensing/License.php:180
 msgid "A license must belong to an order."
 msgstr ""
 
-#: src/Licensing/License.php:194
+#: src/Licensing/License.php:185
 msgid "A license must belong to a customer."
 msgstr ""
 
-#: src/Licensing/License.php:200
+#: src/Licensing/License.php:191
 msgid "A license activation limit cannot be negative."
 msgstr ""
 
-#: src/Licensing/License.php:205
+#: src/Licensing/License.php:196
 msgid "A license activation count cannot be negative."
 msgstr ""
 
-#: src/Licensing/LicenseService.php:260
+#: src/Licensing/LicenseService.php:276
 msgid "The license could not be disabled because it changed state concurrently."
 msgstr ""
 
-#: src/Licensing/LicenseService.php:402
-#: src/Licensing/LicenseService.php:453
+#: src/Licensing/LicenseService.php:418
+#: src/Licensing/LicenseService.php:469
 msgid "A disabled license cannot be renewed. Re-enable it first."
 msgstr ""
 
-#: src/Licensing/LicenseService.php:494
+#: src/Licensing/LicenseService.php:510
 msgid "A license can only change to a price tier of its own product."
 msgstr ""
 
@@ -3340,15 +3311,11 @@ msgstr ""
 msgid "Cannot change license status from \"%1$s\" to \"%2$s\"."
 msgstr ""
 
-#: src/Licensing/SeatService.php:172
-msgid "Only an organization license can issue seats."
-msgstr ""
-
 #: src/Licensing/SiteUrlNormalizer.php:41
 msgid "A site URL is required."
 msgstr ""
 
-#: src/Licensing/SiteUrlNormalizer.php:55
+#: src/Licensing/SiteUrlNormalizer.php:54
 msgid "The site URL could not be understood."
 msgstr ""
 
@@ -3372,31 +3339,26 @@ msgstr ""
 msgid "A cart line requires a product name."
 msgstr ""
 
-#: src/Orders/CartService.php:92
+#: src/Orders/CartService.php:99
 msgid "A quantity must be at least 1."
 msgstr ""
 
 #. translators: %d: the product id.
-#: src/Orders/CartService.php:290
+#: src/Orders/CartService.php:256
 #, php-format
 msgid "Product %d was not found."
 msgstr ""
 
 #. translators: %d: the product id.
-#: src/Orders/CartService.php:298
+#: src/Orders/CartService.php:264
 #, php-format
 msgid "Product %d is not available for purchase."
 msgstr ""
 
 #. translators: 1: the price id, 2: the product id.
-#: src/Orders/CartService.php:308
+#: src/Orders/CartService.php:274
 #, php-format
 msgid "Price %1$d is not available for product %2$d."
-msgstr ""
-
-#: src/Orders/CartService.php:317
-#: src/Orders/OrderService.php:1417
-msgid "This subscription plan is temporarily unavailable."
 msgstr ""
 
 #: src/Orders/Order.php:234
@@ -3423,61 +3385,45 @@ msgstr ""
 msgid "An order item amount cannot be negative."
 msgstr ""
 
-#: src/Orders/OrderRepository.php:196
+#: src/Orders/OrderRepository.php:207
 msgid "Cannot update an order that has no id."
 msgstr ""
 
-#: src/Orders/OrderRepository.php:237
+#: src/Orders/OrderRepository.php:248
 msgid "Cannot transition an order that has no id."
 msgstr ""
 
-#: src/Orders/OrderRepository.php:303
+#: src/Orders/OrderRepository.php:317
 msgid "Cannot stamp an order that has no id."
 msgstr ""
 
-#: src/Orders/OrderService.php:170
-#: src/Orders/OrderService.php:350
+#: src/Orders/OrderService.php:178
+#: src/Orders/OrderService.php:358
 msgid "The cart is empty."
 msgstr ""
 
-#: src/Orders/OrderService.php:534
-msgid "A renewal needs a saved parent order."
-msgstr ""
-
-#: src/Orders/OrderService.php:538
-msgid "A refund record cannot be renewed."
-msgstr ""
-
-#: src/Orders/OrderService.php:542
-msgid "A renewal must use the same currency as its parent order."
-msgstr ""
-
-#: src/Orders/OrderService.php:546
-msgid "A renewal needs a parent order with a line item."
-msgstr ""
-
-#: src/Orders/OrderService.php:968
+#: src/Orders/OrderService.php:829
 msgid "Discount codes are not available on this store."
 msgstr ""
 
-#: src/Orders/OrderService.php:1081
+#: src/Orders/OrderService.php:942
 msgid "The saved discount code is no longer valid and was not applied."
 msgstr ""
 
 #. translators: %d: the product id.
-#: src/Orders/OrderService.php:1403
+#: src/Orders/OrderService.php:1257
 #, php-format
 msgid "Product %d is no longer available for purchase."
 msgstr ""
 
 #. translators: %d: the product id.
-#: src/Orders/OrderService.php:1411
+#: src/Orders/OrderService.php:1265
 #, php-format
 msgid "The selected price for product %d is no longer available."
 msgstr ""
 
 #. translators: 1: the product name, 2: the adjusted quantity.
-#: src/Orders/OrderService.php:1466
+#: src/Orders/OrderService.php:1314
 #, php-format
 msgid "The quantity for %1$s was adjusted to %2$d."
 msgstr ""
@@ -3486,10 +3432,6 @@ msgstr ""
 #: src/Orders/OrderTransitionException.php:33
 #, php-format
 msgid "Cannot change order status from \"%1$s\" to \"%2$s\"."
-msgstr ""
-
-#: src/Orders/PricingMode.php:69
-msgid "incl. tax"
 msgstr ""
 
 #: src/Orders/RefundService.php:139
@@ -3520,18 +3462,12 @@ msgstr ""
 msgid "Unknown payment gateway: %s."
 msgstr ""
 
-#: src/Payments/Stripe/StripeGateway.php:67
-#: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:237
-msgid "Stripe"
-msgstr ""
-
 #: src/Payments/Stripe/StripeGateway.php:108
-#: src/Payments/Stripe/StripeGateway.php:193
+#: src/Payments/Stripe/StripeGateway.php:190
 msgid "Stripe is not configured for the current mode. Enter your Stripe keys in the payment settings."
 msgstr ""
 
-#: src/Payments/Stripe/StripeGateway.php:238
+#: src/Payments/Stripe/StripeGateway.php:233
 msgid "Mode"
 msgstr ""
 
@@ -3562,8 +3498,8 @@ msgstr ""
 
 #: src/Privacy/PersonalDataExporter.php:206
 #: src/Privacy/PersonalDataExporter.php:255
-#: assets/admin/build/index.js:40
-#: assets/admin/build/index.js:41
+#: assets/admin/build/index.js:38
+#: assets/admin/build/index.js:39
 #: assets/admin/src/screens/Customers.js:405
 #: assets/admin/src/screens/Customers.js:699
 msgid "Email"
@@ -3572,11 +3508,11 @@ msgstr ""
 #: src/Privacy/PersonalDataExporter.php:213
 #: assets/admin/build/index.js:16
 #: assets/admin/build/index.js:23
-#: assets/admin/build/index.js:32
-#: assets/admin/build/index.js:40
-#: assets/admin/build/index.js:41
-#: assets/admin/build/index.js:63
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:38
+#: assets/admin/build/index.js:39
+#: assets/admin/build/index.js:61
+#: assets/admin/build/index.js:64
 #: assets/admin/src/products/DetailsPanel.js:63
 #: assets/admin/src/screens/Customers.js:419
 #: assets/admin/src/screens/Customers.js:704
@@ -3610,45 +3546,30 @@ msgstr ""
 #: assets/admin/build/index.js:4
 #: assets/admin/build/index.js:13
 #: assets/admin/build/index.js:16
-#: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:33
-#: assets/admin/build/index.js:36
+#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:31
+#: assets/admin/build/index.js:34
+#: assets/admin/build/index.js:41
 #: assets/admin/build/index.js:43
-#: assets/admin/build/index.js:45
-#: assets/admin/build/index.js:48
-#: assets/admin/build/index.js:63
-#: assets/admin/build/index.js:66
-#: assets/admin/build/index.js:81
+#: assets/admin/build/index.js:46
+#: assets/admin/build/index.js:61
+#: assets/admin/build/index.js:64
+#: assets/admin/build/index.js:79
 #: assets/admin/src/products/PublishSidebar.js:52
 #: assets/admin/src/screens/Dashboard.js:399
 #: assets/admin/src/screens/Discounts.js:1224
 #: assets/admin/src/screens/Discounts.js:1330
-#: assets/admin/src/screens/LicenseDetail.js:218
-#: assets/admin/src/screens/LicenseDetail.js:282
+#: assets/admin/src/screens/LicenseDetail.js:238
+#: assets/admin/src/screens/LicenseDetail.js:302
 #: assets/admin/src/screens/Licenses.js:317
 #: assets/admin/src/screens/Licenses.js:392
-#: assets/admin/src/screens/OrderDetail.js:449
+#: assets/admin/src/screens/OrderDetail.js:448
 #: assets/admin/src/screens/Orders.js:253
 #: assets/admin/src/screens/Orders.js:336
 #: assets/admin/src/screens/Products.js:423
 #: assets/admin/src/screens/Products.js:560
 #: assets/admin/src/screens/Settings.js:456
 msgid "Status"
-msgstr ""
-
-#: src/Privacy/PersonalDataExporter.php:263
-#: templates/components/cart-summary.php:161
-#: templates/components/checkout.php:556
-#: templates/components/purchase-confirmation.php:121
-#: templates/emails/purchase-receipt.php:52
-#: assets/admin/build/index.js:4
-#: assets/admin/build/index.js:33
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/Dashboard.js:403
-#: assets/admin/src/screens/OrderDetail.js:530
-#: assets/admin/src/screens/OrderDetail.js:578
-#: assets/admin/src/screens/Orders.js:340
-msgid "Total"
 msgstr ""
 
 #. translators: 1: order total in minor units, 2: uppercased currency code.
@@ -3661,8 +3582,8 @@ msgstr ""
 #: src/Privacy/PersonalDataExporter.php:427
 #: templates/components/purchase-confirmation.php:110
 #: assets/admin/build/index.js:4
-#: assets/admin/build/index.js:33
-#: assets/admin/build/index.js:68
+#: assets/admin/build/index.js:31
+#: assets/admin/build/index.js:66
 #: assets/admin/src/screens/Dashboard.js:396
 #: assets/admin/src/screens/Orders.js:331
 #: assets/admin/src/screens/Reports.js:269
@@ -3671,6 +3592,8 @@ msgstr ""
 
 #: src/Privacy/PersonalDataExporter.php:275
 #: src/Privacy/PersonalDataExporter.php:434
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:529
 msgid "IP address"
 msgstr ""
 
@@ -3680,8 +3603,8 @@ msgstr ""
 
 #: src/Privacy/PersonalDataExporter.php:308
 #: templates/components/checkout.php:271
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:508
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:507
 msgid "Billing address"
 msgstr ""
 
@@ -3702,41 +3625,45 @@ msgid "Billing postcode"
 msgstr ""
 
 #: src/Privacy/PersonalDataExporter.php:328
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:517
 msgid "Company"
 msgstr ""
 
 #: src/Privacy/PersonalDataExporter.php:329
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:523
 msgid "Tax ID"
 msgstr ""
 
 #: src/Privacy/PersonalDataExporter.php:330
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:500
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:499
 msgid "Terms accepted"
 msgstr ""
 
 #: src/Privacy/PersonalDataExporter.php:358
 #: templates/components/license-manager.php:78
-#: assets/admin/build/index.js:45
-#: assets/admin/src/screens/LicenseDetail.js:199
+#: assets/admin/build/index.js:43
+#: assets/admin/src/screens/LicenseDetail.js:219
 #: assets/admin/src/screens/Licenses.js:390
 msgid "License key"
 msgstr ""
 
 #: src/Privacy/PersonalDataExporter.php:366
 #: templates/components/license-manager.php:85
-#: assets/admin/build/index.js:45
-#: assets/admin/src/screens/LicenseDetail.js:229
+#: assets/admin/build/index.js:43
+#: assets/admin/src/screens/LicenseDetail.js:249
 #: assets/admin/src/screens/Licenses.js:399
 msgid "Expires"
 msgstr ""
 
 #: src/Privacy/PersonalDataExporter.php:367
-#: assets/admin/build/index.js:41
-#: assets/admin/build/index.js:45
-#: assets/admin/build/index.js:48
-#: assets/admin/src/screens/LicenseDetail.js:71
-#: assets/admin/src/screens/LicenseDetail.js:317
+#: assets/admin/build/index.js:39
+#: assets/admin/build/index.js:43
+#: assets/admin/build/index.js:46
+#: assets/admin/src/screens/LicenseDetail.js:91
+#: assets/admin/src/screens/LicenseDetail.js:348
 #: assets/admin/src/screens/Licenses.js:73
 msgid "Never"
 msgstr ""
@@ -3750,8 +3677,8 @@ msgid "Site URL"
 msgstr ""
 
 #: src/Privacy/PersonalDataExporter.php:399
-#: assets/admin/build/index.js:48
-#: assets/admin/src/screens/LicenseDetail.js:283
+#: assets/admin/build/index.js:46
+#: assets/admin/src/screens/LicenseDetail.js:303
 msgid "Activated"
 msgstr ""
 
@@ -3827,165 +3754,130 @@ msgstr ""
 msgid "Media"
 msgstr ""
 
-#: src/Products/Product.php:518
+#: src/Products/Product.php:515
 msgid "A product file must be a storage reference array, not a raw path."
 msgstr ""
 
-#: src/Products/Product.php:526
+#: src/Products/Product.php:523
 msgid "A product file reference requires both a provider and a key."
 msgstr ""
 
-#: src/Products/Product.php:531
+#: src/Products/Product.php:528
 msgid "A product file key must be a storage key, not a raw or absolute path."
 msgstr ""
 
-#: src/Products/ProductPrice.php:175
+#: src/Products/ProductPrice.php:127
 msgid "A price tier must have a non-empty name."
 msgstr ""
 
-#: src/Products/ProductPrice.php:180
+#: src/Products/ProductPrice.php:132
 msgid "A price amount cannot be negative."
 msgstr ""
 
-#: src/Products/ProductPrice.php:186
+#: src/Products/ProductPrice.php:138
 msgid "An activation limit cannot be negative."
 msgstr ""
 
-#: src/Products/ProductPrice.php:191
-msgid "A trial length cannot be negative."
-msgstr ""
-
-#: src/Products/ProductPrice.php:196
+#: src/Products/ProductPrice.php:143
 msgid "A sort order cannot be negative."
 msgstr ""
 
-#: src/Products/ProductPrice.php:201
-msgid "A billing interval cannot be negative."
-msgstr ""
-
-#: src/Products/ProductPrice.php:208
-msgid "A recurring price tier needs a billing period of day, week, month, or year."
-msgstr ""
-
-#: src/Products/ProductPrice.php:215
-msgid "A recurring price tier needs a billing interval of at least 1."
-msgstr ""
-
-#: src/Products/ProductPrice.php:231
+#: src/Products/ProductPrice.php:148
 msgid "A minimum quantity must be at least 1."
 msgstr ""
 
-#: src/Products/ProductPrice.php:236
+#: src/Products/ProductPrice.php:153
 msgid "A maximum quantity cannot be less than the minimum quantity."
 msgstr ""
 
-#: src/Products/ProductPrice.php:432
-msgid "\"Same as billing interval\" is only available on a subscription price tier."
-msgstr ""
-
-#: src/Products/ProductPrice.php:437
+#: src/Products/ProductPrice.php:313
 msgid "A license length needs a unit, for example \"+1 year\". A plain number is not accepted; leave it blank for a lifetime license."
 msgstr ""
 
 #. translators: %s: the submitted license length value.
-#: src/Products/ProductPrice.php:449
+#: src/Products/ProductPrice.php:319
 #, php-format
 msgid "\"%s\" is not a valid license length. Use a value like \"+1 year\", or leave it blank for a lifetime license."
 msgstr ""
 
-#: src/Products/ProductRepository.php:248
+#: src/Products/ProductRepository.php:216
 msgid "Cannot update a product that has no id."
 msgstr ""
 
-#: src/Products/ProductService.php:83
+#: src/Products/ProductService.php:95
 msgid "A product name is required."
 msgstr ""
 
-#: src/Products/ProductService.php:177
+#: src/Products/ProductService.php:193
 msgid "A product name cannot be empty."
 msgstr ""
 
 #. translators: %s: the submitted product type value.
-#: src/Products/ProductService.php:337
+#: src/Products/ProductService.php:379
 #, php-format
 msgid "\"%s\" is not a valid product type."
 msgstr ""
 
 #. translators: %s: the submitted product status value.
-#: src/Products/ProductService.php:363
-#: src/Products/ProductService.php:390
+#: src/Products/ProductService.php:405
+#: src/Products/ProductService.php:432
 #, php-format
 msgid "\"%s\" is not a valid product status."
 msgstr ""
 
 #. translators: 1: the current product status, 2: the requested product status.
-#: src/Products/ProductService.php:397
+#: src/Products/ProductService.php:439
 #, php-format
 msgid "Cannot change product status from \"%1$s\" to \"%2$s\"."
 msgstr ""
 
 #. translators: %s: the submitted update slug value.
-#: src/Products/ProductService.php:488
+#: src/Products/ProductService.php:530
 #, php-format
 msgid "The update slug \"%s\" is already in use by another product."
 msgstr ""
 
-#: src/Products/ProductService.php:538
+#: src/Products/ProductService.php:556
 msgid "Each price must be provided as an object."
 msgstr ""
 
-#: src/Products/ProductService.php:568
-msgid "Recurring price tiers require TierMint Pro."
+#: src/Products/ProductService.php:805
+msgid "An extension refused this product."
 msgstr ""
 
-#: src/Products/ProductService.php:658
-msgid "Plan switch targets must be a map of price tier ids to lists of price tier ids."
-msgstr ""
-
-#: src/Products/ProductService.php:672
-msgid "Configuring plan switch targets requires TierMint Pro."
-msgstr ""
-
-#. translators: %d: the submitted price tier id.
-#: src/Products/ProductService.php:692
-#: src/Products/ProductService.php:707
-#, php-format
-msgid "Plan switch targets reference price tier #%d, which is not one of this product's recurring tiers."
-msgstr ""
-
-#: src/Products/ProductService.php:792
+#: src/Products/ProductService.php:844
 msgid "Each bundle item must be provided as an object."
 msgstr ""
 
 #. translators: %d: the product id.
-#: src/Products/ProductService.php:809
+#: src/Products/ProductService.php:861
 #, php-format
 msgid "Bundle contains product #%d more than once."
 msgstr ""
 
-#: src/Products/ProductService.php:836
+#: src/Products/ProductService.php:888
 msgid "A bundle cannot contain itself."
 msgstr ""
 
 #. translators: %d: the child product id.
-#: src/Products/ProductService.php:845
+#: src/Products/ProductService.php:897
 #, php-format
 msgid "Bundle child product %d does not exist."
 msgstr ""
 
 #. translators: %d: the child product id.
-#: src/Products/ProductService.php:852
+#: src/Products/ProductService.php:904
 #, php-format
 msgid "Bundle child product %d is itself a bundle; bundles cannot be nested."
 msgstr ""
 
 #. translators: %d: the child product id.
-#: src/Products/ProductService.php:857
+#: src/Products/ProductService.php:909
 #, php-format
 msgid "Bundle child product %d must be published to be included in a bundle."
 msgstr ""
 
-#: src/Products/ProductService.php:908
+#: src/Products/ProductService.php:960
 msgid "A licensed product must have at least one active price before it can be published."
 msgstr ""
 
@@ -4033,20 +3925,20 @@ msgstr ""
 msgid "Category %1$d cannot be moved under its own descendant %2$d."
 msgstr ""
 
-#: src/Reports/ReportService.php:399
+#: src/Reports/ReportService.php:407
 msgid "The \"from\" date must be a valid date in YYYY-MM-DD format."
 msgstr ""
 
-#: src/Reports/ReportService.php:403
+#: src/Reports/ReportService.php:411
 msgid "The \"to\" date must be a valid date in YYYY-MM-DD format."
 msgstr ""
 
-#: src/Reports/ReportService.php:409
+#: src/Reports/ReportService.php:417
 msgid "The \"from\" date must not be later than the \"to\" date."
 msgstr ""
 
 #. translators: %d: the maximum number of days a report range may span.
-#: src/Reports/ReportService.php:412
+#: src/Reports/ReportService.php:420
 #, php-format
 msgid "The date range must not span more than %d days."
 msgstr ""
@@ -4100,23 +3992,27 @@ msgstr ""
 msgid "An API key cannot exist without a secret."
 msgstr ""
 
-#: src/REST/Auth/ApiKeyAuthenticator.php:163
+#: src/REST/Auth/ApiKeyAuthenticator.php:176
 msgid "Too many failed authentication attempts. Please wait and try again."
 msgstr ""
 
-#: src/REST/Auth/ApiKeyAuthenticator.php:186
+#: src/REST/Auth/ApiKeyAuthenticator.php:199
 msgid "Authentication is temporarily unavailable. Please try again."
 msgstr ""
 
-#: src/REST/Auth/ApiKeyAuthenticator.php:258
+#: src/REST/Auth/ApiKeyAuthenticator.php:266
+msgid "This API key works only on TierMint routes."
+msgstr ""
+
+#: src/REST/Auth/ApiKeyAuthenticator.php:280
 msgid "This API key is read-only."
 msgstr ""
 
-#: src/REST/Auth/ApiKeyAuthenticator.php:276
+#: src/REST/Auth/ApiKeyAuthenticator.php:298
 msgid "Too many management API requests. Please wait and try again."
 msgstr ""
 
-#: src/REST/Auth/ApiKeyAuthenticator.php:351
+#: src/REST/Auth/ApiKeyAuthenticator.php:373
 msgid "The API credentials are not valid."
 msgstr ""
 
@@ -4128,108 +4024,108 @@ msgstr ""
 msgid "The action to apply to every id."
 msgstr ""
 
-#: src/REST/CheckoutController.php:178
+#: src/REST/CheckoutController.php:181
 msgid "An email address is required to check out."
 msgstr ""
 
-#: src/REST/CheckoutController.php:205
-#: src/REST/CheckoutController.php:316
+#: src/REST/CheckoutController.php:208
+#: src/REST/CheckoutController.php:320
 msgid "The discount code could not be checked. Please try again."
 msgstr ""
 
-#: src/REST/CheckoutController.php:211
+#: src/REST/CheckoutController.php:214
 msgid "The order could not be created. Please try again."
 msgstr ""
 
-#: src/REST/CheckoutController.php:217
+#: src/REST/CheckoutController.php:220
 msgid "The payment could not be started. Please try again."
 msgstr ""
 
-#: src/REST/CheckoutController.php:459
+#: src/REST/CheckoutController.php:463
 msgid "Too many checkout attempts. Please wait a moment and try again."
 msgstr ""
 
-#: src/REST/CheckoutController.php:700
+#: src/REST/CheckoutController.php:704
 msgid "Please log in to complete your purchase."
 msgstr ""
 
-#: src/REST/CheckoutController.php:718
+#: src/REST/CheckoutController.php:722
 msgid "Please enter your first name to continue."
 msgstr ""
 
-#: src/REST/CheckoutController.php:722
+#: src/REST/CheckoutController.php:726
 msgid "Please enter your last name to continue."
 msgstr ""
 
-#: src/REST/CheckoutController.php:726
+#: src/REST/CheckoutController.php:730
 msgid "Please accept the terms and conditions to continue."
 msgstr ""
 
-#: src/REST/CheckoutController.php:734
+#: src/REST/CheckoutController.php:738
 msgid "Please enter your billing address to continue."
 msgstr ""
 
-#: src/REST/CheckoutController.php:849
+#: src/REST/CheckoutController.php:853
 msgid "The payment gateway to pay through."
 msgstr ""
 
-#: src/REST/CheckoutController.php:856
+#: src/REST/CheckoutController.php:860
 msgid "The buyer email address (required for guests)."
 msgstr ""
 
-#: src/REST/CheckoutController.php:863
+#: src/REST/CheckoutController.php:867
 msgid "The buyer name (superseded by first_name and last_name)."
 msgstr ""
 
-#: src/REST/CheckoutController.php:869
+#: src/REST/CheckoutController.php:873
 msgid "The buyer first name."
 msgstr ""
 
-#: src/REST/CheckoutController.php:875
+#: src/REST/CheckoutController.php:879
 msgid "The buyer last name."
 msgstr ""
 
-#: src/REST/CheckoutController.php:881
+#: src/REST/CheckoutController.php:885
 msgid "The buyer company name, for a company purchase."
 msgstr ""
 
-#: src/REST/CheckoutController.php:887
+#: src/REST/CheckoutController.php:891
 msgid "A discount code to apply to the order (validated and computed server-side)."
 msgstr ""
 
-#: src/REST/CheckoutController.php:937
+#: src/REST/CheckoutController.php:941
 msgid "The buyer billing country as an ISO 3166-1 alpha-2 code."
 msgstr ""
 
-#: src/REST/CheckoutController.php:946
+#: src/REST/CheckoutController.php:950
 msgid "The buyer VAT or tax registration number."
 msgstr ""
 
-#: src/REST/CheckoutController.php:957
+#: src/REST/CheckoutController.php:961
 msgid "The billing address, line one."
 msgstr ""
 
-#: src/REST/CheckoutController.php:958
+#: src/REST/CheckoutController.php:962
 msgid "The billing address, line two."
 msgstr ""
 
-#: src/REST/CheckoutController.php:959
+#: src/REST/CheckoutController.php:963
 msgid "The billing city."
 msgstr ""
 
-#: src/REST/CheckoutController.php:960
+#: src/REST/CheckoutController.php:964
 msgid "The billing state, region or province."
 msgstr ""
 
-#: src/REST/CheckoutController.php:961
+#: src/REST/CheckoutController.php:965
 msgid "The billing postal code."
 msgstr ""
 
-#: src/REST/CheckoutController.php:976
+#: src/REST/CheckoutController.php:980
 msgid "Whether the buyer accepted the terms and conditions (\"1\" for accepted)."
 msgstr ""
 
-#: src/REST/CheckoutController.php:1033
+#: src/REST/CheckoutController.php:1037
 msgid "The public order identifier issued at checkout."
 msgstr ""
 
@@ -4370,15 +4266,15 @@ msgstr ""
 msgid "Unique discount identifier."
 msgstr ""
 
-#: src/REST/DownloadController.php:669
+#: src/REST/DownloadController.php:691
 msgid "This download link is not valid."
 msgstr ""
 
-#: src/REST/DownloadController.php:677
+#: src/REST/DownloadController.php:699
 msgid "This download link has expired. Please retry the download to receive a fresh link."
 msgstr ""
 
-#: src/REST/DownloadController.php:693
+#: src/REST/DownloadController.php:715
 msgid "This download is not available for this license or order."
 msgstr ""
 
@@ -4410,50 +4306,50 @@ msgstr ""
 msgid "Which taxonomy to list."
 msgstr ""
 
-#: src/REST/LicenseController.php:168
-#: src/REST/LicenseController.php:346
+#: src/REST/LicenseController.php:171
+#: src/REST/LicenseController.php:349
 msgid "A license_key parameter is required."
 msgstr ""
 
-#: src/REST/LicenseController.php:350
+#: src/REST/LicenseController.php:353
 msgid "A site_url parameter is required."
 msgstr ""
 
-#: src/REST/LicenseController.php:382
+#: src/REST/LicenseController.php:385
 msgid "No license matches the supplied key."
 msgstr ""
 
-#: src/REST/LicenseController.php:415
+#: src/REST/LicenseController.php:418
 msgid "The license key does not belong to the supplied product."
 msgstr ""
 
 #. translators: %d: the license's activation limit.
-#: src/REST/LicenseController.php:448
+#: src/REST/LicenseController.php:451
 #, php-format
 msgid "This license key has reached its activation limit (%d sites)."
 msgstr ""
 
-#: src/REST/LicenseController.php:488
+#: src/REST/LicenseController.php:491
 msgid "This license has been disabled."
 msgstr ""
 
-#: src/REST/LicenseController.php:653
+#: src/REST/LicenseController.php:656
 msgid "The license key issued at purchase."
 msgstr ""
 
-#: src/REST/LicenseController.php:660
+#: src/REST/LicenseController.php:663
 msgid "The URL of the site the license is used on."
 msgstr ""
 
-#: src/REST/LicenseController.php:667
+#: src/REST/LicenseController.php:670
 msgid "The slug of the product the key should belong to."
 msgstr ""
 
-#: src/REST/LicenseController.php:674
+#: src/REST/LicenseController.php:677
 msgid "An opaque device fingerprint for non-web clients."
 msgstr ""
 
-#: src/REST/LicenseController.php:693
+#: src/REST/LicenseController.php:696
 msgid "A flat map describing the client environment (PHP, WordPress, product version)."
 msgstr ""
 
@@ -4644,7 +4540,7 @@ msgid "Tag term ids to assign to the product."
 msgstr ""
 
 #: src/REST/ProductsController.php:705
-#: src/REST/ReleasesController.php:516
+#: src/REST/ReleasesController.php:569
 msgid "Unique product identifier."
 msgstr ""
 
@@ -4652,61 +4548,57 @@ msgstr ""
 msgid "The package for this release is missing from storage. Re-upload the build to restore it."
 msgstr ""
 
-#: src/REST/ReleasesController.php:195
+#: src/REST/ReleasesController.php:212
 msgid "A package file is required. Upload it as the \"package\" multipart field."
 msgstr ""
 
-#: src/REST/ReleasesController.php:379
+#: src/REST/ReleasesController.php:402
 msgid "That version already exists for this product."
 msgstr ""
 
-#: src/REST/ReleasesController.php:389
+#: src/REST/ReleasesController.php:412
 msgid "The release could not be changed because its status changed. Reload and try again."
 msgstr ""
 
-#: src/REST/ReleasesController.php:535
+#: src/REST/ReleasesController.php:458
+msgid "The package must be a ZIP file."
+msgstr ""
+
+#: src/REST/ReleasesController.php:588
 msgid "Unique release identifier."
 msgstr ""
 
-#: src/REST/ReleasesController.php:556
+#: src/REST/ReleasesController.php:609
 msgid "Release version (one to four dot-separated numbers, optional pre-release suffix)."
 msgstr ""
 
-#: src/REST/ReleasesController.php:562
+#: src/REST/ReleasesController.php:615
 msgid "Release changelog as Markdown source."
 msgstr ""
 
-#: src/REST/ReleasesController.php:568
+#: src/REST/ReleasesController.php:621
 msgid "Minimum required WordPress version."
 msgstr ""
 
-#: src/REST/ReleasesController.php:574
+#: src/REST/ReleasesController.php:627
 msgid "Highest WordPress version tested against."
 msgstr ""
 
-#: src/REST/ReleasesController.php:580
+#: src/REST/ReleasesController.php:633
 msgid "Minimum required PHP version."
 msgstr ""
 
-#: src/REST/ReleasesController.php:586
-msgid "Release channel (stable, rc, or beta). Honored only with TierMint Pro active."
-msgstr ""
-
-#: src/REST/ReleasesController.php:592
-msgid "Staged rollout percentage (0-100). Honored only with TierMint Pro active."
-msgstr ""
-
-#: src/REST/ReleasesController.php:610
+#: src/REST/ReleasesController.php:651
 msgid "Bypass the version monotonicity check for a deliberate re-publish."
 msgstr ""
 
 #: src/REST/ReportsController.php:109
-#: src/REST/ReportsExportController.php:399
+#: src/REST/ReportsExportController.php:450
 msgid "Inclusive start date (YYYY-MM-DD, UTC). Defaults to 29 days before \"to\"."
 msgstr ""
 
 #: src/REST/ReportsController.php:115
-#: src/REST/ReportsExportController.php:405
+#: src/REST/ReportsExportController.php:456
 msgid "Inclusive end date (YYYY-MM-DD, UTC). Defaults to the current UTC date."
 msgstr ""
 
@@ -4718,7 +4610,7 @@ msgstr ""
 
 #: src/REST/TermsController.php:155
 #: src/REST/TermsController.php:201
-#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:26
 #: assets/admin/src/products/termHelpers.js:27
 msgid "The term could not be saved. Please try again."
 msgstr ""
@@ -4747,27 +4639,23 @@ msgstr ""
 msgid "Which taxonomy the term belongs to."
 msgstr ""
 
-#: src/REST/UpdateCheckController.php:70
+#: src/REST/UpdateCheckController.php:71
 msgid "The product's catalog slug, the same identifier the licensing endpoints match on."
 msgstr ""
 
-#: src/REST/UpdateCheckController.php:76
+#: src/REST/UpdateCheckController.php:77
 msgid "The license key credential."
 msgstr ""
 
-#: src/REST/UpdateCheckController.php:82
+#: src/REST/UpdateCheckController.php:83
 msgid "The requesting site's URL; without it no package URL can be issued."
 msgstr ""
 
-#: src/REST/UpdateCheckController.php:88
+#: src/REST/UpdateCheckController.php:89
 msgid "The currently installed version, for the update_available verdict."
 msgstr ""
 
-#: src/REST/UpdateCheckController.php:94
-msgid "Release channel. The free core always serves stable; Pro honors this parameter."
-msgstr ""
-
-#: src/REST/UpdateCheckController.php:116
+#: src/REST/UpdateCheckController.php:111
 msgid "Both product_slug and license_key are required."
 msgstr ""
 
@@ -4775,106 +4663,76 @@ msgstr ""
 msgid "Match accounts whose display name or email contains this text."
 msgstr ""
 
-#: src/REST/WebhooksController.php:67
+#: src/REST/WebhooksController.php:68
 msgid "The gateway id this delivery comes from."
 msgstr ""
 
-#: src/REST/WebhooksController.php:96
+#: src/REST/WebhooksController.php:97
 msgid "Unknown payment gateway."
 msgstr ""
 
-#: src/REST/WebhooksController.php:102
+#: src/REST/WebhooksController.php:103
 msgid "Webhook signature verification failed."
 msgstr ""
 
-#: src/REST/WebhooksController.php:110
+#: src/REST/WebhooksController.php:111
 msgid "Webhook processing failed. The gateway will retry."
 msgstr ""
 
-#: src/Updates/Release.php:227
+#: src/Updates/Release.php:187
 msgid "A release must belong to a product."
 msgstr ""
 
-#: src/Updates/Release.php:232
+#: src/Updates/Release.php:192
 msgid "A release must have a version."
 msgstr ""
 
-#: src/Updates/Release.php:239
+#: src/Updates/Release.php:199
 msgid "A release version cannot be longer than 32 characters."
 msgstr ""
 
-#: src/Updates/Release.php:246
-msgid "A release must have a channel."
-msgstr ""
-
-#: src/Updates/Release.php:251
-msgid "A release channel cannot be longer than 20 characters."
-msgstr ""
-
-#: src/Updates/Release.php:256
+#: src/Updates/Release.php:204
 msgid "A release must have a storage key for its package."
 msgstr ""
 
-#: src/Updates/Release.php:261
+#: src/Updates/Release.php:209
 msgid "A release storage key cannot be longer than 500 characters."
 msgstr ""
 
-#: src/Updates/Release.php:266
-msgid "A release rollout percentage must be between 0 and 100."
-msgstr ""
-
-#: src/Updates/ReleaseService.php:187
+#: src/Updates/ReleaseService.php:141
 msgid "A release must include a package file."
 msgstr ""
 
-#: src/Updates/ReleaseService.php:355
+#: src/Updates/ReleaseService.php:307
 msgid "A published release cannot be deleted. Yank it first, then delete it."
 msgstr ""
 
-#: src/Updates/ReleaseService.php:448
+#: src/Updates/ReleaseService.php:378
 msgid "A published or yanked release's version is locked. To ship a different version, yank this release and publish a new one."
 msgstr ""
 
-#. translators: %s: the submitted channel string.
-#: src/Updates/ReleaseService.php:464
-#: src/Updates/ReleaseService.php:684
-#, php-format
-msgid "\"%s\" is not a valid release channel. Choose stable, rc, or beta."
-msgstr ""
-
-#: src/Updates/ReleaseService.php:476
-#: src/Updates/ReleaseService.php:694
-msgid "A rollout percentage must be between 0 and 100."
-msgstr ""
-
 #. translators: 1: the version being published, 2: the current latest published version.
-#: src/Updates/ReleaseService.php:724
+#: src/Updates/ReleaseService.php:569
 #, php-format
 msgid "Version %1$s is not newer than the current latest published version %2$s. Publish a higher version, or override to re-publish deliberately."
 msgstr ""
 
-#. translators: 1: the release version, 2: the target channel, 3: the latest published version already on that channel.
-#: src/Updates/ReleaseService.php:753
-#, php-format
-msgid "Version %1$s cannot move to the %2$s channel: it is not newer than %3$s already published there. Yank and re-publish to move it deliberately."
-msgstr ""
-
-#: src/Updates/ReleaseService.php:774
+#: src/Updates/ReleaseService.php:589
 msgid "A release version is required."
 msgstr ""
 
 #. translators: %s: the submitted version string.
-#: src/Updates/ReleaseService.php:781
+#: src/Updates/ReleaseService.php:596
 #, php-format
 msgid "\"%s\" is not a valid version. Use one to four dot-separated numbers, with an optional pre-release suffix like \"-beta\"."
 msgstr ""
 
-#: src/Updates/ReleaseService.php:805
+#: src/Updates/ReleaseService.php:620
 msgid "The uploaded package could not be read as a zip archive."
 msgstr ""
 
 #. translators: %1$s: the product's expected update slug.
-#: src/Updates/ReleaseService.php:834
+#: src/Updates/ReleaseService.php:649
 #, php-format
 msgid "The package does not contain a plugin header for the expected update slug \"%1$s\". Make sure the zip has a \"%1$s/%1$s.php\" (or similar) file with a \"Plugin Name:\" header."
 msgstr ""
@@ -4885,127 +4743,127 @@ msgstr ""
 msgid "Cannot change release status from \"%1$s\" to \"%2$s\"."
 msgstr ""
 
-#: src/Updates/UpdateService.php:202
-msgid "Your license has expired; renew to receive this update."
+#: src/Updates/UpdateService.php:193
+msgid "Your license has expired. To receive this update, buy a new license and use its key."
 msgstr ""
 
-#: src/Updates/UpdateService.php:203
+#: src/Updates/UpdateService.php:194
 msgid "A valid license is required to receive this update."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:64
+#: src/Upsell/ProFeatures.php:35
 msgid "Subscriptions and recurring billing"
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:65
+#: src/Upsell/ProFeatures.php:36
 msgid "Sell plans that renew on a schedule, with trials, upgrades, and automatic retries on a failed payment."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:69
+#: src/Upsell/ProFeatures.php:40
 msgid "EU VAT with VIES and OSS returns"
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:70
-msgid "Charge the right VAT by country, check VAT numbers against VIES, and prepare your OSS return."
+#: src/Upsell/ProFeatures.php:41
+msgid "Charge VAT at each buyer's country rate, check VAT numbers against VIES, and prepare your OSS return."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:74
+#: src/Upsell/ProFeatures.php:45
 msgid "PDF invoices"
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:75
+#: src/Upsell/ProFeatures.php:46
 msgid "Issue a numbered PDF invoice for every order and let buyers download it from their account."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:79
+#: src/Upsell/ProFeatures.php:50
 msgid "PayPal checkout"
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:80
+#: src/Upsell/ProFeatures.php:51
 msgid "Take payments through PayPal alongside Stripe."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:84
+#: src/Upsell/ProFeatures.php:55
 msgid "Affiliates"
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:85
+#: src/Upsell/ProFeatures.php:56
 msgid "Run an affiliate program with referral tracking, commissions, and payouts."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:89
+#: src/Upsell/ProFeatures.php:60
 msgid "Cart recovery emails"
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:90
+#: src/Upsell/ProFeatures.php:61
 msgid "Email shoppers who leave without paying, on a schedule you set, each with an optional discount."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:94
+#: src/Upsell/ProFeatures.php:65
 msgid "Store analytics"
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:95
+#: src/Upsell/ProFeatures.php:66
 msgid "Track recurring revenue, active subscriptions, and customer lifetime value."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:99
+#: src/Upsell/ProFeatures.php:70
 msgid "Template kits"
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:100
+#: src/Upsell/ProFeatures.php:71
 msgid "Install a ready-made storefront layout as a starting point for your own."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:104
+#: src/Upsell/ProFeatures.php:75
 msgid "Store migration"
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:105
+#: src/Upsell/ProFeatures.php:76
 msgid "Import products and customers from another platform."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:109
-msgid "Elementor account widgets"
+#: src/Upsell/ProFeatures.php:80
+msgid "Elementor subscription and invoice widgets"
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:110
-msgid "Add the account widgets to Elementor: Licenses, Downloads, Subscriptions, and Invoices."
+#: src/Upsell/ProFeatures.php:81
+msgid "Add Subscriptions, Invoices, and Upgrade Prompt widgets to Elementor."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:114
+#: src/Upsell/ProFeatures.php:85
 msgid "Conditional Content block"
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:115
-msgid "Show inner blocks only to visitors who match a licence, subscription, purchase, or activation rule."
+#: src/Upsell/ProFeatures.php:86
+msgid "Show inner blocks only to visitors who match a license, subscription, purchase, or activation rule."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:128
+#: src/Upsell/ProFeatures.php:99
 msgid "TierMint Pro is a separate add-on that extends this plugin. It adds recurring billing, EU VAT handling, PDF invoices, PayPal, affiliates, cart recovery, and store analytics. The free plugin keeps working as it is."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:139
+#: src/Upsell/ProFeatures.php:110
 msgid "TierMint Pro adds subscriptions, EU VAT, PDF invoices, PayPal, affiliates, and cart recovery."
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:150
-#: assets/admin/build/index.js:81
-#: assets/admin/build/index.js:84
+#: src/Upsell/ProFeatures.php:121
+#: assets/admin/build/index.js:79
+#: assets/admin/build/index.js:82
 #: assets/admin/src/app/UpsellBanner.js:79
 #: assets/admin/src/screens/Settings.js:261
 #: assets/admin/src/screens/Upgrade.js:37
 msgid "See TierMint Pro"
 msgstr ""
 
-#: src/Upsell/ProFeatures.php:161
+#: src/Upsell/ProFeatures.php:132
 msgid "View TierMint Pro features"
 msgstr ""
 
 #: src/Upsell/SettingsTeaser.php:87
 #: src/Upsell/SettingsTeaser.php:111
 #: src/Upsell/UpgradeAdminIntegration.php:87
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Upgrade.js:42
 #: assets/admin/src/screens/Upgrade.js:75
 msgid "TierMint Pro"
@@ -5015,24 +4873,28 @@ msgstr ""
 msgid "The upsell notice to dismiss."
 msgstr ""
 
-#: src/Webhooks/WebhookEndpoints.php:316
+#: src/Webhooks/WebhookEndpoints.php:315
 msgid "The webhook URL must be a valid http or https URL."
 msgstr ""
 
-#: src/Webhooks/WebhookEndpoints.php:337
+#: src/Webhooks/WebhookEndpoints.php:336
 msgid "One or more webhook events are not recognized."
 msgstr ""
 
-#: src/Webhooks/WebhookEndpoints.php:346
+#: src/Webhooks/WebhookEndpoints.php:345
 msgid "A webhook endpoint must subscribe to at least one event."
 msgstr ""
 
-#: src/Webhooks/WebhookEndpoints.php:359
+#: src/Webhooks/WebhookEndpoints.php:358
 msgid "That webhook endpoint is not registered."
 msgstr ""
 
-#: src/Webhooks/WebhookFailureNotice.php:66
+#: src/Webhooks/WebhookFailureNotice.php:67
 msgid "TierMint has disabled the following webhook endpoints after repeated delivery failures. Fix the receivers, then re-enable the endpoints to resume deliveries:"
+msgstr ""
+
+#: src/Webhooks/WebhookFailureNotice.php:75
+msgid "Open the webhook settings"
 msgstr ""
 
 #: templates/components/account-dashboard.php:31
@@ -5054,18 +4916,18 @@ msgstr ""
 msgid "You have no purchases yet."
 msgstr ""
 
-#: templates/components/cart-summary.php:45
+#: templates/components/cart-summary.php:46
 #: templates/components/partials/cart-notice.php:22
 msgid "Go to checkout"
 msgstr ""
 
-#: templates/components/cart-summary.php:71
+#: templates/components/cart-summary.php:72
 #: templates/components/checkout.php:65
 msgid "Your cart is empty."
 msgstr ""
 
-#: templates/components/cart-summary.php:79
-#: templates/components/cart-summary.php:109
+#: templates/components/cart-summary.php:80
+#: templates/components/cart-summary.php:110
 #: templates/components/partials/cart-line-controls.php:42
 #: templates/components/partials/product-purchase-form.php:98
 #: templates/components/partials/product-purchase-form.php:114
@@ -5073,52 +4935,48 @@ msgstr ""
 msgid "Quantity"
 msgstr ""
 
-#: templates/components/cart-summary.php:80
-#: templates/components/cart-summary.php:112
+#: templates/components/cart-summary.php:81
+#: templates/components/cart-summary.php:113
 #: assets/admin/build/index.js:16
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:525
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:542
 #: assets/admin/src/screens/Products.js:562
 msgid "Price"
 msgstr ""
 
-#: templates/components/cart-summary.php:81
-#: templates/components/cart-summary.php:115
+#: templates/components/cart-summary.php:82
+#: templates/components/cart-summary.php:116
 #: templates/emails/purchase-receipt.php:66
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:527
-#: assets/admin/src/screens/OrderDetail.js:557
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:544
+#: assets/admin/src/screens/OrderDetail.js:574
 msgid "Subtotal"
 msgstr ""
 
-#: templates/components/cart-summary.php:83
-#: assets/admin/build/index.js:41
-#: assets/admin/build/index.js:48
-#: assets/admin/build/index.js:66
-#: assets/admin/build/index.js:81
+#: templates/components/cart-summary.php:84
+#: assets/admin/build/index.js:39
+#: assets/admin/build/index.js:46
+#: assets/admin/build/index.js:64
+#: assets/admin/build/index.js:79
 #: assets/admin/src/screens/Customers.js:719
 #: assets/admin/src/screens/Discounts.js:1331
-#: assets/admin/src/screens/LicenseDetail.js:286
+#: assets/admin/src/screens/LicenseDetail.js:306
 #: assets/admin/src/screens/Settings.js:457
 msgid "Actions"
 msgstr ""
 
-#: templates/components/cart-summary.php:161
-msgid "Subtotal (incl. tax)"
-msgstr ""
-
-#: templates/components/cart-summary.php:172
+#: templates/components/cart-summary.php:173
 msgid "Proceed to checkout"
 msgstr ""
 
 #. translators: %s: product name.
 #: templates/components/checkout.php:32
 #, php-format
-msgid "You are renewing your license for %s."
+msgid "You are buying a new license for %s. It comes with a new license key."
 msgstr ""
 
 #: templates/components/checkout.php:44
-msgid "Add it to the cart to renew"
+msgid "Add it to the cart"
 msgstr ""
 
 #: templates/components/checkout.php:57
@@ -5174,7 +5032,7 @@ msgid "Contact"
 msgstr ""
 
 #: templates/components/checkout.php:131
-#: templates/components/registration-form.php:72
+#: templates/components/registration-form.php:70
 msgid "Email address"
 msgstr ""
 
@@ -5240,7 +5098,7 @@ msgstr ""
 msgid "Payment details"
 msgstr ""
 
-#. translators: %s: payment gateway name, e.g. PayPal.
+#. translators: %s: payment gateway name.
 #: templates/components/checkout.php:430
 #, php-format
 msgid "Continue with %s"
@@ -5263,17 +5121,6 @@ msgstr ""
 #: templates/components/checkout.php:478
 #, php-format
 msgid "x %d"
-msgstr ""
-
-#: templates/components/checkout.php:552
-msgid "Includes tax"
-msgstr ""
-
-#: templates/components/checkout.php:552
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:529
-#: assets/admin/src/screens/OrderDetail.js:572
-msgid "Tax"
 msgstr ""
 
 #: templates/components/downloads-list.php:29
@@ -5322,11 +5169,11 @@ msgid "Active sites"
 msgstr ""
 
 #: templates/components/license-manager.php:112
-#: assets/admin/build/index.js:48
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:46
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:291
 #: assets/admin/src/screens/Discounts.js:1392
-#: assets/admin/src/screens/LicenseDetail.js:331
+#: assets/admin/src/screens/LicenseDetail.js:362
 msgid "Deactivate"
 msgstr ""
 
@@ -5339,7 +5186,7 @@ msgid "Activate a new site"
 msgstr ""
 
 #: templates/components/license-manager.php:142
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:290
 #: assets/admin/src/screens/Discounts.js:1393
 msgid "Activate"
@@ -5386,8 +5233,8 @@ msgstr ""
 
 #: templates/components/partials/checkout-discount.php:26
 #: templates/components/partials/checkout-discount.php:31
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:480
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:479
 msgid "Discount code"
 msgstr ""
 
@@ -5397,7 +5244,7 @@ msgstr ""
 
 #: templates/components/partials/checkout-discount.php:47
 #: assets/admin/build/index.js:6
-#: assets/admin/build/index.js:67
+#: assets/admin/build/index.js:65
 #: assets/admin/src/components/BulkActionsBar.js:383
 #: assets/admin/src/screens/Reports.js:172
 msgid "Apply"
@@ -5443,60 +5290,60 @@ msgstr ""
 msgid "Next screenshot"
 msgstr ""
 
-#: templates/components/password-reset-form.php:37
+#: templates/components/password-reset-form.php:38
 msgid "Your password has been reset."
 msgstr ""
 
-#: templates/components/password-reset-form.php:46
+#: templates/components/password-reset-form.php:47
 msgid "If an account exists for that address, we have emailed a link to reset your password. The link expires in 24 hours."
 msgstr ""
 
-#: templates/components/password-reset-form.php:48
+#: templates/components/password-reset-form.php:49
 msgid "Back to sign in"
 msgstr ""
 
-#: templates/components/password-reset-form.php:55
+#: templates/components/password-reset-form.php:56
 msgid "You are signed in."
 msgstr ""
 
-#: templates/components/password-reset-form.php:58
-#: templates/components/registration-form.php:34
+#: templates/components/password-reset-form.php:59
+#: templates/components/registration-form.php:35
 msgid "Go to your account"
 msgstr ""
 
-#: templates/components/password-reset-form.php:83
+#: templates/components/password-reset-form.php:81
 msgid "New password"
 msgstr ""
 
-#: templates/components/password-reset-form.php:88
+#: templates/components/password-reset-form.php:86
 msgid "Confirm new password"
 msgstr ""
 
-#: templates/components/password-reset-form.php:93
+#: templates/components/password-reset-form.php:91
 msgid "Save password"
 msgstr ""
 
-#: templates/components/password-reset-form.php:106
+#: templates/components/password-reset-form.php:104
 msgid "Enter your email address or username and we will email you a link to reset your password."
 msgstr ""
 
-#: templates/components/password-reset-form.php:117
+#: templates/components/password-reset-form.php:112
 msgid "Email address or username"
 msgstr ""
 
-#: templates/components/password-reset-form.php:126
-#: templates/components/registration-form.php:90
+#: templates/components/password-reset-form.php:121
+#: templates/components/registration-form.php:88
 msgid "Leave this field empty"
 msgstr ""
 
-#: templates/components/password-reset-form.php:131
+#: templates/components/password-reset-form.php:126
 msgid "Send reset link"
 msgstr ""
 
 #. translators: 1: a label, 2: its value.
 #: templates/components/product-changelog.php:64
 #: assets/admin/build/index.js:8
-#: assets/admin/build/index.js:81
+#: assets/admin/build/index.js:79
 #: assets/admin/src/components/BulkActionsBar.js:436
 #: assets/admin/src/screens/Settings.js:182
 #, php-format,js-format
@@ -5572,27 +5419,27 @@ msgstr ""
 msgid "Your license keys"
 msgstr ""
 
-#: templates/components/registration-form.php:31
+#: templates/components/registration-form.php:32
 msgid "You are already signed in."
 msgstr ""
 
-#: templates/components/registration-form.php:48
+#: templates/components/registration-form.php:49
 msgid "Thanks for registering. Check your email for a link to set your password."
 msgstr ""
 
-#: templates/components/registration-form.php:51
+#: templates/components/registration-form.php:52
 msgid "Go to sign in"
 msgstr ""
 
-#: templates/components/registration-form.php:78
+#: templates/components/registration-form.php:76
 msgid "Name (optional)"
 msgstr ""
 
-#: templates/components/registration-form.php:95
+#: templates/components/registration-form.php:93
 msgid "Create account"
 msgstr ""
 
-#: templates/components/registration-form.php:102
+#: templates/components/registration-form.php:100
 msgid "Already have an account? Sign in"
 msgstr ""
 
@@ -5630,8 +5477,8 @@ msgid "Here is your receipt for order #%1$s placed on %2$s."
 msgstr ""
 
 #: templates/emails/purchase-receipt.php:51
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:526
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:543
 msgid "Qty"
 msgstr ""
 
@@ -5641,11 +5488,11 @@ msgid "An unknown error occurred."
 msgstr ""
 
 #: assets/admin/build/index.js:1
-#: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:72
+#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:70
 #: assets/admin/src/api/client.js:115
-#: assets/admin/src/products/ReleasesPanel.js:54
-#: assets/admin/src/screens/settings/values.js:332
+#: assets/admin/src/products/ReleasesPanel.js:53
+#: assets/admin/src/screens/settings/values.js:344
 msgid "Something went wrong."
 msgstr ""
 
@@ -5655,66 +5502,59 @@ msgid "Loading"
 msgstr ""
 
 #: assets/admin/build/index.js:1
-#: assets/admin/build/index.js:36
+#: assets/admin/build/index.js:34
 #: assets/admin/src/screens/OrderDetail.js:134
 #: assets/admin/src/utils/orderPresentation.js:25
 msgid "Purchase"
 msgstr ""
 
 #: assets/admin/build/index.js:1
-#: assets/admin/build/index.js:36
+#: assets/admin/build/index.js:34
 #: assets/admin/src/screens/OrderDetail.js:135
 #: assets/admin/src/utils/orderPresentation.js:26
 msgid "Renewal"
 msgstr ""
 
 #: assets/admin/build/index.js:1
-#: assets/admin/build/index.js:36
+#: assets/admin/build/index.js:34
 #: assets/admin/src/screens/OrderDetail.js:136
+#: assets/admin/src/screens/OrderDetail.js:427
 #: assets/admin/src/utils/orderPresentation.js:27
-msgid "Upgrade"
-msgstr ""
-
-#: assets/admin/build/index.js:1
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:137
-#: assets/admin/src/screens/OrderDetail.js:428
-#: assets/admin/src/utils/orderPresentation.js:28
 msgid "Refund"
 msgstr ""
 
 #. translators: 1: a primary label, 2: a secondary detail shown in parentheses.
 #: assets/admin/build/index.js:2
-#: assets/admin/build/index.js:37
+#: assets/admin/build/index.js:35
 #: assets/admin/src/screens/Customers.js:90
-#: assets/admin/src/utils/orderPresentation.js:45
+#: assets/admin/src/utils/orderPresentation.js:44
 #, js-format
 msgid "%1$s (%2$s)"
 msgstr ""
 
 #: assets/admin/build/index.js:2
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/Orders.js:57
 #: assets/admin/src/utils/orderStatus.js:22
 msgid "Pending"
 msgstr ""
 
 #: assets/admin/build/index.js:2
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/Orders.js:59
 #: assets/admin/src/utils/orderStatus.js:24
 msgid "Failed"
 msgstr ""
 
 #: assets/admin/build/index.js:2
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/Orders.js:60
 #: assets/admin/src/utils/orderStatus.js:25
 msgid "Abandoned"
 msgstr ""
 
 #: assets/admin/build/index.js:2
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/Orders.js:61
 #: assets/admin/src/utils/orderStatus.js:26
 msgid "Refunded"
@@ -5825,7 +5665,7 @@ msgid "Gross revenue"
 msgstr ""
 
 #: assets/admin/build/index.js:4
-#: assets/admin/build/index.js:68
+#: assets/admin/build/index.js:66
 #: assets/admin/src/screens/Dashboard.js:327
 #: assets/admin/src/screens/Reports.js:244
 #: assets/admin/src/screens/Reports.js:271
@@ -5844,38 +5684,38 @@ msgid "Latest orders"
 msgstr ""
 
 #: assets/admin/build/index.js:4
-#: assets/admin/build/index.js:33
-#: assets/admin/build/index.js:36
+#: assets/admin/build/index.js:31
+#: assets/admin/build/index.js:34
+#: assets/admin/build/index.js:43
 #: assets/admin/build/index.js:45
-#: assets/admin/build/index.js:47
 #: assets/admin/src/screens/Dashboard.js:397
-#: assets/admin/src/screens/LicenseDetail.js:254
+#: assets/admin/src/screens/LicenseDetail.js:274
 #: assets/admin/src/screens/Licenses.js:395
-#: assets/admin/src/screens/OrderDetail.js:465
+#: assets/admin/src/screens/OrderDetail.js:464
 #: assets/admin/src/screens/Orders.js:334
 msgid "Customer"
 msgstr ""
 
 #: assets/admin/build/index.js:4
 #: assets/admin/build/index.js:16
-#: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:33
-#: assets/admin/build/index.js:36
-#: assets/admin/build/index.js:41
+#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:31
+#: assets/admin/build/index.js:34
+#: assets/admin/build/index.js:39
 #: assets/admin/src/products/PublishSidebar.js:89
 #: assets/admin/src/screens/Customers.js:707
 #: assets/admin/src/screens/Dashboard.js:401
-#: assets/admin/src/screens/OrderDetail.js:459
+#: assets/admin/src/screens/OrderDetail.js:458
 #: assets/admin/src/screens/Orders.js:337
 #: assets/admin/src/screens/Products.js:561
 msgid "Type"
 msgstr ""
 
 #: assets/admin/build/index.js:4
-#: assets/admin/build/index.js:33
-#: assets/admin/build/index.js:36
+#: assets/admin/build/index.js:31
+#: assets/admin/build/index.js:34
 #: assets/admin/src/screens/Dashboard.js:405
-#: assets/admin/src/screens/OrderDetail.js:469
+#: assets/admin/src/screens/OrderDetail.js:468
 #: assets/admin/src/screens/Orders.js:344
 msgid "Gateway"
 msgstr ""
@@ -5907,21 +5747,21 @@ msgid "Confirm"
 msgstr ""
 
 #: assets/admin/build/index.js:6
-#: assets/admin/build/index.js:31
+#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:30
 #: assets/admin/build/index.js:32
-#: assets/admin/build/index.js:34
-#: assets/admin/build/index.js:40
-#: assets/admin/build/index.js:48
-#: assets/admin/build/index.js:63
-#: assets/admin/build/index.js:67
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:38
+#: assets/admin/build/index.js:46
+#: assets/admin/build/index.js:61
+#: assets/admin/build/index.js:65
+#: assets/admin/build/index.js:82
 #: assets/admin/src/components/BulkActionsBar.js:346
-#: assets/admin/src/products/ReleasesPanel.js:1027
+#: assets/admin/src/products/ReleasesPanel.js:896
 #: assets/admin/src/screens/Customers.js:461
 #: assets/admin/src/screens/Discounts.js:936
 #: assets/admin/src/screens/Discounts.js:1459
-#: assets/admin/src/screens/LicenseDetail.js:365
-#: assets/admin/src/screens/OrderDetail.js:270
+#: assets/admin/src/screens/LicenseDetail.js:396
+#: assets/admin/src/screens/OrderDetail.js:269
 #: assets/admin/src/screens/Settings.js:520
 #: assets/admin/src/screens/Settings.js:699
 #: assets/admin/src/screens/Terms.js:590
@@ -5950,12 +5790,12 @@ msgstr[1] ""
 
 #. translators: %d: a numeric record id.
 #: assets/admin/build/index.js:9
-#: assets/admin/build/index.js:43
-#: assets/admin/build/index.js:47
-#: assets/admin/build/index.js:48
+#: assets/admin/build/index.js:41
+#: assets/admin/build/index.js:45
+#: assets/admin/build/index.js:46
 #: assets/admin/src/components/BulkActionsBar.js:211
-#: assets/admin/src/screens/LicenseDetail.js:247
-#: assets/admin/src/screens/LicenseDetail.js:268
+#: assets/admin/src/screens/LicenseDetail.js:267
+#: assets/admin/src/screens/LicenseDetail.js:288
 #: assets/admin/src/screens/Licenses.js:152
 #, js-format
 msgid "#%d"
@@ -6001,9 +5841,9 @@ msgstr ""
 
 #: assets/admin/build/index.js:12
 #: assets/admin/build/index.js:13
-#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:28
 #: assets/admin/src/products/PublishSidebar.js:60
-#: assets/admin/src/products/ReleasesPanel.js:102
+#: assets/admin/src/products/ReleasesPanel.js:101
 #: assets/admin/src/screens/Products.js:75
 #: assets/admin/src/screens/Products.js:429
 msgid "Published"
@@ -6011,9 +5851,9 @@ msgstr ""
 
 #: assets/admin/build/index.js:12
 #: assets/admin/build/index.js:13
+#: assets/admin/build/index.js:26
 #: assets/admin/build/index.js:28
-#: assets/admin/build/index.js:30
-#: assets/admin/src/products/PricingPanel.js:583
+#: assets/admin/src/products/PricingPanel.js:336
 #: assets/admin/src/products/PublishSidebar.js:64
 #: assets/admin/src/screens/Products.js:77
 #: assets/admin/src/screens/Products.js:433
@@ -6022,9 +5862,9 @@ msgstr ""
 
 #: assets/admin/build/index.js:12
 #: assets/admin/build/index.js:13
-#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:28
 #: assets/admin/src/products/PublishSidebar.js:56
-#: assets/admin/src/products/ReleasesPanel.js:106
+#: assets/admin/src/products/ReleasesPanel.js:105
 #: assets/admin/src/screens/Products.js:79
 #: assets/admin/src/screens/Products.js:427
 msgid "Draft"
@@ -6050,9 +5890,9 @@ msgid "Search products"
 msgstr ""
 
 #: assets/admin/build/index.js:13
-#: assets/admin/build/index.js:33
-#: assets/admin/build/index.js:41
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:31
+#: assets/admin/build/index.js:39
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:1227
 #: assets/admin/src/screens/Licenses.js:47
 #: assets/admin/src/screens/Orders.js:56
@@ -6123,10 +5963,9 @@ msgid "Bulk actions for products"
 msgstr ""
 
 #: assets/admin/build/index.js:16
-#: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:31
+#: assets/admin/build/index.js:28
 #: assets/admin/src/products/PublishSidebar.js:47
-#: assets/admin/src/products/ReleasesPanel.js:800
+#: assets/admin/src/products/ReleasesPanel.js:710
 #: assets/admin/src/screens/Products.js:121
 msgid "Publish"
 msgstr ""
@@ -6137,12 +5976,12 @@ msgid "Move to draft"
 msgstr ""
 
 #: assets/admin/build/index.js:16
-#: assets/admin/build/index.js:31
-#: assets/admin/build/index.js:32
-#: assets/admin/build/index.js:41
-#: assets/admin/build/index.js:66
-#: assets/admin/build/index.js:84
-#: assets/admin/src/products/ReleasesPanel.js:830
+#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:39
+#: assets/admin/build/index.js:64
+#: assets/admin/build/index.js:82
+#: assets/admin/src/products/ReleasesPanel.js:740
 #: assets/admin/src/screens/Customers.js:188
 #: assets/admin/src/screens/Discounts.js:294
 #: assets/admin/src/screens/Discounts.js:1412
@@ -6154,25 +5993,25 @@ msgid "Delete"
 msgstr ""
 
 #: assets/admin/build/index.js:16
-#: assets/admin/build/index.js:36
-#: assets/admin/build/index.js:41
+#: assets/admin/build/index.js:34
+#: assets/admin/build/index.js:39
 #: assets/admin/src/screens/Customers.js:716
-#: assets/admin/src/screens/OrderDetail.js:485
+#: assets/admin/src/screens/OrderDetail.js:484
 #: assets/admin/src/screens/Products.js:568
 msgid "Created"
 msgstr ""
 
 #: assets/admin/build/index.js:16
-#: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:32
+#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:29
 #: assets/admin/src/products/PublishSidebar.js:97
-#: assets/admin/src/screens/ProductEdit.js:492
+#: assets/admin/src/screens/ProductEdit.js:528
 #: assets/admin/src/screens/Products.js:91
 msgid "Bundle"
 msgstr ""
 
 #: assets/admin/build/index.js:16
-#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:28
 #: assets/admin/src/products/PublishSidebar.js:93
 #: assets/admin/src/screens/Products.js:92
 msgid "Digital"
@@ -6302,12 +6141,12 @@ msgid "Permalink:"
 msgstr ""
 
 #: assets/admin/build/index.js:23
-#: assets/admin/build/index.js:31
-#: assets/admin/build/index.js:32
-#: assets/admin/build/index.js:41
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:39
+#: assets/admin/build/index.js:64
 #: assets/admin/src/products/DetailsPanel.js:86
-#: assets/admin/src/products/ReleasesPanel.js:785
+#: assets/admin/src/products/ReleasesPanel.js:695
 #: assets/admin/src/screens/Customers.js:752
 #: assets/admin/src/screens/Discounts.js:1373
 #: assets/admin/src/screens/Terms.js:612
@@ -6326,495 +6165,385 @@ msgid "Set a product details page under Settings to get a shareable link."
 msgstr ""
 
 #: assets/admin/build/index.js:23
-#: assets/admin/src/products/PricingPanel.js:85
+#: assets/admin/src/products/PricingPanel.js:77
 msgid "Days"
 msgstr ""
 
 #: assets/admin/build/index.js:23
-#: assets/admin/src/products/PricingPanel.js:86
+#: assets/admin/src/products/PricingPanel.js:78
 msgid "Weeks"
 msgstr ""
 
 #: assets/admin/build/index.js:23
-#: assets/admin/src/products/PricingPanel.js:87
+#: assets/admin/src/products/PricingPanel.js:79
 msgid "Months"
 msgstr ""
 
 #: assets/admin/build/index.js:23
-#: assets/admin/src/products/PricingPanel.js:88
+#: assets/admin/src/products/PricingPanel.js:80
 msgid "Years"
 msgstr ""
 
 #: assets/admin/build/index.js:23
 #: assets/admin/build/index.js:24
-#: assets/admin/src/products/PricingPanel.js:111
-#: assets/admin/src/products/PricingPanel.js:183
+#: assets/admin/src/products/PricingPanel.js:101
+#: assets/admin/src/products/PricingPanel.js:163
 msgid "License length"
 msgstr ""
 
 #. translators: %s: the stored license-length value.
 #: assets/admin/build/index.js:24
-#: assets/admin/src/products/PricingPanel.js:116
+#: assets/admin/src/products/PricingPanel.js:106
 #, js-format
 msgid "Custom: %s"
 msgstr ""
 
 #: assets/admin/build/index.js:24
-#: assets/admin/src/products/PricingPanel.js:130
+#: assets/admin/src/products/PricingPanel.js:120
 msgid "Replace"
 msgstr ""
 
 #: assets/admin/build/index.js:24
-#: assets/admin/src/products/PricingPanel.js:141
+#: assets/admin/src/products/PricingPanel.js:131
 msgid "Select a length"
 msgstr ""
 
 #: assets/admin/build/index.js:24
-#: assets/admin/src/products/PricingPanel.js:147
+#: assets/admin/src/products/PricingPanel.js:137
 msgid "Duration"
 msgstr ""
 
 #: assets/admin/build/index.js:24
-#: assets/admin/src/products/PricingPanel.js:151
-msgid "Same as billing interval"
-msgstr ""
-
-#: assets/admin/build/index.js:24
-#: assets/admin/src/products/PricingPanel.js:194
+#: assets/admin/src/products/PricingPanel.js:174
 msgid "Length"
 msgstr ""
 
 #: assets/admin/build/index.js:24
-#: assets/admin/src/products/PricingPanel.js:210
+#: assets/admin/src/products/PricingPanel.js:190
 msgid "Unit"
 msgstr ""
 
 #: assets/admin/build/index.js:24
-#: assets/admin/src/products/PricingPanel.js:289
+#: assets/admin/src/products/PricingPanel.js:217
 msgid "Add price"
 msgstr ""
 
 #: assets/admin/build/index.js:24
-#: assets/admin/src/products/PricingPanel.js:298
+#: assets/admin/src/products/PricingPanel.js:226
 msgid "No prices yet. A product needs at least one price before it can be bought."
 msgstr ""
 
 #. translators: %d: the position of this price in the list, starting at 1.
 #: assets/admin/build/index.js:25
-#: assets/admin/src/products/PricingPanel.js:310
+#: assets/admin/src/products/PricingPanel.js:238
 #, js-format
 msgid "Price %d"
 msgstr ""
 
 #: assets/admin/build/index.js:25
-#: assets/admin/src/products/PricingPanel.js:318
+#: assets/admin/src/products/PricingPanel.js:246
 msgid "Price name"
 msgstr ""
 
 #. translators: %s: the store's currency code, for example USD.
 #: assets/admin/build/index.js:26
-#: assets/admin/build/index.js:53
-#: assets/admin/src/products/PricingPanel.js:330
+#: assets/admin/build/index.js:51
+#: assets/admin/src/products/PricingPanel.js:258
 #: assets/admin/src/screens/Discounts.js:159
 #, js-format
 msgid "Amount (%s)"
 msgstr ""
 
 #: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:342
+#: assets/admin/src/products/PricingPanel.js:270
 msgid "Activation limit"
 msgstr ""
 
 #: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:358
+#: assets/admin/src/products/PricingPanel.js:285
 msgid "Minimum quantity"
 msgstr ""
 
 #: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:375
+#: assets/admin/src/products/PricingPanel.js:299
 msgid "Maximum quantity (0 = unlimited)"
 msgstr ""
 
 #: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:397
-msgid "Subscription"
-msgstr ""
-
-#: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:407
-msgid "Recurring billing requires TierMint Pro."
-msgstr ""
-
-#: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:418
-msgid "Billing period"
-msgstr ""
-
-#: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:426
-msgid "Day"
-msgstr ""
-
-#: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:433
-msgid "Week"
-msgstr ""
-
-#: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:440
-msgid "Month"
-msgstr ""
-
-#: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:447
-msgid "Year"
-msgstr ""
-
-#: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:466
-msgid "Billing interval"
-msgstr ""
-
-#: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:486
-msgid "Trial days"
-msgstr ""
-
-#: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:511
-msgid "Allowed switch targets"
-msgstr ""
-
-#: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:517
-msgid "Subscribers on this tier can switch to the tiers selected here."
-msgstr ""
-
-#. translators: %s: the name of the target price tier.
-#: assets/admin/build/index.js:27
-#: assets/admin/src/products/PricingPanel.js:536
-#, js-format
-msgid "Allow switching to %s"
-msgstr ""
-
-#. translators: %d: the target price tier id, used when the tier has no name.
-#: assets/admin/build/index.js:28
-#: assets/admin/src/products/PricingPanel.js:543
-#, js-format
-msgid "Price #%d"
-msgstr ""
-
-#: assets/admin/build/index.js:28
-#: assets/admin/src/products/PricingPanel.js:575
+#: assets/admin/src/products/PricingPanel.js:328
 msgid "Price status"
 msgstr ""
 
-#: assets/admin/build/index.js:28
-#: assets/admin/src/products/PricingPanel.js:605
+#: assets/admin/build/index.js:26
+#: assets/admin/src/products/PricingPanel.js:358
 msgid "Remove price"
 msgstr ""
 
-#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:26
 #: assets/admin/src/products/termTree.js:39
 msgid "None (top level)"
 msgstr ""
 
-#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:26
 #: assets/admin/src/products/CategoryTreePanel.js:172
 msgid "Add a new category"
 msgstr ""
 
-#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:26
 #: assets/admin/src/products/CategoryTreePanel.js:184
 msgid "Parent category"
 msgstr ""
 
 #. translators: %s: the category name a merchant tried to create.
-#: assets/admin/build/index.js:29
+#: assets/admin/build/index.js:27
 #: assets/admin/src/products/CategoryTreePanel.js:118
 #, js-format
 msgid "A category named \"%s\" already exists."
 msgstr ""
 
-#: assets/admin/build/index.js:29
-#: assets/admin/build/index.js:32
+#: assets/admin/build/index.js:27
+#: assets/admin/build/index.js:30
 #: assets/admin/src/products/CategoryTreePanel.js:198
 #: assets/admin/src/screens/Terms.js:488
 msgid "Add category"
 msgstr ""
 
-#: assets/admin/build/index.js:29
+#: assets/admin/build/index.js:27
 #: assets/admin/src/products/CategoryTreePanel.js:212
 msgid "Product categories"
 msgstr ""
 
-#: assets/admin/build/index.js:29
+#: assets/admin/build/index.js:27
 #: assets/admin/src/products/TermsPanel.js:189
 msgid "Add a new tag"
 msgstr ""
 
 #. translators: %s: the tag name a merchant tried to create.
-#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:28
 #: assets/admin/src/products/TermsPanel.js:154
 #, js-format
 msgid "A tag named \"%s\" already exists."
 msgstr ""
 
+#: assets/admin/build/index.js:28
 #: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:32
 #: assets/admin/src/products/TermsPanel.js:207
 #: assets/admin/src/screens/Terms.js:691
 msgid "Add tag"
 msgstr ""
 
-#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:28
 #: assets/admin/src/products/TermsPanel.js:221
 msgid "Product tags"
 msgstr ""
 
-#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:28
 #: assets/admin/src/products/PublishSidebar.js:77
 msgid "Save product"
 msgstr ""
 
-#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:28
 #: assets/admin/src/products/PublishSidebar.js:84
 msgid "Product type"
 msgstr ""
 
-#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:28
 #: assets/admin/src/products/PublishSidebar.js:105
 msgid "Licensed product"
 msgstr ""
 
-#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:28
 #: assets/admin/src/products/PublishSidebar.js:113
 msgid "Update slug"
 msgstr ""
 
-#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:28
 #: assets/admin/src/products/PublishSidebar.js:115
 msgid "The plugin/theme folder slug used by update checks."
 msgstr ""
 
-#: assets/admin/build/index.js:30
-#: assets/admin/src/products/ReleasesPanel.js:44
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:43
 msgid "Upload failed."
 msgstr ""
 
-#: assets/admin/build/index.js:30
-#: assets/admin/src/products/ReleasesPanel.js:104
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:103
 msgid "Yanked"
 msgstr ""
 
-#: assets/admin/build/index.js:30
-#: assets/admin/src/products/ReleasesPanel.js:133
-msgid "Stable"
-msgstr ""
-
-#: assets/admin/build/index.js:30
-#: assets/admin/src/products/ReleasesPanel.js:134
-msgid "Release candidate"
-msgstr ""
-
-#: assets/admin/build/index.js:30
-#: assets/admin/src/products/ReleasesPanel.js:135
-msgid "Beta"
-msgstr ""
-
-#: assets/admin/build/index.js:30
-#: assets/admin/src/products/ReleasesPanel.js:484
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:450
 msgid "Replace the package for this release? Sites that have already updated keep the current build; new update checks serve the replacement under the same version."
 msgstr ""
 
-#: assets/admin/build/index.js:30
-#: assets/admin/src/products/ReleasesPanel.js:508
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:474
 msgid "SHA-256 checksum copied."
 msgstr ""
 
-#: assets/admin/build/index.js:30
-#: assets/admin/src/products/ReleasesPanel.js:511
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:477
 msgid "Upload a new release"
 msgstr ""
 
-#: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:520
-#: assets/admin/src/products/ReleasesPanel.js:874
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:486
+#: assets/admin/src/products/ReleasesPanel.js:784
 msgid "Version"
 msgstr ""
 
-#: assets/admin/build/index.js:30
-#: assets/admin/src/products/ReleasesPanel.js:527
-#: assets/admin/src/products/ReleasesPanel.js:531
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:493
+#: assets/admin/src/products/ReleasesPanel.js:497
 msgid "Package (.zip)"
 msgstr ""
 
-#: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:543
-#: assets/admin/src/products/ReleasesPanel.js:911
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:509
+#: assets/admin/src/products/ReleasesPanel.js:821
 msgid "Changelog"
 msgstr ""
 
-#: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:587
-#: assets/admin/src/products/ReleasesPanel.js:970
-msgid "Channel"
-msgstr ""
-
-#: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:603
-#: assets/admin/src/products/ReleasesPanel.js:989
-msgid "Rollout percentage"
-msgstr ""
-
-#: assets/admin/build/index.js:30
-#: assets/admin/src/products/ReleasesPanel.js:604
-msgid "How many sites the release reaches, chosen deterministically. 100 is a full rollout."
-msgstr ""
-
-#: assets/admin/build/index.js:30
-#: assets/admin/src/products/ReleasesPanel.js:625
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:555
 msgid "Upload release"
 msgstr ""
 
-#: assets/admin/build/index.js:30
-#: assets/admin/build/index.js:32
-#: assets/admin/src/products/ReleasesPanel.js:628
-#: assets/admin/src/screens/ProductEdit.js:494
+#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:29
+#: assets/admin/src/products/ReleasesPanel.js:558
+#: assets/admin/src/screens/ProductEdit.js:530
 msgid "Releases"
 msgstr ""
 
-#: assets/admin/build/index.js:30
-#: assets/admin/src/products/ReleasesPanel.js:641
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:571
 msgid "No releases yet. Upload one above to start serving updates."
 msgstr ""
 
-#. translators: %d: staged rollout percentage.
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:717
-#, js-format
-msgid "%d%% rollout"
-msgstr ""
-
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:735
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:645
 msgid "SHA-256"
 msgstr ""
 
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:746
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:656
 msgid "Copy the SHA-256 checksum"
 msgstr ""
 
-#: assets/admin/build/index.js:31
-#: assets/admin/build/index.js:45
-#: assets/admin/src/products/ReleasesPanel.js:759
-#: assets/admin/src/screens/LicenseDetail.js:211
+#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:43
+#: assets/admin/src/products/ReleasesPanel.js:669
+#: assets/admin/src/screens/LicenseDetail.js:231
 msgid "Copied"
 msgstr ""
 
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:413
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:379
 msgid "The package could not be downloaded."
 msgstr ""
 
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:769
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:679
 msgid "Download"
 msgstr ""
 
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:815
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:725
 msgid "Yank"
 msgstr ""
 
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:465
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:431
 msgid "Delete this release? This cannot be undone."
 msgstr ""
 
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:842
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:752
 msgid "Please reload the page and try again."
 msgstr ""
 
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:860
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:770
 msgid "Publish anyway"
 msgstr ""
 
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:886
-#: assets/admin/src/products/ReleasesPanel.js:894
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:796
+#: assets/admin/src/products/ReleasesPanel.js:804
 msgid "Replace package (.zip)"
 msgstr ""
 
-#: assets/admin/build/index.js:31
-#: assets/admin/src/products/ReleasesPanel.js:1008
+#: assets/admin/build/index.js:28
+#: assets/admin/src/products/ReleasesPanel.js:877
 msgid "Only the version is locked once a release is published or yanked."
 msgstr ""
 
-#: assets/admin/build/index.js:31
-#: assets/admin/build/index.js:84
-#: assets/admin/src/products/ReleasesPanel.js:1021
+#: assets/admin/build/index.js:28
+#: assets/admin/build/index.js:82
+#: assets/admin/src/products/ReleasesPanel.js:890
 #: assets/admin/src/screens/Settings.js:1220
 msgid "Save changes"
 msgstr ""
 
 #. translators: %s: the field label.
-#: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:278
+#: assets/admin/build/index.js:29
+#: assets/admin/src/screens/ProductEdit.js:301
 #, js-format
 msgid "The \"%s\" field needs an extension that is not active."
 msgstr ""
 
-#: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:616
-#: assets/admin/src/screens/ProductEdit.js:694
+#: assets/admin/build/index.js:29
+#: assets/admin/src/screens/ProductEdit.js:644
+#: assets/admin/src/screens/ProductEdit.js:722
 msgid "Edit product"
 msgstr ""
 
-#: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:490
+#: assets/admin/build/index.js:29
+#: assets/admin/src/screens/ProductEdit.js:526
 msgid "Pricing"
 msgstr ""
 
-#: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:598
+#: assets/admin/build/index.js:29
+#: assets/admin/src/screens/ProductEdit.js:629
 msgid "Save the product before you can manage releases."
 msgstr ""
 
-#: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:615
+#: assets/admin/build/index.js:29
+#: assets/admin/src/screens/ProductEdit.js:643
 msgid "Add product"
 msgstr ""
 
-#: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:620
+#: assets/admin/build/index.js:29
+#: assets/admin/src/screens/ProductEdit.js:648
 msgid "Back to products"
 msgstr ""
 
-#: assets/admin/build/index.js:32
-#: assets/admin/src/screens/ProductEdit.js:637
+#: assets/admin/build/index.js:29
+#: assets/admin/src/screens/ProductEdit.js:665
 msgid "Please fix the errors below."
 msgstr ""
 
-#: assets/admin/build/index.js:32
+#. translators: %d: the position of the price in the list, starting at 1.
+#: assets/admin/build/index.js:30
+#: assets/admin/src/screens/ProductEdit.js:505
+#, js-format
+msgid "Price %d needs a license length. Pick Lifetime or Duration."
+msgstr ""
+
+#: assets/admin/build/index.js:30
 #: assets/admin/src/screens/Terms.js:393
 #: assets/admin/src/screens/Terms.js:822
 msgid "Categories and tags"
 msgstr ""
 
-#: assets/admin/build/index.js:32
+#: assets/admin/build/index.js:30
 #: assets/admin/src/screens/Terms.js:394
 msgid "Categories group products into a hierarchy; tags are flat labels. Both are assigned per product in the product editor."
 msgstr ""
 
-#: assets/admin/build/index.js:32
+#: assets/admin/build/index.js:30
 #: assets/admin/src/screens/Terms.js:444
 #: assets/admin/src/screens/Terms.js:530
 #: assets/admin/src/screens/Terms.js:661
@@ -6822,13 +6551,13 @@ msgstr ""
 msgid "Slug (optional)"
 msgstr ""
 
-#: assets/admin/build/index.js:32
+#: assets/admin/build/index.js:30
 #: assets/admin/src/screens/Terms.js:456
 #: assets/admin/src/screens/Terms.js:545
 msgid "Parent"
 msgstr ""
 
-#: assets/admin/build/index.js:32
+#: assets/admin/build/index.js:30
 #: assets/admin/src/screens/Terms.js:468
 #: assets/admin/src/screens/Terms.js:560
 #: assets/admin/src/screens/Terms.js:672
@@ -6836,182 +6565,182 @@ msgstr ""
 msgid "Description (optional)"
 msgstr ""
 
-#: assets/admin/build/index.js:32
+#: assets/admin/build/index.js:30
 #: assets/admin/src/screens/Terms.js:500
 msgid "No categories yet. Add one above to start grouping products."
 msgstr ""
 
-#: assets/admin/build/index.js:32
-#: assets/admin/build/index.js:40
+#: assets/admin/build/index.js:30
+#: assets/admin/build/index.js:38
 #: assets/admin/src/screens/Customers.js:469
 #: assets/admin/src/screens/Terms.js:582
 #: assets/admin/src/screens/Terms.js:765
 msgid "Save"
 msgstr ""
 
-#: assets/admin/build/index.js:32
+#: assets/admin/build/index.js:30
 #: assets/admin/src/screens/Terms.js:367
 msgid "Deleting this category will re-parent its child categories to its parent. Continue?"
 msgstr ""
 
-#: assets/admin/build/index.js:32
+#: assets/admin/build/index.js:30
 #: assets/admin/src/screens/Terms.js:702
 msgid "No tags yet. Add one above to start labelling products."
 msgstr ""
 
-#: assets/admin/build/index.js:32
+#: assets/admin/build/index.js:30
 #: assets/admin/src/screens/Terms.js:385
 msgid "Delete this tag?"
 msgstr ""
 
 #. translators: %s: a product id, shown when the product's name is not in the filter list.
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/Orders.js:93
 #, js-format
 msgid "Product #%s"
 msgstr ""
 
-#: assets/admin/build/index.js:33
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:31
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:800
 #: assets/admin/src/screens/Orders.js:101
 msgid "All products"
 msgstr ""
 
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/Orders.js:275
 msgid "Products unavailable"
 msgstr ""
 
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/Orders.js:291
 msgid "Search orders"
 msgstr ""
 
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/Orders.js:303
 msgid "The orders could not be loaded."
 msgstr ""
 
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/Orders.js:311
 msgid "No orders match these filters."
 msgstr ""
 
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/Orders.js:312
 msgid "No orders yet. Completed and pending purchases appear here."
 msgstr ""
 
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/OrderDetail.js:35
 msgid "Back to orders"
 msgstr ""
 
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/OrderDetail.js:93
 msgid "The refund could not be processed."
 msgstr ""
 
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/OrderDetail.js:102
 msgid "Another refund for this order is still being recorded. Wait a moment and try again."
 msgstr ""
 
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/OrderDetail.js:109
 msgid "Nothing was charged or refunded: the payment gateway is not configured."
 msgstr ""
 
-#: assets/admin/build/index.js:33
+#: assets/admin/build/index.js:31
 #: assets/admin/src/screens/OrderDetail.js:116
 msgid "The payment gateway did not confirm this refund, so the money may or may not have moved. Do not retry it. The store reconciles the refund automatically when the gateway's webhook arrives."
 msgstr ""
 
-#: assets/admin/build/index.js:33
-#: assets/admin/src/screens/OrderDetail.js:250
+#: assets/admin/build/index.js:31
+#: assets/admin/src/screens/OrderDetail.js:249
 msgid "Refund order"
 msgstr ""
 
-#: assets/admin/build/index.js:33
-#: assets/admin/src/screens/OrderDetail.js:259
+#: assets/admin/build/index.js:31
+#: assets/admin/src/screens/OrderDetail.js:258
 msgid "Refund amount"
 msgstr ""
 
 #. translators: %s: ISO 4217 currency code.
-#: assets/admin/build/index.js:34
-#: assets/admin/src/screens/OrderDetail.js:264
+#: assets/admin/build/index.js:32
+#: assets/admin/src/screens/OrderDetail.js:263
 #, js-format
 msgid "Amount to refund, in %s."
 msgstr ""
 
-#: assets/admin/build/index.js:34
-#: assets/admin/src/screens/OrderDetail.js:277
+#: assets/admin/build/index.js:32
+#: assets/admin/src/screens/OrderDetail.js:276
 msgid "Review refund"
 msgstr ""
 
 #. translators: 1: formatted amount, 2: ISO 4217 currency code.
-#: assets/admin/build/index.js:35
-#: assets/admin/src/screens/OrderDetail.js:288
+#: assets/admin/build/index.js:33
+#: assets/admin/src/screens/OrderDetail.js:287
 #, js-format
 msgid "You are about to refund %1$s (%2$s) to the customer. This cannot be undone."
 msgstr ""
 
-#: assets/admin/build/index.js:35
-#: assets/admin/src/screens/OrderDetail.js:313
+#: assets/admin/build/index.js:33
+#: assets/admin/src/screens/OrderDetail.js:312
 msgid "Back"
 msgstr ""
 
-#: assets/admin/build/index.js:35
-#: assets/admin/src/screens/OrderDetail.js:321
+#: assets/admin/build/index.js:33
+#: assets/admin/src/screens/OrderDetail.js:320
 msgid "Confirm refund"
 msgstr ""
 
-#: assets/admin/build/index.js:35
-#: assets/admin/src/screens/OrderDetail.js:603
+#: assets/admin/build/index.js:33
+#: assets/admin/src/screens/OrderDetail.js:620
 msgid "Order detail"
 msgstr ""
 
-#: assets/admin/build/index.js:35
-#: assets/admin/src/screens/OrderDetail.js:399
+#: assets/admin/build/index.js:33
+#: assets/admin/src/screens/OrderDetail.js:398
 msgid "The order could not be loaded."
 msgstr ""
 
 #. translators: %d: the order id.
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:415
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:414
 #, js-format
 msgid "Order #%d"
 msgstr ""
 
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:445
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:444
 msgid "Reference"
 msgstr ""
 
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:474
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:473
 msgid "Transaction"
 msgstr ""
 
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:494
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:493
 msgid "Billing country"
 msgstr ""
 
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:519
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:536
 msgid "Items"
 msgstr ""
 
-#: assets/admin/build/index.js:36
-#: assets/admin/src/screens/OrderDetail.js:528
-#: assets/admin/src/screens/OrderDetail.js:563
+#: assets/admin/build/index.js:34
+#: assets/admin/src/screens/OrderDetail.js:545
+#: assets/admin/src/screens/OrderDetail.js:580
 msgid "Discount"
 msgstr ""
 
 #. translators: %d: how many customers are about to be deleted.
-#: assets/admin/build/index.js:38
+#: assets/admin/build/index.js:36
 #: assets/admin/src/screens/Customers.js:169
 #, js-format
 msgid "Delete %d customer permanently? This cannot be undone."
@@ -7019,70 +6748,70 @@ msgid_plural "Delete %d customers permanently? This cannot be undone."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/admin/build/index.js:38
+#: assets/admin/build/index.js:36
 #: assets/admin/src/screens/Customers.js:292
 msgid "Guest"
 msgstr ""
 
-#: assets/admin/build/index.js:38
+#: assets/admin/build/index.js:36
 #: assets/admin/src/screens/Customers.js:295
 msgid "Registered"
 msgstr ""
 
 #. translators: %s: a customer's email address.
-#: assets/admin/build/index.js:39
+#: assets/admin/build/index.js:37
 #: assets/admin/src/screens/Customers.js:306
 #, js-format
 msgid "Edit the WordPress user for %s"
 msgstr ""
 
 #. translators: %s: a WordPress user id, shown when the account behind it no longer exists.
-#: assets/admin/build/index.js:40
+#: assets/admin/build/index.js:38
 #: assets/admin/src/screens/Customers.js:151
 #, js-format
 msgid "User #%s"
 msgstr ""
 
-#: assets/admin/build/index.js:40
+#: assets/admin/build/index.js:38
 #: assets/admin/src/screens/Customers.js:396
 msgid "Edit customer"
 msgstr ""
 
-#: assets/admin/build/index.js:40
-#: assets/admin/build/index.js:41
+#: assets/admin/build/index.js:38
+#: assets/admin/build/index.js:39
 #: assets/admin/src/screens/Customers.js:397
 #: assets/admin/src/screens/Customers.js:610
 #: assets/admin/src/screens/Customers.js:670
 msgid "Add customer"
 msgstr ""
 
-#: assets/admin/build/index.js:40
+#: assets/admin/build/index.js:38
 #: assets/admin/src/screens/Customers.js:413
 msgid "Enter a valid email address."
 msgstr ""
 
-#: assets/admin/build/index.js:40
+#: assets/admin/build/index.js:38
 #: assets/admin/src/screens/Customers.js:426
 msgid "Assigned user"
 msgstr ""
 
-#: assets/admin/build/index.js:40
+#: assets/admin/build/index.js:38
 #: assets/admin/src/screens/Customers.js:442
 msgid "Search by name or email. Leave this empty to keep the customer a guest."
 msgstr ""
 
-#: assets/admin/build/index.js:40
+#: assets/admin/build/index.js:38
 #: assets/admin/src/screens/Customers.js:618
 msgid "Search customers"
 msgstr ""
 
-#: assets/admin/build/index.js:40
+#: assets/admin/build/index.js:38
 #: assets/admin/src/screens/Customers.js:619
 msgid "Search by name or email"
 msgstr ""
 
 #. translators: %d: how many customers were deleted.
-#: assets/admin/build/index.js:41
+#: assets/admin/build/index.js:39
 #: assets/admin/src/screens/Customers.js:208
 #, js-format
 msgid "%d customer deleted."
@@ -7090,47 +6819,47 @@ msgid_plural "%d customers deleted."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/admin/build/index.js:41
+#: assets/admin/build/index.js:39
 #: assets/admin/src/screens/Customers.js:655
 msgid "No customers match this search."
 msgstr ""
 
-#: assets/admin/build/index.js:41
+#: assets/admin/build/index.js:39
 #: assets/admin/src/screens/Customers.js:659
 msgid "No customers yet. A customer record is created with the first purchase."
 msgstr ""
 
-#: assets/admin/build/index.js:41
+#: assets/admin/build/index.js:39
 #: assets/admin/src/screens/Customers.js:679
 msgid "Bulk actions for customers"
 msgstr ""
 
-#: assets/admin/build/index.js:41
+#: assets/admin/build/index.js:39
 #: assets/admin/src/screens/Customers.js:712
 msgid "Lifetime total"
 msgstr ""
 
 #. translators: 1: number of activations used, 2: the activation limit (or an infinity symbol for unlimited).
-#: assets/admin/build/index.js:42
-#: assets/admin/build/index.js:46
-#: assets/admin/src/screens/LicenseDetail.js:93
+#: assets/admin/build/index.js:40
+#: assets/admin/build/index.js:44
+#: assets/admin/src/screens/LicenseDetail.js:113
 #: assets/admin/src/screens/Licenses.js:93
 #, js-format
 msgid "%1$d / %2$s"
 msgstr ""
 
-#: assets/admin/build/index.js:43
+#: assets/admin/build/index.js:41
 #: assets/admin/src/screens/Licenses.js:305
 msgid "Search licenses"
 msgstr ""
 
-#: assets/admin/build/index.js:43
+#: assets/admin/build/index.js:41
 #: assets/admin/src/screens/Licenses.js:307
 msgid "Search by license key or email"
 msgstr ""
 
 #. translators: %d: how many licenses were disabled.
-#: assets/admin/build/index.js:44
+#: assets/admin/build/index.js:42
 #: assets/admin/src/screens/Licenses.js:126
 #, js-format
 msgid "%d license disabled."
@@ -7139,7 +6868,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: how many licenses were enabled.
-#: assets/admin/build/index.js:45
+#: assets/admin/build/index.js:43
 #: assets/admin/src/screens/Licenses.js:138
 #, js-format
 msgid "%d license enabled."
@@ -7147,169 +6876,169 @@ msgid_plural "%d licenses enabled."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/admin/build/index.js:45
+#: assets/admin/build/index.js:43
 #: assets/admin/src/screens/Licenses.js:357
 msgid "No licenses match these filters."
 msgstr ""
 
-#: assets/admin/build/index.js:45
+#: assets/admin/build/index.js:43
 #: assets/admin/src/screens/Licenses.js:361
 msgid "No licenses yet. A license is issued for every purchase of a licensed product."
 msgstr ""
 
-#: assets/admin/build/index.js:45
+#: assets/admin/build/index.js:43
 #: assets/admin/src/screens/Licenses.js:371
 msgid "Bulk actions for licenses"
 msgstr ""
 
-#: assets/admin/build/index.js:45
+#: assets/admin/build/index.js:43
 #: assets/admin/src/screens/Licenses.js:106
 msgid "Disable"
 msgstr ""
 
-#: assets/admin/build/index.js:45
+#: assets/admin/build/index.js:43
 #: assets/admin/src/screens/Licenses.js:107
 msgid "Enable"
 msgstr ""
 
-#: assets/admin/build/index.js:45
-#: assets/admin/build/index.js:48
-#: assets/admin/src/screens/LicenseDetail.js:233
-#: assets/admin/src/screens/LicenseDetail.js:277
+#: assets/admin/build/index.js:43
+#: assets/admin/build/index.js:46
+#: assets/admin/src/screens/LicenseDetail.js:253
+#: assets/admin/src/screens/LicenseDetail.js:297
 #: assets/admin/src/screens/Licenses.js:403
 msgid "Activations"
 msgstr ""
 
-#: assets/admin/build/index.js:45
-#: assets/admin/src/screens/LicenseDetail.js:29
+#: assets/admin/build/index.js:43
+#: assets/admin/src/screens/LicenseDetail.js:30
 msgid "Back to licenses"
 msgstr ""
 
-#: assets/admin/build/index.js:45
-#: assets/admin/build/index.js:48
-#: assets/admin/src/screens/LicenseDetail.js:50
-#: assets/admin/src/screens/LicenseDetail.js:284
+#: assets/admin/build/index.js:43
+#: assets/admin/build/index.js:46
+#: assets/admin/src/screens/LicenseDetail.js:51
+#: assets/admin/src/screens/LicenseDetail.js:304
 msgid "Deactivated"
 msgstr ""
 
-#: assets/admin/build/index.js:45
-#: assets/admin/src/screens/LicenseDetail.js:159
-#: assets/admin/src/screens/LicenseDetail.js:171
-#: assets/admin/src/screens/LicenseDetail.js:189
-#: assets/admin/src/screens/LicenseDetail.js:392
+#: assets/admin/build/index.js:43
+#: assets/admin/src/screens/LicenseDetail.js:179
+#: assets/admin/src/screens/LicenseDetail.js:191
+#: assets/admin/src/screens/LicenseDetail.js:209
+#: assets/admin/src/screens/LicenseDetail.js:423
 msgid "License"
 msgstr ""
 
-#: assets/admin/build/index.js:45
-#: assets/admin/src/screens/LicenseDetail.js:179
+#: assets/admin/build/index.js:43
+#: assets/admin/src/screens/LicenseDetail.js:199
 msgid "License not found."
 msgstr ""
 
-#: assets/admin/build/index.js:45
-#: assets/admin/src/screens/LicenseDetail.js:212
+#: assets/admin/build/index.js:43
+#: assets/admin/src/screens/LicenseDetail.js:232
 msgid "Copy"
 msgstr ""
 
-#: assets/admin/build/index.js:48
-#: assets/admin/src/screens/LicenseDetail.js:281
+#: assets/admin/build/index.js:46
+#: assets/admin/src/screens/LicenseDetail.js:301
 msgid "Site"
 msgstr ""
 
-#: assets/admin/build/index.js:48
-#: assets/admin/src/screens/LicenseDetail.js:285
+#: assets/admin/build/index.js:46
+#: assets/admin/src/screens/LicenseDetail.js:305
 msgid "Last checked"
 msgstr ""
 
-#: assets/admin/build/index.js:48
-#: assets/admin/src/screens/LicenseDetail.js:293
+#: assets/admin/build/index.js:46
+#: assets/admin/src/screens/LicenseDetail.js:313
 msgid "No activations yet."
 msgstr ""
 
-#: assets/admin/build/index.js:48
-#: assets/admin/src/screens/LicenseDetail.js:343
+#: assets/admin/build/index.js:46
+#: assets/admin/src/screens/LicenseDetail.js:374
 msgid "Deactivate this activation?"
 msgstr ""
 
-#: assets/admin/build/index.js:48
-#: assets/admin/src/screens/LicenseDetail.js:347
+#: assets/admin/build/index.js:46
+#: assets/admin/src/screens/LicenseDetail.js:378
 msgid "This frees up the activation slot right away, so the customer can activate their license elsewhere."
 msgstr ""
 
-#: assets/admin/build/index.js:48
-#: assets/admin/src/screens/LicenseDetail.js:376
+#: assets/admin/build/index.js:46
+#: assets/admin/src/screens/LicenseDetail.js:407
 msgid "Yes, deactivate"
 msgstr ""
 
 #. translators: %s: the UTC date and time the discount becomes available.
-#: assets/admin/build/index.js:48
+#: assets/admin/build/index.js:46
 #: assets/admin/src/screens/Discounts.js:128
 #, js-format
 msgid "From %s UTC"
 msgstr ""
 
 #. translators: %s: the UTC date and time the discount stops being available.
-#: assets/admin/build/index.js:48
+#: assets/admin/build/index.js:46
 #: assets/admin/src/screens/Discounts.js:132
 #, js-format
 msgid "Until %s UTC"
 msgstr ""
 
 #. translators: 1: the UTC start date and time. 2: the UTC end date and time.
-#: assets/admin/build/index.js:48
+#: assets/admin/build/index.js:46
 #: assets/admin/src/screens/Discounts.js:135
 #, js-format
 msgid "%1$s to %2$s UTC"
 msgstr ""
 
-#: assets/admin/build/index.js:49
+#: assets/admin/build/index.js:47
 #: assets/admin/src/screens/Discounts.js:124
 msgid "Always available"
 msgstr ""
 
 #. translators: %s: the store's currency code, for example USD.
-#: assets/admin/build/index.js:51
+#: assets/admin/build/index.js:49
 #: assets/admin/src/screens/Discounts.js:148
 #, js-format
 msgid "Fixed amount (%s)"
 msgstr ""
 
 #. translators: %s: the store's currency code, for example USD.
-#: assets/admin/build/index.js:55
+#: assets/admin/build/index.js:53
 #: assets/admin/src/screens/Discounts.js:170
 #, js-format
 msgid "Minimum order total (%s)"
 msgstr ""
 
 #. translators: %s: the discount code.
-#: assets/admin/build/index.js:57
+#: assets/admin/build/index.js:55
 #: assets/admin/src/screens/Discounts.js:203
 #, js-format
 msgid "Delete %s"
 msgstr ""
 
 #. translators: 1: the discount code. 2: the error message.
-#: assets/admin/build/index.js:58
+#: assets/admin/build/index.js:56
 #: assets/admin/src/screens/Discounts.js:216
 #, js-format
 msgid "Could not update %1$s. %2$s"
 msgstr ""
 
 #. translators: %s: the discount code.
-#: assets/admin/build/index.js:60
+#: assets/admin/build/index.js:58
 #: assets/admin/src/screens/Discounts.js:230
 #, js-format
 msgid "Deactivate %s"
 msgstr ""
 
 #. translators: %s: the discount code.
-#: assets/admin/build/index.js:62
+#: assets/admin/build/index.js:60
 #: assets/admin/src/screens/Discounts.js:241
 #, js-format
 msgid "Activate %s"
 msgstr ""
 
 #. translators: %d: how many discounts are about to be deleted.
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:253
 #, js-format
 msgid "Delete %d discount permanently? This cannot be undone."
@@ -7317,185 +7046,185 @@ msgid_plural "Delete %d discounts permanently? This cannot be undone."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:666
 msgid "Customers enter this at checkout. Letters and numbers only."
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:691
 msgid "Edit discount"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:692
 #: assets/admin/src/screens/Discounts.js:1181
 msgid "Add discount"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:522
 msgid "A code is required."
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:525
 msgid "A name is required."
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:533
 msgid "Enter a percent amount."
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:539
 msgid "Enter an amount."
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:547
 msgid "Choose at least one product."
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:554
 msgid "Choose at least one category."
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:712
 msgid "A short label so you can find this discount."
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:722
 msgid "Automatic (no code)"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:723
 msgid "Apply this discount automatically to every matching cart, with no code to type."
 msgstr ""
 
-#: assets/admin/build/index.js:63
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:61
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:737
 #: assets/admin/src/screens/Discounts.js:1324
 msgid "Code"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:746
 msgid "Discount type"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:750
 msgid "Percent off"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:769
 msgid "Amount (%)"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:796
 msgid "Applies to"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:804
 msgid "Chosen products"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:808
 msgid "Chosen categories"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:823
 msgid "The products this automatic discount applies to."
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:827
 msgid "The products this discount applies to. Leave empty to apply it to all products."
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:842
 msgid "Products in these categories get the discount."
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:871
 msgid "Maximum uses"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:875
 msgid "Set to 0 for unlimited uses."
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:882
 msgid "Limit to one use per customer"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:894
 msgid "Starts at"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:898
 msgid "Times are in UTC, not your local time zone. Leave blank to start immediately."
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:911
 msgid "Expires at"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:915
 msgid "Times are in UTC, not your local time zone. Leave blank for no expiry."
 msgstr ""
 
 #. translators: %d: the number of times the discount has been used.
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:181
 #, js-format
 msgid "Times used: %d"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:943
 msgid "Save discount"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:1215
 msgid "Search discounts"
 msgstr ""
 
-#: assets/admin/build/index.js:63
+#: assets/admin/build/index.js:61
 #: assets/admin/src/screens/Discounts.js:1216
 msgid "Search by code or name"
 msgstr ""
 
-#: assets/admin/build/index.js:63
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:61
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:1230
 #: assets/admin/src/screens/Discounts.js:1359
 msgid "Inactive"
 msgstr ""
 
 #. translators: %d: how many discounts were activated.
-#: assets/admin/build/index.js:64
+#: assets/admin/build/index.js:62
 #: assets/admin/src/screens/Discounts.js:316
 #, js-format
 msgid "%d discount activated."
@@ -7504,7 +7233,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: how many discounts were deactivated.
-#: assets/admin/build/index.js:65
+#: assets/admin/build/index.js:63
 #: assets/admin/src/screens/Discounts.js:329
 #, js-format
 msgid "%d discount deactivated."
@@ -7513,7 +7242,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: how many discounts were deleted.
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:341
 #, js-format
 msgid "%d discount deleted."
@@ -7521,197 +7250,192 @@ msgid_plural "%d discounts deleted."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:1285
 msgid "No discounts match these filters."
 msgstr ""
 
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:1289
 msgid "No discounts yet. Discount codes you create appear here."
 msgstr ""
 
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:1300
 msgid "Bulk actions for discounts"
 msgstr ""
 
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:1327
 msgid "Amount"
 msgstr ""
 
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:1328
 msgid "Uses"
 msgstr ""
 
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:1329
 msgid "Window"
 msgstr ""
 
 #. translators: %s: the discount code.
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:192
 #, js-format
 msgid "Edit %s"
 msgstr ""
 
-#: assets/admin/build/index.js:66
+#: assets/admin/build/index.js:64
 #: assets/admin/src/screens/Discounts.js:1433
 msgid "Delete discount"
 msgstr ""
 
 #. translators: %s: the discount code.
-#: assets/admin/build/index.js:67
+#: assets/admin/build/index.js:65
 #: assets/admin/src/screens/Discounts.js:278
 #, js-format
 msgid "Delete %s permanently? This cannot be undone."
 msgstr ""
 
-#: assets/admin/build/index.js:67
+#: assets/admin/build/index.js:65
 #: assets/admin/src/screens/Discounts.js:271
 msgid "Delete this discount permanently? This cannot be undone."
 msgstr ""
 
-#: assets/admin/build/index.js:67
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:65
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Discounts.js:1471
 #: assets/admin/src/screens/Settings.js:509
 msgid "Confirm delete"
 msgstr ""
 
-#: assets/admin/build/index.js:67
+#: assets/admin/build/index.js:65
 #: assets/admin/src/components/ExportMenu.js:74
 #: assets/admin/src/components/ExportMenu.js:80
 msgid "Export CSV"
 msgstr ""
 
-#: assets/admin/build/index.js:67
+#: assets/admin/build/index.js:65
 #: assets/admin/src/components/ExportMenu.js:54
 msgid "The export could not be downloaded."
 msgstr ""
 
-#: assets/admin/build/index.js:67
+#: assets/admin/build/index.js:65
 #: assets/admin/src/screens/Reports.js:125
 msgid "Sales (CSV)"
 msgstr ""
 
-#: assets/admin/build/index.js:67
+#: assets/admin/build/index.js:65
 #: assets/admin/src/screens/Reports.js:135
 msgid "Orders (CSV)"
 msgstr ""
 
-#: assets/admin/build/index.js:67
+#: assets/admin/build/index.js:65
 #: assets/admin/src/screens/Reports.js:147
 msgid "Sales reports"
 msgstr ""
 
-#: assets/admin/build/index.js:67
+#: assets/admin/build/index.js:65
 #: assets/admin/src/screens/Reports.js:154
 msgid "From"
 msgstr ""
 
-#: assets/admin/build/index.js:67
+#: assets/admin/build/index.js:65
 #: assets/admin/src/screens/Reports.js:162
 msgid "To"
 msgstr ""
 
-#: assets/admin/build/index.js:67
+#: assets/admin/build/index.js:65
 #: assets/admin/src/screens/Reports.js:178
 msgid "Dates are UTC calendar days. Leave both fields blank for the last 30 days."
 msgstr ""
 
-#: assets/admin/build/index.js:67
+#: assets/admin/build/index.js:65
 #: assets/admin/src/screens/Reports.js:198
 msgid "These totals cover the store currency only. Orders and refunds taken in other currencies are reported separately below."
 msgstr ""
 
 #. translators: 1: currency code. 2: gross amount in that currency. 3: refunded amount in that currency.
-#: assets/admin/build/index.js:68
+#: assets/admin/build/index.js:66
 #: assets/admin/src/screens/Reports.js:209
 #, js-format
 msgid "%1$s: %2$s gross, %3$s refunded"
 msgstr ""
 
-#: assets/admin/build/index.js:68
+#: assets/admin/build/index.js:66
 #: assets/admin/src/screens/Reports.js:233
 #: assets/admin/src/screens/Reports.js:272
 msgid "Gross"
 msgstr ""
 
-#: assets/admin/build/index.js:68
+#: assets/admin/build/index.js:66
 #: assets/admin/src/screens/Reports.js:255
 #: assets/admin/src/screens/Reports.js:274
 msgid "Net"
 msgstr ""
 
-#: assets/admin/build/index.js:68
+#: assets/admin/build/index.js:66
 #: assets/admin/src/screens/Reports.js:273
 msgid "Refund total"
 msgstr ""
 
-#: assets/admin/build/index.js:68
+#: assets/admin/build/index.js:66
 #: assets/admin/src/screens/Reports.js:306
 msgid "No sales in this period."
 msgstr ""
 
-#: assets/admin/build/index.js:68
+#: assets/admin/build/index.js:66
 #: assets/admin/src/screens/settings/values.js:92
 msgid "Not set"
 msgstr ""
 
 #. translators: %d: the page's numeric id.
-#: assets/admin/build/index.js:69
+#: assets/admin/build/index.js:67
 #: assets/admin/src/screens/settings/values.js:109
 #, js-format
 msgid "Page #%d"
 msgstr ""
 
-#: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:210
+#: assets/admin/build/index.js:67
+#: assets/admin/src/screens/settings/values.js:225
 msgid "Test mode"
 msgstr ""
 
-#: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:212
+#: assets/admin/build/index.js:67
+#: assets/admin/src/screens/settings/values.js:227
 msgid "Live mode"
 msgstr ""
 
-#: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:216
+#: assets/admin/build/index.js:67
+#: assets/admin/src/screens/settings/values.js:231
 msgid "Pages"
 msgstr ""
 
-#: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:218
+#: assets/admin/build/index.js:67
+#: assets/admin/src/screens/settings/values.js:233
 msgid "Front end"
 msgstr ""
 
-#: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:222
+#: assets/admin/build/index.js:67
+#: assets/admin/src/screens/settings/values.js:237
 msgid "Advanced"
 msgstr ""
 
-#: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:239
-msgid "PayPal"
-msgstr ""
-
-#: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:241
+#: assets/admin/build/index.js:67
+#: assets/admin/src/screens/settings/values.js:255
 msgid "Other"
 msgstr ""
 
-#: assets/admin/build/index.js:69
-#: assets/admin/src/screens/settings/values.js:290
+#: assets/admin/build/index.js:67
+#: assets/admin/src/screens/settings/values.js:302
 msgid "No events"
 msgstr ""
 
 #. translators: %d is the number of subscribed webhook events.
-#: assets/admin/build/index.js:72
-#: assets/admin/src/screens/settings/values.js:295
+#: assets/admin/build/index.js:70
+#: assets/admin/src/screens/settings/values.js:307
 #, js-format
 msgid "%d event"
 msgid_plural "%d events"
@@ -7719,163 +7443,163 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s is the human-readable field label.
-#: assets/admin/build/index.js:75
+#: assets/admin/build/index.js:73
 #: assets/admin/src/screens/Settings.js:107
 #, js-format
 msgid "The \"%s\" secret will be removed when you save."
 msgstr ""
 
-#: assets/admin/build/index.js:75
+#: assets/admin/build/index.js:73
 #: assets/admin/src/screens/Settings.js:115
 msgid "Undo"
 msgstr ""
 
 #. translators: %s is the human-readable field label.
-#: assets/admin/build/index.js:78
+#: assets/admin/build/index.js:76
 #: assets/admin/src/screens/Settings.js:124
 #, js-format
 msgid "%s (enter a new value to replace)"
 msgstr ""
 
-#: assets/admin/build/index.js:78
-#: assets/admin/build/index.js:81
+#: assets/admin/build/index.js:76
+#: assets/admin/build/index.js:79
 #: assets/admin/src/screens/Settings.js:147
 #: assets/admin/src/screens/Settings.js:213
 msgid "Clear"
 msgstr ""
 
-#: assets/admin/build/index.js:81
+#: assets/admin/build/index.js:79
 #: assets/admin/src/screens/Settings.js:290
 msgid "This setting is provided by an extension that is not loaded."
 msgstr ""
 
-#: assets/admin/build/index.js:81
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:79
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:443
 #: assets/admin/src/screens/Settings.js:653
 msgid "Add endpoint"
 msgstr ""
 
-#: assets/admin/build/index.js:81
+#: assets/admin/build/index.js:79
 #: assets/admin/src/screens/Settings.js:448
 msgid "No webhook endpoints yet."
 msgstr ""
 
-#: assets/admin/build/index.js:81
+#: assets/admin/build/index.js:79
 #: assets/admin/src/screens/Settings.js:453
 msgid "URL"
 msgstr ""
 
-#: assets/admin/build/index.js:81
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:79
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:454
 #: assets/admin/src/screens/Settings.js:675
 msgid "Events"
 msgstr ""
 
 #. translators: %s is the endpoint URL.
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:474
 #, js-format
 msgid "Active for %s"
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:487
 msgid "Every retry to this endpoint failed, so TierMint stopped sending to it. Check that the URL is reachable and returns a 2xx response, then switch the endpoint back to active."
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:493
 msgid "Failing"
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:601
 msgid "Endpoint created"
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:606
 msgid "Copy this signing secret now. For your security it is shown once and can never be retrieved again."
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:615
 msgid "Signing secret"
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:622
 msgid "Copy secret"
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:626
 msgid "Copied."
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:630
 msgid "Done"
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:670
 msgid "Endpoint URL"
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:696
 msgid "Create endpoint"
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:1087
 msgid "Payment gateways"
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:1150
 msgid "Settings saved."
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/screens/Settings.js:1167
 msgid "Settings sections"
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/app/ErrorBoundary.js:46
 msgid "Something went wrong while rendering this screen."
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/app/NotFound.js:18
 msgid "Page not found"
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/app/NotFound.js:20
 msgid "The screen you requested could not be found."
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/app/AccessDenied.js:20
 msgid "Access denied"
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/app/AccessDenied.js:22
 msgid "You do not have permission to view this screen."
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/app/UpsellBanner.js:87
 msgid "Dismiss"
 msgstr ""
 
-#: assets/admin/build/index.js:84
+#: assets/admin/build/index.js:82
 #: assets/admin/src/app/unsavedChangesGuard.js:26
 msgid "You have unsaved changes on this screen. Leave without saving?"
 msgstr ""

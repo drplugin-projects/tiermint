@@ -48,7 +48,6 @@ class WebhookEndpoints {
 		'license.activated',
 		'license.deactivated',
 		'license.expired',
-		'license.renewed',
 		'customer.created',
 	);
 

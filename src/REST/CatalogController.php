@@ -40,7 +40,7 @@ final class CatalogController extends AbstractRestController {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'countries' ),
-					// Public: static ISO 3166 reference data, cacheable, and the checkout country dropdown must load it for logged-out buyers.
+					// Public because guests load the checkout country list; static reference data.
 					'permission_callback' => '__return_true',
 				),
 			)
@@ -53,7 +53,7 @@ final class CatalogController extends AbstractRestController {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'currencies' ),
-					// Public for the same reason as the country list: static reference data.
+					// Public because it is static reference data, like the country list.
 					'permission_callback' => '__return_true',
 				),
 			)

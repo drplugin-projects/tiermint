@@ -119,10 +119,10 @@ class ProductRepository {
 			return $cached;
 		}
 
-		$row = $this->fetchRow(
-			'SELECT * FROM ' . $this->productsTable() . ' WHERE id = %d',
-			array( $id )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; this class decides what to cache.
+		$row = $this->fetchRow( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $this->productsTable(), $id ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -151,43 +151,11 @@ class ProductRepository {
 			return array();
 		}
 
-		$rows = $this->fetchRows(
-			'SELECT id, name FROM ' . $this->productsTable()
-				. ' WHERE id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')',
-			$unique
-		);
+		$wpdb   = $this->wpdb;
+		$values = array_merge( array( $this->productsTable() ), $unique );
 
-		$names = array();
-
-		foreach ( $rows as $row ) {
-			$names[ (int) $row->id ] = (string) $row->name;
-		}
-
-		return $names;
-	}
-
-	/**
-	 * Price tier names by id for list views.
-	 *
-	 * Read only id and name. Missing tiers are not included.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array<int, mixed> $ids The price ids to name.
-	 * @return array<int, string> Price id => name.
-	 */
-	public function priceNamesFor( array $ids ): array {
-		$unique = $this->positiveIds( $ids );
-
-		if ( array() === $unique ) {
-			return array();
-		}
-
-		$rows = $this->fetchRows(
-			'SELECT id, name FROM ' . $this->pricesTable()
-				. ' WHERE id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')',
-			$unique
-		);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->fetchRows( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT id, name FROM %i WHERE id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')', $values ) ) );
 
 		$names = array();
 
@@ -213,10 +181,10 @@ class ProductRepository {
 			return $cached;
 		}
 
-		$row = $this->fetchRow(
-			'SELECT * FROM ' . $this->productsTable() . ' WHERE slug = %s',
-			array( $slug )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; this class decides what to cache.
+		$row = $this->fetchRow( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE slug = %s', $this->productsTable(), $slug ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -244,14 +212,15 @@ class ProductRepository {
 		$id = $product->id();
 
 		if ( null === $id ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ProductException( __( 'Cannot update a product that has no id.', 'tiermint' ) );
 		}
 
 		$row          = $product->toRow();
+		$wpdb         = $this->wpdb;
 		$previousSlug = (string) $this->fetchVar(
-			'SELECT slug FROM ' . $this->productsTable() . ' WHERE id = %d',
-			array( $id )
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_var( $wpdb->prepare( 'SELECT slug FROM %i WHERE id = %d', $this->productsTable(), $id ) )
 		);
 
 		$this->updateWhere(
@@ -294,15 +263,15 @@ class ProductRepository {
 	 */
 	public function delete( int $id ): void {
 		$existing = $this->find( $id );
+		$wpdb     = $this->wpdb;
 
 		// find() cached the product. Evict it even when a cascade fails.
 		try {
 			$this->deleteWhere( $this->productsTable(), array( 'id' => $id ) );
 			$this->deleteWhere( $this->pricesTable(), array( 'product_id' => $id ) );
-			$this->run(
-				'DELETE FROM ' . $this->bundleTable() . ' WHERE bundle_product_id = %d OR child_product_id = %d',
-				array( $id, $id )
-			);
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE bundle_product_id = %d OR child_product_id = %d', $this->bundleTable(), $id, $id ) );
 			$this->deleteWhere( $this->relationshipsTable(), array( 'product_id' => $id ) );
 		} finally {
 			$this->forget( $id, null !== $existing ? $existing->slug() : '' );
@@ -346,23 +315,62 @@ class ProductRepository {
 	 * @return array<int, Product> The matching, fully-hydrated products.
 	 */
 	public function query( array $args ): array {
-		$args = $this->normalizeArgs( $args );
+		$args    = $this->normalizeArgs( $args );
+		$filters = $this->filters( $args );
 
-		list( $where, $params ) = $this->buildFilters( $args );
+		if ( null === $filters ) {
+			return array();
+		}
 
-		$orderby = $this->whitelistOrderby( $args['orderby'] ?? 'created_at' );
-		$order   = $this->whitelistOrder( $args['order'] ?? 'DESC' );
+		$termIds = $filters['term_ids'];
+		$tags    = $filters['tag_slugs'];
 		$perPage = $this->perPage( $args );
-		$page    = max( 1, (int) ( $args['page'] ?? 1 ) );
+		$values  = array_merge(
+			$filters['values'],
+			array(
+				$this->whitelistOrderby( $args['orderby'] ?? 'created_at' ),
+				$perPage,
+				( max( 1, (int) ( $args['page'] ?? 1 ) ) - 1 ) * $perPage,
+			)
+		);
+		$wpdb    = $this->wpdb;
 
-		$sql = 'SELECT * FROM ' . $this->productsTable() . $where
-			. ' ORDER BY ' . $orderby . ' ' . $order . ', id ' . $order
-			. ' LIMIT %d OFFSET %d';
+		// The WHERE is the one in countQuery(); keep the copies in step.
+		if ( 'ASC' === $this->whitelistOrder( $args['order'] ?? 'DESC' ) ) {
+			$rows = $this->fetchRows(
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+				fn () => $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT * FROM %i WHERE ( %s = '' OR status = %s )" .
+						' AND ( %d = 0 OR name LIKE %s OR slug LIKE %s OR overview LIKE %s OR description LIKE %s )' .
+						' AND ( %d = 0 OR id IN ( SELECT tr.product_id FROM %i tr WHERE tr.term_id IN ( ' .
+						implode( ', ', array_fill( 0, count( $termIds ), '%d' ) ) . ' ) ) )' .
+						' AND ( %d = 0 OR id IN ( SELECT tr.product_id FROM %i tr INNER JOIN %i t ON t.id = tr.term_id' .
+						' WHERE t.taxonomy = %s AND t.slug IN ( ' . implode( ', ', array_fill( 0, count( $tags ), '%s' ) ) . ' ) ) )' .
+						' ORDER BY %i ASC, id ASC LIMIT %d OFFSET %d',
+						$values
+					)
+				)
+			);
+		} else {
+			$rows = $this->fetchRows(
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+				fn () => $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT * FROM %i WHERE ( %s = '' OR status = %s )" .
+						' AND ( %d = 0 OR name LIKE %s OR slug LIKE %s OR overview LIKE %s OR description LIKE %s )' .
+						' AND ( %d = 0 OR id IN ( SELECT tr.product_id FROM %i tr WHERE tr.term_id IN ( ' .
+						implode( ', ', array_fill( 0, count( $termIds ), '%d' ) ) . ' ) ) )' .
+						' AND ( %d = 0 OR id IN ( SELECT tr.product_id FROM %i tr INNER JOIN %i t ON t.id = tr.term_id' .
+						' WHERE t.taxonomy = %s AND t.slug IN ( ' . implode( ', ', array_fill( 0, count( $tags ), '%s' ) ) . ' ) ) )' .
+						' ORDER BY %i DESC, id DESC LIMIT %d OFFSET %d',
+						$values
+					)
+				)
+			);
+		}
 
-		$params[] = $perPage;
-		$params[] = ( $page - 1 ) * $perPage;
-
-		return $this->hydratePage( $this->fetchRows( $sql, $params ) );
+		return $this->hydratePage( $rows );
 	}
 
 	/**
@@ -404,13 +412,31 @@ class ProductRepository {
 	 * @return int The total matching product count.
 	 */
 	public function countQuery( array $args ): int {
-		$args = $this->normalizeArgs( $args );
+		$filters = $this->filters( $this->normalizeArgs( $args ) );
 
-		list( $where, $params ) = $this->buildFilters( $args );
+		if ( null === $filters ) {
+			return 0;
+		}
 
-		$sql = 'SELECT COUNT(*) FROM ' . $this->productsTable() . $where;
+		$termIds = $filters['term_ids'];
+		$tags    = $filters['tag_slugs'];
+		$values  = $filters['values'];
+		$wpdb    = $this->wpdb;
 
-		return (int) $this->fetchVar( $sql, $params );
+		return (int) $this->fetchVar(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM %i WHERE ( %s = '' OR status = %s )" .
+					' AND ( %d = 0 OR name LIKE %s OR slug LIKE %s OR overview LIKE %s OR description LIKE %s )' .
+					' AND ( %d = 0 OR id IN ( SELECT tr.product_id FROM %i tr WHERE tr.term_id IN ( ' .
+					implode( ', ', array_fill( 0, count( $termIds ), '%d' ) ) . ' ) ) )' .
+					' AND ( %d = 0 OR id IN ( SELECT tr.product_id FROM %i tr INNER JOIN %i t ON t.id = tr.term_id' .
+					' WHERE t.taxonomy = %s AND t.slug IN ( ' . implode( ', ', array_fill( 0, count( $tags ), '%s' ) ) . ' ) ) )',
+					$values
+				)
+			)
+		);
 	}
 
 	/**
@@ -460,10 +486,10 @@ class ProductRepository {
 	 * @return array<int, ProductPrice> The ordered price tiers.
 	 */
 	private function loadPrices( int $productId ): array {
-		$rows = $this->fetchRows(
-			'SELECT * FROM ' . $this->pricesTable() . ' WHERE product_id = %d ORDER BY sort_order ASC, id ASC',
-			array( $productId )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->fetchRows( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE product_id = %d ORDER BY sort_order ASC, id ASC', $this->pricesTable(), $productId ) ) );
 
 		return array_map( static fn ( object $r ): ProductPrice => ProductPrice::fromRow( $r ), $rows );
 	}
@@ -485,11 +511,17 @@ class ProductRepository {
 			return array();
 		}
 
-		$rows = $this->fetchRows(
-			'SELECT * FROM ' . $this->pricesTable()
-				. ' WHERE product_id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')'
-				. ' ORDER BY product_id ASC, sort_order ASC, id ASC',
-			$unique
+		$wpdb   = $this->wpdb;
+		$values = array_merge( array( $this->pricesTable() ), $unique );
+		$rows   = $this->fetchRows(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT * FROM %i WHERE product_id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')' .
+					' ORDER BY product_id ASC, sort_order ASC, id ASC',
+					$values
+				)
+			)
 		);
 
 		$grouped = array();
@@ -516,11 +548,17 @@ class ProductRepository {
 			return array();
 		}
 
-		$rows = $this->fetchRows(
-			'SELECT * FROM ' . $this->bundleTable()
-				. ' WHERE bundle_product_id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')'
-				. ' ORDER BY bundle_product_id ASC, sort_order ASC, child_product_id ASC',
-			$unique
+		$wpdb   = $this->wpdb;
+		$values = array_merge( array( $this->bundleTable() ), $unique );
+		$rows   = $this->fetchRows(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT * FROM %i WHERE bundle_product_id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')' .
+					' ORDER BY bundle_product_id ASC, sort_order ASC, child_product_id ASC',
+					$values
+				)
+			)
 		);
 
 		$grouped = array();
@@ -555,10 +593,10 @@ class ProductRepository {
 	 * @return array<int, BundleItem> The ordered bundle items.
 	 */
 	private function loadBundleItems( int $bundleId ): array {
-		$rows = $this->fetchRows(
-			'SELECT * FROM ' . $this->bundleTable() . ' WHERE bundle_product_id = %d ORDER BY sort_order ASC, child_product_id ASC',
-			array( $bundleId )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->fetchRows( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE bundle_product_id = %d ORDER BY sort_order ASC, child_product_id ASC', $this->bundleTable(), $bundleId ) ) );
 
 		return array_map( static fn ( object $r ): BundleItem => BundleItem::fromRow( $r ), $rows );
 	}
@@ -669,10 +707,10 @@ class ProductRepository {
 	 * @return array<int, int> The price ids.
 	 */
 	private function existingPriceIds( int $productId ): array {
-		$ids = $this->fetchCol(
-			'SELECT id FROM ' . $this->pricesTable() . ' WHERE product_id = %d',
-			array( $productId )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$ids = $this->fetchCol( fn () => $wpdb->get_col( $wpdb->prepare( 'SELECT id FROM %i WHERE product_id = %d', $this->pricesTable(), $productId ) ) );
 
 		return array_map( 'intval', $ids );
 	}
@@ -688,123 +726,80 @@ class ProductRepository {
 	 * @return bool True when a matching row exists.
 	 */
 	private function columnValueExists( string $column, string $value, ?int $exceptId ): bool {
-		$sql    = 'SELECT id FROM ' . $this->productsTable() . ' WHERE ' . $column . ' = %s';
-		$params = array( $value );
+		$wpdb = $this->wpdb;
 
-		if ( null !== $exceptId ) {
-			$sql     .= ' AND id != %d';
-			$params[] = $exceptId;
+		if ( null === $exceptId ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			return null !== $this->fetchVar( fn () => $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE %i = %s LIMIT 1', $this->productsTable(), $column, $value ) ) );
 		}
 
-		$sql .= ' LIMIT 1';
-
-		return null !== $this->fetchVar( $sql, $params );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		return null !== $this->fetchVar( fn () => $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE %i = %s AND id != %d LIMIT 1', $this->productsTable(), $column, $value, $exceptId ) ) );
 	}
 
 	/**
-	 * Build the WHERE clause and bound params for the collection query.
+	 * Read the collection filters for the fixed WHERE in query() and countQuery().
+	 *
+	 * An empty status, an empty category or tag list or an empty search turns that filter
+	 * off. MySQL drops a clause that is off before it plans the query. The search goes in
+	 * as a 0/1 flag because MySQL collations compare a zero-width space equal to ''. An
+	 * IN list keeps one placeholder value even when its filter is off, since SQL has no
+	 * empty IN list.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param array<string, mixed> $args The query args.
-	 * @return array{0: string, 1: array<int, mixed>} The clause (with leading space) and params.
+	 * @return array{values: array<int, int|string>, term_ids: array<int, int>, tag_slugs: array<int, string>}|null
+	 *         The WHERE values in placeholder order (tables included) and the two IN lists,
+	 *         or null when the category filter names no known category, so nothing matches.
 	 */
-	private function buildFilters( array $args ): array {
-		$clauses = array();
-		$params  = array();
+	private function filters( array $args ): ?array {
+		$status     = isset( $args['status'] ) ? (string) $args['status'] : '';
+		$status     = null !== ProductStatus::tryFrom( $status ) ? $status : '';
+		$search     = isset( $args['search'] ) ? trim( (string) $args['search'] ) : '';
+		$like       = '%' . $this->wpdb->esc_like( $search ) . '%';
+		$categories = $this->parseSlugList( $args['category'] ?? null );
+		$tags       = $this->parseSlugList( $args['tag'] ?? null );
+		$termIds    = array();
 
-		if ( isset( $args['status'] ) && '' !== (string) $args['status'] ) {
-			$status = (string) $args['status'];
+		if ( array() !== $categories ) {
+			// The resolved ids are categories, so no taxonomy check is needed on them.
+			$termIds = $this->resolveCategoryTermIds( $categories, $this->includeChildren( $args ) );
 
-			if ( null !== ProductStatus::tryFrom( $status ) ) {
-				$clauses[] = 'status = %s';
-				$params[]  = $status;
+			if ( array() === $termIds ) {
+				return null;
 			}
 		}
 
-		if ( isset( $args['search'] ) && '' !== trim( (string) $args['search'] ) ) {
-			$like      = '%' . $this->wpdb->esc_like( trim( (string) $args['search'] ) ) . '%';
-			$clauses[] = '(name LIKE %s OR slug LIKE %s OR overview LIKE %s OR description LIKE %s)';
-			$params[]  = $like;
-			$params[]  = $like;
-			$params[]  = $like;
-			$params[]  = $like;
-		}
+		$termList = array() === $termIds ? array( 0 ) : $termIds;
+		$tagList  = array() === $tags ? array( '' ) : $tags;
 
-		$this->appendCategoryFilter( $args, $clauses, $params );
-		$this->appendTagFilter( $args, $clauses, $params );
-
-		$where = array() === $clauses ? '' : ' WHERE ' . implode( ' AND ', $clauses );
-
-		return array( $where, $params );
-	}
-
-	/**
-	 * Append a category filter with optional descendants.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array<string, mixed> $args    The query args.
-	 * @param array<int, string>   $clauses WHERE clause accumulator, appended by reference.
-	 * @param array<int, mixed>    $params  Bound-param accumulator, appended by reference.
-	 * @return void
-	 */
-	private function appendCategoryFilter( array $args, array &$clauses, array &$params ): void {
-		$slugs = $this->parseSlugList( $args['category'] ?? null );
-
-		if ( array() === $slugs ) {
-			return;
-		}
-
-		$termIds = $this->resolveCategoryTermIds( $slugs, $this->includeChildren( $args ) );
-
-		if ( array() === $termIds ) {
-			// Unknown categories must return no products.
-			$clauses[] = '0 = 1';
-
-			return;
-		}
-
-		$placeholders = implode( ', ', array_fill( 0, count( $termIds ), '%d' ) );
-
-		// The resolved ids are categories, so no taxonomy check is needed here.
-		$clauses[] = 'id IN ( SELECT tr.product_id FROM ' . $this->relationshipsTable() . ' tr WHERE tr.term_id IN ( ' . $placeholders . ' ) )';
-
-		foreach ( $termIds as $termId ) {
-			$params[] = $termId;
-		}
-	}
-
-	/**
-	 * Append the tag filter to the collection query.
-	 *
-	 * Tags have no children. Match any selected tag in the tag taxonomy.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array<string, mixed> $args    The query args.
-	 * @param array<int, string>   $clauses WHERE clause accumulator, appended by reference.
-	 * @param array<int, mixed>    $params  Bound-param accumulator, appended by reference.
-	 * @return void
-	 */
-	private function appendTagFilter( array $args, array &$clauses, array &$params ): void {
-		$slugs = $this->parseSlugList( $args['tag'] ?? null );
-
-		if ( array() === $slugs ) {
-			return;
-		}
-
-		$placeholders = implode( ', ', array_fill( 0, count( $slugs ), '%s' ) );
-
-		$clauses[] = 'id IN ( SELECT tr.product_id FROM ' . $this->relationshipsTable() . ' tr'
-			. ' INNER JOIN ' . $this->termsTable() . ' t ON t.id = tr.term_id'
-			. ' WHERE t.taxonomy = %s AND t.slug IN ( ' . $placeholders . ' ) )';
-
-		$params[] = ProductTaxonomy::Tag->value;
-
-		foreach ( $slugs as $slug ) {
-			$params[] = $slug;
-		}
+		return array(
+			'term_ids'  => $termList,
+			'tag_slugs' => $tagList,
+			'values'    => array_merge(
+				array(
+					$this->productsTable(),
+					$status,
+					$status,
+					'' === $search ? 0 : 1,
+					$like,
+					$like,
+					$like,
+					$like,
+					array() === $termIds ? 0 : 1,
+					$this->relationshipsTable(),
+				),
+				$termList,
+				array(
+					array() === $tags ? 0 : 1,
+					$this->relationshipsTable(),
+					$this->termsTable(),
+					ProductTaxonomy::Tag->value,
+				),
+				$tagList
+			),
+		);
 	}
 
 	/**
@@ -870,10 +865,10 @@ class ProductRepository {
 	 * @return array<int, int> The resolved (and optionally expanded) term ids.
 	 */
 	private function resolveCategoryTermIds( array $slugs, bool $includeChildren ): array {
-		$rows = $this->fetchRows(
-			'SELECT id, slug, parent FROM ' . $this->termsTable() . ' WHERE taxonomy = %s',
-			array( ProductTaxonomy::Category->value )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->fetchRows( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT id, slug, parent FROM %i WHERE taxonomy = %s', $this->termsTable(), ProductTaxonomy::Category->value ) ) );
 
 		$idBySlug   = array();
 		$childrenOf = array();
@@ -1093,11 +1088,11 @@ class ProductRepository {
 	private function insertInto( string $table, array $data ): int {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Insert into a Schema-defined table; $wpdb->insert escapes every value; there is nothing to cache on a write.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; this class decides what to cache.
 		$inserted = $wpdb->insert( $table, $data );
 
 		if ( false === $inserted ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- $table is a Schema-derived internal identifier, never user input or HTML output; this is a developer-facing failure kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ProductPersistenceException( 'Failed to insert a row into ' . $table . '.' );
 		}
 
@@ -1119,11 +1114,11 @@ class ProductRepository {
 	private function updateWhere( string $table, array $data, array $where ): void {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Update on a Schema-defined table; $wpdb->update escapes values and conditions; the write path invalidates the cache in the caller.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
 		$updated = $wpdb->update( $table, $data, $where );
 
 		if ( false === $updated ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- The table name is a Schema-derived internal identifier, never user input or HTML output; this is a developer-facing failure kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ProductPersistenceException( 'Failed to update a row in ' . $table . '.' );
 		}
 	}
@@ -1142,98 +1137,66 @@ class ProductRepository {
 	private function deleteWhere( string $table, array $where ): void {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Delete on a Schema-defined table; $wpdb->delete escapes the conditions; the write path invalidates the cache in the caller.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
 		$deleted = $wpdb->delete( $table, $where );
 
 		if ( false === $deleted ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- $table is a Schema-derived internal identifier, never user input or HTML output; this is a developer-facing failure kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ProductPersistenceException( 'Failed to delete a row from ' . $table . '.' );
 		}
 	}
 
 	/**
-	 * Fetch a single row, binding all values through prepare().
+	 * Fetch a single row.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return object|null The row object, or null.
 	 */
-	private function fetchRow( string $sql, array $args = array() ): ?object {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); find()/findBySlug() own the read-through cache.
-		return $wpdb->get_row( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchRow( callable $query ): ?object {
+		return $query();
 	}
 
 	/**
-	 * Fetch a result set, binding all values through prepare().
+	 * Fetch a result set.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return array<int, object> The rows (empty on no match).
 	 */
-	private function fetchRows( string $sql, array $args = array() ): array {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); these are bounded admin/collection reads.
-		$rows = $wpdb->get_results( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchRows( callable $query ): array {
+		$rows = $query();
 
 		return is_array( $rows ) ? $rows : array();
 	}
 
 	/**
-	 * Fetch a single column list, binding all values through prepare().
+	 * Fetch a single column list.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return array<int, mixed> The column values.
 	 */
-	private function fetchCol( string $sql, array $args = array() ): array {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); this reads a small id list for reconcile.
-		$col = $wpdb->get_col( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchCol( callable $query ): array {
+		$col = $query();
 
 		return is_array( $col ) ? $col : array();
 	}
 
 	/**
-	 * Fetch a single scalar, binding all values through prepare().
+	 * Fetch a single scalar.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return string|null The scalar value, or null.
 	 */
-	private function fetchVar( string $sql, array $args = array() ): ?string {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); existence/count probes have nothing to cache.
-		$value = $wpdb->get_var( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchVar( callable $query ): ?string {
+		$value = $query();
 
 		return null === $value ? null : (string) $value;
-	}
-
-	/**
-	 * Execute a write query, binding all values through prepare().
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
-	 * @return void
-	 */
-	private function run( string $sql, array $args = array() ): void {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); this is a targeted bundle-link cascade delete.
-		$wpdb->query( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
 	}
 }

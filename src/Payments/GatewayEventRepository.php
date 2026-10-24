@@ -160,11 +160,8 @@ class GatewayEventRepository {
 	public function find( string $gateway, string $eventId ): ?object {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The SQL embeds only the Schema-derived table name, never user input; runtime values are bound via prepare() below.
-		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE gateway = %s AND event_id = %s';
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values are bound via prepare(); the ledger is deliberately uncached: it is a write-mostly correctness table and cached reads would undermine the claim protocol.
-		return $wpdb->get_row( $wpdb->prepare( $sql, $gateway, $eventId ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		return $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE gateway = %s AND event_id = %s', $this->table(), $gateway, $eventId ) );
 	}
 
 	/**
@@ -185,13 +182,20 @@ class GatewayEventRepository {
 		$wpdb = $this->wpdb;
 		$now  = gmdate( 'Y-m-d H:i:s' );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The SQL embeds only the Schema-derived table name, never user input; runtime values are bound via prepare() below.
-		$sql = 'INSERT IGNORE INTO ' . $this->table() .
-			' (gateway, event_id, event_type, payload, status, claimed_at, created_at)' .
-			" VALUES (%s, %s, %s, %s, 'processing', %s, %s)";
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values are bound via prepare(); writes to the deliberately uncached ledger have nothing to cache.
-		$inserted = $wpdb->query( $wpdb->prepare( $sql, $gateway, $eventId, $eventType, $payload, $now, $now ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$inserted = $wpdb->query(
+			$wpdb->prepare(
+				'INSERT IGNORE INTO %i (gateway, event_id, event_type, payload, status, claimed_at, created_at)' .
+				" VALUES (%s, %s, %s, %s, 'processing', %s, %s)",
+				$this->table(),
+				$gateway,
+				$eventId,
+				$eventType,
+				$payload,
+				$now,
+				$now
+			)
+		);
 
 		if ( false === $inserted ) {
 			// A real database fault. INSERT IGNORE turns a (gateway, event_id) clash
@@ -244,13 +248,16 @@ class GatewayEventRepository {
 			case 'received':
 				// A prior attempt failed (or a legacy row never got claimed):
 				// this retry gets its second chance.
-				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The SQL embeds only the Schema-derived table name, never user input; runtime values are bound via prepare() below.
-				$sql = 'UPDATE ' . $this->table() .
-					" SET status = 'processing', claimed_at = %s, error = NULL" .
-					" WHERE id = %d AND status IN ('failed','received')";
-
-				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values are bound via prepare(); writes to the deliberately uncached ledger have nothing to cache.
-				$affected = $wpdb->query( $wpdb->prepare( $sql, $now, $id ) );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+				$affected = $wpdb->query(
+					$wpdb->prepare(
+						"UPDATE %i SET status = 'processing', claimed_at = %s, error = NULL" .
+						" WHERE id = %d AND status IN ('failed','received')",
+						$this->table(),
+						$now,
+						$id
+					)
+				);
 
 				if ( 1 === $affected ) {
 					$this->leases[ $id ] = $now;
@@ -268,13 +275,17 @@ class GatewayEventRepository {
 				// stamped): a fresh lease means another worker is mid-handling.
 				$cutoff = gmdate( 'Y-m-d H:i:s', time() - self::LEASE_SECONDS );
 
-				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The SQL embeds only the Schema-derived table name, never user input; runtime values are bound via prepare() below.
-				$sql = 'UPDATE ' . $this->table() .
-					" SET status = 'processing', claimed_at = %s, error = NULL" .
-					" WHERE id = %d AND status = 'processing' AND (claimed_at IS NULL OR claimed_at < %s)";
-
-				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values are bound via prepare(); writes to the deliberately uncached ledger have nothing to cache.
-				$affected = $wpdb->query( $wpdb->prepare( $sql, $now, $id, $cutoff ) );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+				$affected = $wpdb->query(
+					$wpdb->prepare(
+						"UPDATE %i SET status = 'processing', claimed_at = %s, error = NULL" .
+						" WHERE id = %d AND status = 'processing' AND (claimed_at IS NULL OR claimed_at < %s)",
+						$this->table(),
+						$now,
+						$id,
+						$cutoff
+					)
+				);
 
 				if ( 1 === $affected ) {
 					$this->leases[ $id ] = $now;
@@ -316,7 +327,6 @@ class GatewayEventRepository {
 			$where['claimed_at'] = $this->leases[ $id ];
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Update on the Schema-defined, deliberately uncached ledger table; $wpdb->update escapes values and conditions.
 		$this->wpdb->update( $this->table(), $data, $where );
 	}
 
@@ -329,7 +339,6 @@ class GatewayEventRepository {
 	 * @return WebhookRetryException The signal to throw.
 	 */
 	private function retry( string $message ): WebhookRetryException {
-		// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; the WebhookProcessor maps this to a 500, never echoes it to a client.
 		return new WebhookRetryException( $message );
 	}
 
@@ -348,11 +357,16 @@ class GatewayEventRepository {
 			return;
 		}
 
-		$sql = 'UPDATE ' . $this->table()
-			. ' SET payload = \'{"redacted":"personal-data-erasure"}\' WHERE payload LIKE %s';
+		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- The SQL embeds only the Schema-derived table name and a fixed literal marker; the needle is bound via prepare(); the ledger is deliberately uncached.
-		$this->wpdb->query( $this->wpdb->prepare( $sql, '%' . $this->wpdb->esc_like( $needle ) . '%' ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$wpdb->query(
+			$wpdb->prepare(
+				'UPDATE %i SET payload = \'{"redacted":"personal-data-erasure"}\' WHERE payload LIKE %s',
+				$this->table(),
+				'%' . $wpdb->esc_like( $needle ) . '%'
+			)
+		);
 	}
 
 	/**

@@ -113,7 +113,7 @@ class CustomerService {
 	/**
 	 * Resolve an email match for the buyer's account state.
 	 *
-	 * A logged-in user can claim a matching guest, never another user’s customer.
+	 * A logged-in user can claim a matching guest, never another user's customer.
 	 *
 	 * @since 1.0.0
 	 *
@@ -141,7 +141,7 @@ class CustomerService {
 		/* translators: %s: the submitted email address. */
 		$message = sprintf( __( 'The email "%s" is already associated with another account.', 'tiermint' ), $email );
 
-		// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation message, surfaced as a structured API error, never echoed as HTML.
+		// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 		throw CustomerValidationException::withErrors( array( $message ) );
 	}
 
@@ -172,7 +172,7 @@ class CustomerService {
 		}
 
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation messages, surfaced as structured API errors, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw CustomerValidationException::withErrors( $errors );
 		}
 
@@ -201,7 +201,7 @@ class CustomerService {
 		$existing = $this->repository->find( $id );
 
 		if ( null === $existing ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation message, surfaced as a structured 404, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw CustomerNotFoundException::forId( $id );
 		}
 
@@ -215,7 +215,7 @@ class CustomerService {
 		$name   = array_key_exists( 'name', $data ) ? $this->resolveName( $data['name'] ) : $existing->name();
 
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation messages, surfaced as structured API errors, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw CustomerValidationException::withErrors( $errors );
 		}
 
@@ -260,14 +260,14 @@ class CustomerService {
 	 */
 	public function delete( int $id ): void {
 		if ( null === $this->repository->find( $id ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation message, surfaced as a structured 404, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw CustomerNotFoundException::forId( $id );
 		}
 
 		$reasons = $this->deleteBlockersFor( $id );
 
 		if ( array() !== $reasons ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured, translated messages surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw CustomerDeleteBlockedException::withReasons( $reasons );
 		}
 
@@ -607,7 +607,7 @@ class CustomerService {
 		$email  = $this->validateEmailFormat( $data['email'] ?? null, $errors );
 
 		if ( array() !== $errors ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation messages, surfaced as structured API errors, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw CustomerValidationException::withErrors( $errors );
 		}
 
@@ -748,7 +748,7 @@ class CustomerService {
 		$customer = $this->repository->find( $id );
 
 		if ( null === $customer ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer/validation message, surfaced as a structured error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw CustomerNotFoundException::forId( $id );
 		}
 

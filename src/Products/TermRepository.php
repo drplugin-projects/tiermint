@@ -95,10 +95,10 @@ class TermRepository {
 			return $cached;
 		}
 
-		$row = $this->fetchRow(
-			'SELECT * FROM ' . $this->termsTable() . ' WHERE id = %d',
-			array( $id )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; this class decides what to cache.
+		$row = $this->fetchRow( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $this->termsTable(), $id ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -120,10 +120,10 @@ class TermRepository {
 	 * @return Term|null The term, or null when it does not exist.
 	 */
 	public function findBySlug( string $slug, ProductTaxonomy $taxonomy ): ?Term {
-		$row = $this->fetchRow(
-			'SELECT * FROM ' . $this->termsTable() . ' WHERE slug = %s AND taxonomy = %s',
-			array( $slug, $taxonomy->value )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->fetchRow( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE slug = %s AND taxonomy = %s', $this->termsTable(), $slug, $taxonomy->value ) ) );
 
 		return null === $row ? null : Term::fromRow( $row );
 	}
@@ -144,7 +144,7 @@ class TermRepository {
 		$id = $term->id();
 
 		if ( null === $id ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new TermException( __( 'Cannot update a term that has no id.', 'tiermint' ) );
 		}
 
@@ -192,17 +192,17 @@ class TermRepository {
 	 * @return bool True when the slug is in use within the taxonomy.
 	 */
 	public function slugExists( string $slug, ProductTaxonomy $taxonomy, ?int $exceptId = null ): bool {
-		$sql    = 'SELECT id FROM ' . $this->termsTable() . ' WHERE slug = %s AND taxonomy = %s';
-		$params = array( $slug, $taxonomy->value );
+		$wpdb = $this->wpdb;
 
 		if ( null !== $exceptId ) {
-			$sql     .= ' AND id != %d';
-			$params[] = $exceptId;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$found = $this->fetchVar( fn () => $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE slug = %s AND taxonomy = %s AND id != %d LIMIT 1', $this->termsTable(), $slug, $taxonomy->value, $exceptId ) ) );
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$found = $this->fetchVar( fn () => $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE slug = %s AND taxonomy = %s LIMIT 1', $this->termsTable(), $slug, $taxonomy->value ) ) );
 		}
 
-		$sql .= ' LIMIT 1';
-
-		return null !== $this->fetchVar( $sql, $params );
+		return null !== $found;
 	}
 
 	/**
@@ -215,10 +215,10 @@ class TermRepository {
 	 * @return array<int, Term> The ordered terms.
 	 */
 	public function listByTaxonomy( ProductTaxonomy $taxonomy ): array {
-		$rows = $this->fetchRows(
-			'SELECT * FROM ' . $this->termsTable() . ' WHERE taxonomy = %s ORDER BY parent ASC, name ASC',
-			array( $taxonomy->value )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->fetchRows( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE taxonomy = %s ORDER BY parent ASC, name ASC', $this->termsTable(), $taxonomy->value ) ) );
 
 		return array_map( static fn ( object $r ): Term => Term::fromRow( $r ), $rows );
 	}
@@ -240,11 +240,11 @@ class TermRepository {
 			return array();
 		}
 
-		$rows = $this->fetchRows(
-			'SELECT * FROM ' . $this->termsTable()
-				. ' WHERE id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')',
-			$unique
-		);
+		$wpdb   = $this->wpdb;
+		$values = array_merge( array( $this->termsTable() ), $unique );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->fetchRows( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')', $values ) ) );
 
 		$terms = array();
 
@@ -264,10 +264,10 @@ class TermRepository {
 	 * @return array<int, Term> The direct child terms.
 	 */
 	public function childrenOf( int $parentId ): array {
-		$rows = $this->fetchRows(
-			'SELECT * FROM ' . $this->termsTable() . ' WHERE parent = %d ORDER BY name ASC',
-			array( $parentId )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->fetchRows( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE parent = %d ORDER BY name ASC', $this->termsTable(), $parentId ) ) );
 
 		return array_map( static fn ( object $r ): Term => Term::fromRow( $r ), $rows );
 	}
@@ -332,11 +332,11 @@ class TermRepository {
 	private function insertInto( string $table, array $data ): int {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Insert into a Schema-defined table; $wpdb->insert escapes every value; there is nothing to cache on a write.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; this class decides what to cache.
 		$inserted = $wpdb->insert( $table, $data );
 
 		if ( false === $inserted ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- $table is a Schema-derived internal identifier, never user input or HTML output; this is a developer-facing failure kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new TermPersistenceException( 'Failed to insert a row into ' . $table . '.' );
 		}
 
@@ -356,7 +356,7 @@ class TermRepository {
 	private function updateWhere( string $table, array $data, array $where ): void {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Update on a Schema-defined table; $wpdb->update escapes values and conditions; the write path invalidates the cache in the caller.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
 		$wpdb->update( $table, $data, $where );
 	}
 
@@ -372,58 +372,46 @@ class TermRepository {
 	private function deleteWhere( string $table, array $where ): void {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Delete on a Schema-defined table; $wpdb->delete escapes the conditions; the write path invalidates the cache in the caller.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
 		$wpdb->delete( $table, $where );
 	}
 
 	/**
-	 * Fetch a single row, binding all values through prepare().
+	 * Fetch a single row.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return object|null The row object, or null.
 	 */
-	private function fetchRow( string $sql, array $args = array() ): ?object {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); find() owns the read-through cache.
-		return $wpdb->get_row( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchRow( callable $query ): ?object {
+		return $query();
 	}
 
 	/**
-	 * Fetch a result set, binding all values through prepare().
+	 * Fetch a result set.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return array<int, object> The rows (empty on no match).
 	 */
-	private function fetchRows( string $sql, array $args = array() ): array {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); these are bounded admin/collection reads.
-		$rows = $wpdb->get_results( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchRows( callable $query ): array {
+		$rows = $query();
 
 		return is_array( $rows ) ? $rows : array();
 	}
 
 	/**
-	 * Fetch a single scalar, binding all values through prepare().
+	 * Fetch a single scalar.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return string|null The scalar value, or null.
 	 */
-	private function fetchVar( string $sql, array $args = array() ): ?string {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); existence probes have nothing to cache.
-		$value = $wpdb->get_var( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchVar( callable $query ): ?string {
+		$value = $query();
 
 		return null === $value ? null : (string) $value;
 	}

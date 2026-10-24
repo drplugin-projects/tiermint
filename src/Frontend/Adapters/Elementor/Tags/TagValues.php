@@ -81,7 +81,7 @@ class TagValues {
 			return '';
 		}
 
-		$price = $product->defaultPrice( ProductService::recurringTiersSupported() );
+		$price = $product->defaultPrice();
 
 		return null !== $price ? $this->money->format( $price->amount() ) : '';
 	}

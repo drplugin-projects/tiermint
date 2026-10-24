@@ -120,7 +120,7 @@ final class Order {
 	private ?string $discountCode;
 
 	/**
-	 * Order type (purchase, renewal, upgrade, refund).
+	 * Order type (purchase, renewal, refund).
 	 *
 	 * @var OrderType
 	 */
@@ -230,13 +230,13 @@ final class Order {
 		array $items
 	) {
 		if ( false === filter_var( $email, FILTER_VALIDATE_EMAIL ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'An order must have a valid buyer email.', 'tiermint' ) );
 		}
 
 		// Store one uppercase three-letter currency value.
 		if ( 1 !== preg_match( '/^[A-Za-z]{3}$/', $currency ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'An order currency must be a three-letter code.', 'tiermint' ) );
 		}
 

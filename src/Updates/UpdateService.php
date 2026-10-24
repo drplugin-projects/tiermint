@@ -33,13 +33,6 @@ use DrPlugin\WP\TierMint\Products\ProductRepository;
 class UpdateService {
 
 	/**
-	 * The free core's only release channel (Pro widens this).
-	 *
-	 * @var string
-	 */
-	private const CHANNEL = 'stable';
-
-	/**
 	 * Wire the assembler with its collaborators.
 	 *
 	 * @since 1.0.0
@@ -74,9 +67,8 @@ class UpdateService {
 	 * @param string|null            $siteUrl          The presenting site's URL; without it no package URL can be minted.
 	 * @param string|null            $installedVersion The client's installed version, for the update_available verdict.
 	 * @param DateTimeImmutable|null $now              The check instant (tests inject).
-	 * @param string|null            $channel          The requested release channel; null or blank resolves to stable.
-	 *                                                 Core resolves stable regardless; the requested channel reaches
-	 *                                                 Pro's gate through the `tiermint_update_check_release` seam.
+	 * @param array<string, mixed>   $params           The request's arguments as received, passed to the
+	 *                                                 `tiermint_update_check_release` filter.
 	 * @return array<string, mixed> The assembled payload, after the `tiermint_update_check_response` filter.
 	 *
 	 * @throws ProductNotFoundException    When no product carries the slug (controller: generic 404).
@@ -84,7 +76,7 @@ class UpdateService {
 	 *                                     in the grace store (controller: generic 500,
 	 *                                     the client's own 72-hour grace takes over).
 	 */
-	public function check( string $productSlug, string $licenseKey, ?string $siteUrl, ?string $installedVersion, ?DateTimeImmutable $now = null, ?string $channel = null ): array {
+	public function check( string $productSlug, string $licenseKey, ?string $siteUrl, ?string $installedVersion, ?DateTimeImmutable $now = null, array $params = array() ): array {
 		$now     = $now ?? new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
 		$product = $this->products->findBySlug( $productSlug );
 
@@ -92,33 +84,34 @@ class UpdateService {
 			throw new ProductNotFoundException( 'No product for update-check slug.' );
 		}
 
-		$requestedChannel = ( null === $channel || '' === trim( $channel ) ) ? self::CHANNEL : $channel;
-
 		$result   = $this->validator->validate( $licenseKey, $siteUrl, null, $productSlug, $now );
 		$siteHash = $this->siteHash( $siteUrl );
 
-		// Core serves its stable release unless an extension changes it.
-		$stable = $this->releases->latestPublished( (int) $product->id(), self::CHANNEL );
+		// Core serves its latest published release unless an extension changes it.
+		$latest = $this->releases->latestPublished( (int) $product->id() );
 
 		/**
 		 * Filters the release served by update-check.
- *
-		 * Return null for the no-update response.
+		 *
+		 * Return any release of the product that is not yanked, or null for the no-update
+		 * response. `params` is raw request input: it holds the license key and any argument
+		 * the client sent. Sanitize what you read and never log the context.
 		 *
 		 * @since 1.0.0
 		 *
-		 * @param Release|null         $release The release core would serve (its stable pick).
-		 * @param array<string, mixed> $context Context: `product` (Product), `requested_channel` (string,
-		 *                                      never blank), `site_hash` (string|null, the deterministic
-		 *                                      per-site hash rollouts bucket on), `installed_version`
-		 *                                      (string|null), `result` (ValidationResult).
+		 * @param Release|null         $release The release core would serve (its latest published).
+		 * @param array<string, mixed> $context Context: `product` (Product), `params` (array, the
+		 *                                      request's arguments as received), `site_hash`
+		 *                                      (string|null, a stable hash of the site URL),
+		 *                                      `installed_version` (string|null), `result`
+		 *                                      (ValidationResult).
 		 */
 		$release = apply_filters(
 			'tiermint_update_check_release',
-			$stable,
+			$latest,
 			array(
 				'product'           => $product,
-				'requested_channel' => $requestedChannel,
+				'params'            => $params,
 				'site_hash'         => $siteHash,
 				'installed_version' => $installedVersion,
 				'result'            => $result,
@@ -135,8 +128,7 @@ class UpdateService {
 		 * @param array<string, mixed> $payload The assembled response payload.
 		 * @param array<string, mixed> $context Context: `product` (Product), `release` (Release|null, the
 		 *                                      served release), `result` (ValidationResult), `site_hash`
-		 *                                      (string|null), `installed_version` (string|null), `channel`
-		 *                                      (string, the requested channel).
+		 *                                      (string|null), `installed_version` (string|null).
 		 */
 		return apply_filters(
 			'tiermint_update_check_response',
@@ -147,7 +139,6 @@ class UpdateService {
 				'result'            => $result,
 				'site_hash'         => $siteHash,
 				'installed_version' => $installedVersion,
-				'channel'           => $requestedChannel,
 			)
 		);
 	}
@@ -157,7 +148,7 @@ class UpdateService {
 	 * Build the raw payload for a resolved product, release, and verdict.
 	 *
 	 * @param Product          $product          The catalog product.
-	 * @param Release|null     $release          The latest published stable release, if any.
+	 * @param Release|null     $release          The release to serve, if any.
 	 * @param ValidationResult $result           The license verdict.
 	 * @param string           $licenseKey       The presented license key.
 	 * @param string|null      $siteUrl          The presenting site's URL.
@@ -199,7 +190,7 @@ class UpdateService {
 
 		if ( ! $result->isValid() ) {
 			$payload['upgrade_notice'] = 'expired' === $result->status()
-				? __( 'Your license has expired; renew to receive this update.', 'tiermint' )
+				? __( 'Your license has expired. To receive this update, buy a new license and use its key.', 'tiermint' )
 				: __( 'A valid license is required to receive this update.', 'tiermint' );
 
 			return $payload;

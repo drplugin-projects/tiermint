@@ -16,7 +16,8 @@
  *     @type string        $login          The account login (reset).
  *     @type string        $rp_key         The reset key (reset).
  *     @type int           $min_length     Minimum password length (reset).
- *     @type string        $nonce_field    Nonce field markup (reset, request).
+ *     @type string        $nonce_action   Nonce action (reset, request).
+ *     @type string        $nonce_field    Nonce field name (reset, request).
  *     @type string        $action_field   Hidden action field name (reset, request).
  *     @type string        $key_field      Reset-key field name (reset).
  *     @type string        $pass1_field    New-password field name (reset).
@@ -69,10 +70,7 @@ defined( 'ABSPATH' ) || exit;
 		<?php endif; ?>
 
 		<form class="tiermint-password-reset-form__form" method="post" autocomplete="on">
-			<?php
-			// wp_nonce_field() returns core-generated, self-escaping hidden inputs.
-			echo $data['nonce_field']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core-generated nonce markup.
-			?>
+			<?php wp_nonce_field( $data['nonce_action'], $data['nonce_field'] ); ?>
 			<input type="hidden" name="<?php echo esc_attr( $data['action_field'] ); ?>" value="1" />
 			<input type="hidden" name="<?php echo esc_attr( $data['key_field'] ); ?>" value="<?php echo esc_attr( $data['rp_key'] ); ?>" />
 
@@ -107,10 +105,7 @@ defined( 'ABSPATH' ) || exit;
 		</p>
 
 		<form class="tiermint-password-reset-form__form" method="post">
-			<?php
-			// wp_nonce_field() returns core-generated, self-escaping hidden inputs.
-			echo $data['nonce_field']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core-generated nonce markup.
-			?>
+			<?php wp_nonce_field( $data['nonce_action'], $data['nonce_field'] ); ?>
 			<input type="hidden" name="<?php echo esc_attr( $data['action_field'] ); ?>" value="1" />
 
 			<p class="tiermint-password-reset-form__field tiermint-field">

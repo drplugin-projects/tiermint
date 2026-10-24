@@ -542,7 +542,6 @@ final class LicensesController extends AbstractRestController {
 			'activation_limit' => $license->activationLimit(),
 			'activation_count' => $license->activationCount(),
 			'expires_at'       => $this->formatUtc( $license->expiresAt() ),
-			'parent_id'        => $license->parentId(),
 			'created_at'       => $this->formatUtc( $license->createdAt() ),
 			'updated_at'       => $this->formatUtc( $license->updatedAt() ),
 		);
@@ -566,6 +565,7 @@ final class LicensesController extends AbstractRestController {
 			'activated_at'    => $this->formatUtc( $activation->activatedAt() ),
 			'deactivated_at'  => $this->formatUtc( $activation->deactivatedAt() ),
 			'last_checked_at' => $this->formatUtc( $activation->lastCheckedAt() ),
+			'environment'     => $activation->environment(),
 		);
 	}
 

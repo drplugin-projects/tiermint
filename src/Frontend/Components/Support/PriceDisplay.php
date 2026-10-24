@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace DrPlugin\WP\TierMint\Frontend\Components\Support;
 
-use DrPlugin\WP\TierMint\Orders\PricingMode;
 use DrPlugin\WP\TierMint\Util\Money;
 
 defined( 'ABSPATH' ) || exit;
@@ -35,10 +34,8 @@ final class PriceDisplay {
 	 * @return string The escaped price markup for the surface's wrapper to echo raw.
 	 */
 	public static function render( Money $money, int $original, ?int $discounted, bool $strikeEnabled ): string {
-		// Gross mode appends the "incl. tax" note; net mode leaves it empty and the
-		// markup is byte-identical to before. Both figures are already gross, so the
-		// note is a display affordance only, never a conversion.
-		$note = PricingMode::includesTax() ? PricingMode::note() : '';
+		// With no note the markup is byte-identical to a bare price.
+		$note = self::note();
 
 		// Use the plain price when no reduction applies.
 		if ( null === $discounted || $discounted >= $original ) {
@@ -54,15 +51,39 @@ final class PriceDisplay {
 	}
 
 	/**
-	 * Render a single price, with the tax-inclusive note when one is set.
+	 * The short note shown after every catalog price, or '' for none.
 	 *
-	 * An empty note returns the bare escaped amount, byte-identical to the net-mode
-	 * markup the surface wrappers held before.
+	 * @since 1.0.0
+	 *
+	 * @return string The note, stripped of tags.
+	 */
+	private static function note(): string {
+		/**
+		 * Filters the note shown after every catalog price.
+		 *
+		 * Empty by default. The note has no product context, so it suits a
+		 * store-wide line such as "one-time payment" or "per license". Tags are
+		 * stripped; an empty or non-string return shows no note.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $note The note. Default ''.
+		 */
+		$note = apply_filters( 'tiermint_price_note', '' );
+
+		return is_string( $note ) && '' !== $note ? wp_strip_all_tags( $note ) : '';
+	}
+
+	/**
+	 * Render a single price, with the note when one is set.
+	 *
+	 * An empty note returns the bare escaped amount, byte-identical to the markup
+	 * the surface wrappers held before.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param string $amount The price, already formatted.
-	 * @param string $note   The tax-inclusive note, or '' for none.
+	 * @param string $note   The note, or '' for none.
 	 * @return string The rendered price markup.
 	 */
 	private static function plain( string $amount, string $note ): string {
@@ -84,7 +105,7 @@ final class PriceDisplay {
 	 *
 	 * @param string $was  The original price, already formatted.
 	 * @param string $now  The discounted price, already formatted.
-	 * @param string $note The tax-inclusive note, or '' for none.
+	 * @param string $note The note, or '' for none.
 	 * @return string The rendered pair markup.
 	 */
 	private static function pair( string $was, string $now, string $note ): string {

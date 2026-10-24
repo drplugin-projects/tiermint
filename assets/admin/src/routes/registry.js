@@ -216,7 +216,7 @@ export function createRouteRegistry( boot ) {
 
 		// Mirror into the boot namespace. The App renders from this registry, but
 		// the document-title sync reads buildRoutes( boot ), so a route registered
-		// after core booted (a Pro bundle loading late) must land in the boot
+		// after core booted (an extension bundle loading late) must land in the boot
 		// routes too or its screen would render with the wrong tab title.
 		if ( boot && boot.admin ) {
 			if ( ! Array.isArray( boot.admin.routes ) ) {

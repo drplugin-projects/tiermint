@@ -24,7 +24,6 @@ export function orderTypeLabel( type ) {
 	const map = {
 		purchase: __( 'Purchase', 'tiermint' ),
 		renewal: __( 'Renewal', 'tiermint' ),
-		upgrade: __( 'Upgrade', 'tiermint' ),
 		refund: __( 'Refund', 'tiermint' ),
 	};
 	return map[ type ] || type;

@@ -121,20 +121,6 @@ final class LicensingServiceProvider implements ServiceProvider {
 				$c->get( Logger::class )
 			)
 		);
-
-		$container->singleton(
-			SeatService::class,
-			static function ( Container $c ): SeatService {
-				global $wpdb;
-
-				return new SeatService(
-					$c->get( LicenseRepository::class ),
-					$c->get( LicenseService::class ),
-					new AdvisoryLock( $wpdb, 'seat' ),
-					$c->get( Logger::class )
-				);
-			}
-		);
 	}
 
 	/**
@@ -147,6 +133,5 @@ final class LicensingServiceProvider implements ServiceProvider {
 	 */
 	public function boot( Container $container ): void {
 		$container->get( LicensingListener::class )->hooks();
-		$container->get( SeatService::class )->hooks();
 	}
 }

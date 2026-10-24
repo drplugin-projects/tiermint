@@ -315,7 +315,6 @@
 	.tiermint-release-head,
 	.tiermint-term-edit,
 	.tiermint-term-add,
-	.tiermint-switch-targets,
 	.tiermint-modal__events,
 	.tiermint-empty-state,
 	.tiermint-settings__panel,
@@ -1099,11 +1098,6 @@
 	gap: var(--tiermint-admin-space-2);
 }
 
-.tiermint-release-channel {
-	color: var(--tiermint-admin-muted);
-	font-size: 12px;
-}
-
 .tiermint-release-actions {
 	display: flex;
 	flex-wrap: wrap;
@@ -1170,36 +1164,7 @@
 	margin-top: var(--tiermint-admin-space-3);
 }
 
-/* --------------------------------------------------------- Plan changes -- */
-
-/* Subscription switch targets use a compact checkbox fieldset. */
-.tiermint-switch-targets {
-	display: flex;
-	flex-direction: column;
-	gap: var(--tiermint-admin-space-1);
-	margin: 0;
-	padding: 0;
-	border: 0;
-	min-width: 0;
-}
-
-.tiermint-switch-targets>legend {
-	padding: 0;
-	margin-bottom: var(--tiermint-admin-space-1);
-	color: var(--tiermint-admin-heading);
-	font-size: 11px;
-	font-weight: 500;
-	text-transform: uppercase;
-	letter-spacing: 0.02em;
-}
-
-.tiermint-switch-targets__help,
-.tiermint-recurring-pro-hint {
-	margin: 0;
-	color: var(--tiermint-admin-muted);
-	font-size: 13px;
-	max-width: 60ch;
-}
+/* ------------------------------------------------------- License length -- */
 
 /* License length supports a duration or a read-only legacy value. */
 .tiermint-license-length {

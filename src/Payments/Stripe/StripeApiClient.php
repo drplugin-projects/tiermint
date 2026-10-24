@@ -77,7 +77,7 @@ class StripeApiClient {
 
 		if ( is_wp_error( $response ) ) {
 			// The controller never renders this log-only message.
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only transport message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new GatewayRequestException( 'Stripe request failed: ' . $response->get_error_message() );
 		}
 
@@ -85,12 +85,12 @@ class StripeApiClient {
 		$decoded = json_decode( wp_remote_retrieve_body( $response ), true );
 
 		if ( ! is_array( $decoded ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new GatewayRequestException( 'Stripe returned an unparseable response.', null, $status );
 		}
 
 		if ( $status >= 400 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only Stripe message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw $this->errorFromEnvelope( $decoded, $status );
 		}
 

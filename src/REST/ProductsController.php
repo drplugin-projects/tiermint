@@ -786,7 +786,7 @@ final class ProductsController extends AbstractRestController {
 			'update_slug'  => $product->updateSlug(),
 			'files'        => $product->files(),
 			'settings'     => (object) $product->settings(),
-			'prices'       => array_map( array( $this, 'presentPrice' ), $product->prices() ),
+			'prices'       => array_map( fn ( ProductPrice $price ): array => $this->presentPrice( $price, $product ), $product->prices() ),
 			'bundle_items' => array_map( array( $this, 'presentBundleItem' ), $product->bundleItems() ),
 			'created_at'   => $product->createdAt(),
 			'updated_at'   => $product->updatedAt(),
@@ -844,26 +844,39 @@ final class ProductsController extends AbstractRestController {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param ProductPrice $price The price tier to present.
+	 * @param ProductPrice $price   The price tier to present.
+	 * @param Product      $product The product the tier belongs to.
 	 * @return array<string, mixed> The response representation.
 	 */
-	private function presentPrice( ProductPrice $price ): array {
-		return array(
+	private function presentPrice( ProductPrice $price, Product $product ): array {
+		$data = array(
 			'id'               => null === $price->id() ? null : (int) $price->id(),
 			'product_id'       => null === $price->productId() ? null : (int) $price->productId(),
 			'name'             => $price->name(),
 			'amount'           => $price->amount(),
 			'activation_limit' => $price->activationLimit(),
 			'license_length'   => $price->licenseLength(),
-			'is_subscription'  => $price->isSubscription(),
-			'billing_period'   => $price->billingPeriod(),
-			'billing_interval' => $price->billingInterval(),
-			'trial_days'       => $price->trialDays(),
 			'sort_order'       => $price->sortOrder(),
 			'min_quantity'     => $price->minQuantity(),
 			'max_quantity'     => $price->maxQuantity(),
 			'status'           => $price->status()->value,
 		);
+
+		/**
+		 * Filters a price tier in a products REST response.
+		 *
+		 * An extension that stores its own data per tier adds it here. A return
+		 * that is not an array keeps core's data.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array<string, mixed> $data    The tier data.
+		 * @param ProductPrice         $price   The tier.
+		 * @param Product              $product The product the tier belongs to.
+		 */
+		$filtered = apply_filters( 'tiermint_rest_product_price', $data, $price, $product );
+
+		return is_array( $filtered ) ? $filtered : $data;
 	}
 
 	/**

@@ -111,7 +111,7 @@ WEBCONFIG;
 	 */
 	public function store( string $sourcePath, string $key ): StoredFile {
 		if ( ! is_file( $sourcePath ) || ! is_readable( $sourcePath ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer exception; $sourcePath is a trusted internal filesystem path, never user input or HTML output.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw StorageException::unreadableSource( $sourcePath );
 		}
 
@@ -121,21 +121,31 @@ WEBCONFIG;
 		$targetPath = $this->root() . '/' . $normalizedKey;
 
 		if ( ! wp_mkdir_p( dirname( $targetPath ) ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer exception; $normalizedKey is a trusted internal storage key, never user input or HTML output.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw StorageException::writeFailed( $normalizedKey, 'could not create the destination directory' );
 		}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_copy -- Copies into the protected, non-web-accessible packages directory; WP_Filesystem adds no safety here and the caller already validated the source above.
-		if ( ! copy( $sourcePath, $targetPath ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer exception; $normalizedKey is a trusted internal storage key, never user input or HTML output.
+		$filesystem = $this->directFilesystem( $this->root() );
+
+		if ( null !== $filesystem ) {
+			$copied = $filesystem->copy( $sourcePath, $targetPath, true );
+		} else {
+			// Another filesystem method needs credentials, and a REST upload cannot ask for them.
+			$copied = copy( $sourcePath, $targetPath );
+		}
+
+		if ( ! $copied ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw StorageException::writeFailed( $normalizedKey, 'copy to the packages directory failed' );
 		}
+
+		$this->guardFolders( dirname( $normalizedKey ) );
 
 		$filesize = filesize( $targetPath );
 		$sha256   = hash_file( 'sha256', $targetPath );
 
 		if ( false === $filesize || false === $sha256 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer exception; $normalizedKey is a trusted internal storage key, never user input or HTML output.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw StorageException::writeFailed( $normalizedKey, 'could not read back the stored file to checksum it' );
 		}
 
@@ -154,8 +164,7 @@ WEBCONFIG;
 		$path = $this->root() . '/' . $this->normalizeKey( $key );
 
 		if ( is_file( $path ) ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- Deletes a file inside the protected packages directory; this is an internal-only path, not one that touches user-supplied uploads directly.
-			unlink( $path );
+			wp_delete_file( $path );
 		}
 	}
 
@@ -179,7 +188,7 @@ WEBCONFIG;
 			header( 'Content-Length: ' . (string) filesize( $path ) );
 		}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- Streams a package file from the protected packages directory straight to the HTTP response; this is the documented local delivery path, not a fetch of arbitrary/remote content.
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- Streams the package to the response; WP_Filesystem has no streaming read.
 		readfile( $path );
 
 		return true;
@@ -232,6 +241,24 @@ WEBCONFIG;
 	}
 
 	/**
+	 * Put an index.php in each folder of a key's path below the root.
+	 *
+	 * The root's .htaccess and web.config cover these folders on Apache and IIS.
+	 * The index.php stops a folder listing on servers that ignore both.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $folder Normalized folder part of the key, or "." for none.
+	 * @return void
+	 */
+	private function guardFolders( string $folder ): void {
+		while ( '.' !== $folder && '' !== $folder ) {
+			$this->writeGuardFileIfMissing( $this->root() . '/' . $folder . '/index.php', self::INDEX_PHP_CONTENTS );
+			$folder = dirname( $folder );
+		}
+	}
+
+	/**
 	 * Write a protected-directory guard file, but only if it is not already there.
 	 *
 	 * @since 1.0.0
@@ -245,8 +272,46 @@ WEBCONFIG;
 			return;
 		}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Lays down a static deny-all guard file inside the protected packages directory; WP_Filesystem is unneeded ceremony for this internal, non-user-facing write.
+		$filesystem = $this->directFilesystem( dirname( $path ) );
+
+		if ( null !== $filesystem ) {
+			$filesystem->put_contents( $path, $contents );
+
+			return;
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Another filesystem method needs credentials, and a REST upload cannot ask for them.
 		file_put_contents( $path, $contents );
+	}
+
+	/**
+	 * Get the direct WP_Filesystem, or null when WordPress would use another method.
+	 *
+	 * An instance WordPress already set up is reused only when it is direct, so an
+	 * FTP instance in use elsewhere in the request is never replaced.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $context The folder the write goes to.
+	 * @return \WP_Filesystem_Base|null
+	 */
+	private function directFilesystem( string $context ): ?\WP_Filesystem_Base {
+		global $wp_filesystem;
+
+		if ( $wp_filesystem instanceof \WP_Filesystem_Base ) {
+			return 'direct' === $wp_filesystem->method ? $wp_filesystem : null;
+		}
+
+		if ( ! function_exists( 'get_filesystem_method' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		// PHP writes the uploads folder itself, so file ownership is not checked.
+		if ( 'direct' !== get_filesystem_method( array(), $context, true ) || ! WP_Filesystem( false, $context, true ) ) {
+			return null;
+		}
+
+		return $wp_filesystem instanceof \WP_Filesystem_Base ? $wp_filesystem : null;
 	}
 
 	/**
@@ -269,7 +334,7 @@ WEBCONFIG;
 			|| str_contains( $normalized, "\0" )
 			|| str_contains( $normalized, '..' )
 		) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer exception; $key is a trusted internal storage key, never user input or HTML output.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw StorageException::invalidKey( $key );
 		}
 
@@ -277,7 +342,7 @@ WEBCONFIG;
 		// protection when stored. Guard basenames deeper in the tree are harmless, so
 		// only reject them when they resolve directly to the packages root.
 		if ( '.' === dirname( $normalized ) && in_array( basename( $normalized ), self::RESERVED_GUARD_FILES, true ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer exception; $key is a trusted internal storage key, never user input or HTML output.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw StorageException::invalidKey( $key );
 		}
 

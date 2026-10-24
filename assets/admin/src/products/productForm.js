@@ -25,10 +25,6 @@ export function blankPrice() {
 		activation_limit: 0,
 		// Null represents a lifetime license.
 		license_length: null,
-		is_subscription: false,
-		billing_period: 'month',
-		billing_interval: 1,
-		trial_days: 0,
 		min_quantity: 1,
 		max_quantity: 0,
 		status: 'active',

@@ -1,7 +1,7 @@
 === TierMint ===
 Contributors: drplugin
 Tags: digital downloads, sell digital products, software licensing, license keys, stripe
-Requires at least: 6.6
+Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 8.1
 Stable tag: 1.0.0
@@ -45,7 +45,7 @@ Add the free [update client](https://drplugin.com/docs/tiermint/licensing/update
 
 Activation creates the Store, Product, Checkout, Account, Sign in and Reset password pages, plus Register when registration is open. You can swap any of them for your own page.
 
-The storefront comes as 20 blocks, each with a matching shortcode, and five block patterns for pricing, product, checkout and account pages. The blocks work in block themes and classic themes. Eight Elementor widgets work with the free Elementor plugin. Set colors, corner radius and font in the settings, or override the `--tiermint-*` CSS custom properties.
+The storefront comes as 20 blocks, each with a matching shortcode, and five block patterns for pricing, product, checkout and account pages. The blocks work in block themes and classic themes. Ten Elementor widgets work with the free Elementor plugin. Set colors, corner radius and font in the settings, or override the `--tiermint-*` CSS custom properties.
 
 = Documentation =
 
@@ -80,7 +80,7 @@ The JavaScript in `assets/admin/build` and `assets/blocks/build` is compiled wit
 5. Add a product with at least one pricing tier. Turn on Licensed product if you sell software.
 6. Buy it with a Stripe test card, then check that the receipt email and the license key arrive.
 
-You need WordPress 6.6 or newer, PHP 8.1 or newer, and HTTPS for live card payments.
+You need WordPress 6.9 or newer, PHP 8.1 or newer, and HTTPS for live card payments.
 
 == Frequently Asked Questions ==
 

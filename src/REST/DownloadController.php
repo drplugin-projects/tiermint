@@ -33,6 +33,7 @@ use DrPlugin\WP\TierMint\Updates\PackageSigner;
 use DrPlugin\WP\TierMint\Updates\Release;
 use DrPlugin\WP\TierMint\Updates\ReleasePackageName;
 use DrPlugin\WP\TierMint\Updates\ReleaseRepository;
+use DrPlugin\WP\TierMint\Updates\ReleaseStatus;
 use Throwable;
 use WP_Error;
 use WP_REST_Request;
@@ -192,8 +193,7 @@ final class DownloadController extends AbstractRestController {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'downloadPackage' ),
-					// The signature in the URL is the credential.
-					'permission_callback' => '__return_true',
+					'permission_callback' => array( $this, 'verifyPackageGrant' ),
 					'args'                => $this->grantArgs( array( 'product', 'release', 'license_key_id' ), array( 'site_hash' ) ),
 				),
 			)
@@ -206,7 +206,7 @@ final class DownloadController extends AbstractRestController {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'downloadOrderFile' ),
-					'permission_callback' => '__return_true',
+					'permission_callback' => array( $this, 'verifyOrderFileGrant' ),
 					'args'                => $this->grantArgs( array( 'order', 'item', 'customer' ), array( 'token' ) ),
 				),
 			)
@@ -276,7 +276,49 @@ final class DownloadController extends AbstractRestController {
 	}
 
 	/**
-	 * Verify a package grant and stage delivery.
+	 * Permission check for the package route: the signature in the URL is the credential.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_REST_Request $request The incoming request, its args already sanitized.
+	 * @return true|WP_Error True for a genuine, unexpired grant, or the refusal.
+	 */
+	public function verifyPackageGrant( WP_REST_Request $request ) {
+		$verdict = $this->signer->verifyPackage(
+			(int) $request->get_param( 'product' ),
+			(int) $request->get_param( 'release' ),
+			(int) $request->get_param( 'license_key_id' ),
+			trim( (string) $request->get_param( 'site_hash' ) ),
+			(int) $request->get_param( 'expires' ),
+			trim( (string) $request->get_param( 'signature' ) )
+		);
+
+		return $this->verdictError( $verdict ) ?? true;
+	}
+
+	/**
+	 * Permission check for the order-file route: the signature in the URL is the credential.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_REST_Request $request The incoming request, its args already sanitized.
+	 * @return true|WP_Error True for a genuine, unexpired grant, or the refusal.
+	 */
+	public function verifyOrderFileGrant( WP_REST_Request $request ) {
+		$verdict = $this->signer->verifyOrderFile(
+			(int) $request->get_param( 'order' ),
+			(int) $request->get_param( 'item' ),
+			(int) $request->get_param( 'customer' ),
+			trim( (string) $request->get_param( 'token' ) ),
+			(int) $request->get_param( 'expires' ),
+			trim( (string) $request->get_param( 'signature' ) )
+		);
+
+		return $this->verdictError( $verdict ) ?? true;
+	}
+
+	/**
+	 * Stage delivery of a package whose grant verifyPackageGrant() accepted.
 	 *
 	 * @since 1.0.0
 	 *
@@ -287,17 +329,6 @@ final class DownloadController extends AbstractRestController {
 		$productId    = (int) $request->get_param( 'product' );
 		$releaseId    = (int) $request->get_param( 'release' );
 		$licenseKeyId = (int) $request->get_param( 'license_key_id' );
-		$siteHash     = trim( (string) $request->get_param( 'site_hash' ) );
-		$expires      = (int) $request->get_param( 'expires' );
-		$signature    = trim( (string) $request->get_param( 'signature' ) );
-
-		$verdictError = $this->verdictError(
-			$this->signer->verifyPackage( $productId, $releaseId, $licenseKeyId, $siteHash, $expires, $signature )
-		);
-
-		if ( null !== $verdictError ) {
-			return $verdictError;
-		}
 
 		try {
 			$license = $this->currentlyValidLicense( $licenseKeyId, $productId );
@@ -312,9 +343,8 @@ final class DownloadController extends AbstractRestController {
 				return $this->notFound();
 			}
 
-			if ( ! $release->isPublished() ) {
-				// A yanked (or somehow unpublished) release stops serving
-				// instantly, outstanding signed URLs included.
+			if ( ReleaseStatus::Yanked === $release->status() ) {
+				// A yanked release stops serving at once, signed URLs already handed out included.
 				return $this->forbidden();
 			}
 
@@ -363,7 +393,7 @@ final class DownloadController extends AbstractRestController {
 	}
 
 	/**
-	 * Verify an order-file grant and stage delivery.
+	 * Stage delivery of an order file whose grant verifyOrderFileGrant() accepted.
 	 *
 	 * @since 1.0.0
 	 *
@@ -375,16 +405,6 @@ final class DownloadController extends AbstractRestController {
 		$itemId     = (int) $request->get_param( 'item' );
 		$customerId = (int) $request->get_param( 'customer' );
 		$token      = trim( (string) $request->get_param( 'token' ) );
-		$expires    = (int) $request->get_param( 'expires' );
-		$signature  = trim( (string) $request->get_param( 'signature' ) );
-
-		$verdictError = $this->verdictError(
-			$this->signer->verifyOrderFile( $orderId, $itemId, $customerId, $token, $expires, $signature )
-		);
-
-		if ( null !== $verdictError ) {
-			return $verdictError;
-		}
 
 		try {
 			$order = $this->orders->find( $orderId );
@@ -489,10 +509,12 @@ final class DownloadController extends AbstractRestController {
 			// 302-redirected in stageDelivery and never reach here.
 			$this->storage->for( $pending['provider'] )->stream( $pending['key'] );
 		} catch ( Throwable $t ) {
-			// Headers may already be out; there is nothing safe to add to the
-			// body. The failed delivery surfaces in the site's PHP error log.
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- last-resort visibility for a failed stream after headers.
-			error_log( 'TierMint: package stream failed: ' . $t->getMessage() );
+			// Headers may already be out, so nothing safe can go in the body.
+			$this->logger->log(
+				'error',
+				'Download stream failed: ' . $t->getMessage(),
+				array( 'provider' => $pending['provider'] )
+			);
 		}
 
 		return true;

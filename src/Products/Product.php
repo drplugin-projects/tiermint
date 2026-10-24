@@ -263,15 +263,12 @@ final class Product {
 	/**
 	 * Get the first sellable tier by sort order and id.
 	 *
-	 * Exclude recurring tiers when billing is unavailable.
-	 *
 	 * @since 1.0.0
 	 *
-	 * @param bool $recurringSupported Whether recurring tiers can be billed on this install.
 	 * @return ProductPrice|null The default tier, or null when none is purchasable.
 	 */
-	public function defaultPrice( bool $recurringSupported = true ): ?ProductPrice {
-		$active = array_values( array_filter( $this->prices, static fn ( ProductPrice $p ): bool => $p->isPurchasable( $recurringSupported ) ) );
+	public function defaultPrice(): ?ProductPrice {
+		$active = array_values( array_filter( $this->prices, static fn ( ProductPrice $p ): bool => $p->isPurchasable() ) );
 
 		if ( array() === $active ) {
 			return null;
@@ -514,7 +511,7 @@ final class Product {
 
 		foreach ( $files as $file ) {
 			if ( ! is_array( $file ) ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw new ProductException( __( 'A product file must be a storage reference array, not a raw path.', 'tiermint' ) );
 			}
 
@@ -522,12 +519,12 @@ final class Product {
 			$key      = isset( $file['key'] ) ? (string) $file['key'] : '';
 
 			if ( '' === $provider || '' === $key ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw new ProductException( __( 'A product file reference requires both a provider and a key.', 'tiermint' ) );
 			}
 
 			if ( $this->looksLikeRawPath( $key ) ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw new ProductException( __( 'A product file key must be a storage key, not a raw or absolute path.', 'tiermint' ) );
 			}
 
@@ -544,7 +541,7 @@ final class Product {
 	/**
 	 * Whether a storage key looks like a filesystem path.
 	 *
-	 * Rejects POSIX absolute paths (`/…`), Windows drive/UNC paths (`C:\…`, `\\…`),
+	 * Rejects POSIX absolute paths (`/...`), Windows drive/UNC paths (`C:\...`, `\\...`),
 	 * and any parent-directory traversal.
 	 *
 	 * @since 1.0.0

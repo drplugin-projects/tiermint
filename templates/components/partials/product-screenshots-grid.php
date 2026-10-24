@@ -41,10 +41,7 @@ $tiermint_counter_label =
 						data-tiermint-caption="<?php echo esc_attr( $tiermint_caption ); ?>"
 					<?php endif; ?>
 				>
-					<?php
-					// wp_get_attachment_image() returns escaped markup.
-					echo $tiermint_shot['thumb']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_attachment_image() returns escaped markup.
-					?>
+					<?php echo wp_kses( (string) $tiermint_shot['thumb'], \DrPlugin\WP\TierMint\Frontend\Kses::image() ); ?>
 				</a>
 			</li>
 		<?php endforeach; ?>

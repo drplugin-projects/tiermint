@@ -12,6 +12,7 @@ namespace DrPlugin\WP\TierMint\Payments\Stripe;
 // Prevent direct file access.
 defined( 'ABSPATH' ) || exit;
 
+use DrPlugin\WP\TierMint\Database\Logger;
 use DrPlugin\WP\TierMint\Orders\Order;
 use DrPlugin\WP\TierMint\Orders\OrderService;
 use DrPlugin\WP\TierMint\Orders\OrderStatus;
@@ -27,16 +28,18 @@ use DrPlugin\WP\TierMint\Payments\RefundCoordinator;
 class StripeEventHandlers {
 
 	/**
-	 * Wire the handlers with the order service and the refund coordinator.
+	 * Wire the handlers with the order service, the refund coordinator and the logger.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param OrderService      $orders  The orders domain service.
 	 * @param RefundCoordinator $refunds The gateway/ledger refund coordinator.
+	 * @param Logger            $logger  The audit logger.
 	 */
 	public function __construct(
 		private readonly OrderService $orders,
-		private readonly RefundCoordinator $refunds
+		private readonly RefundCoordinator $refunds,
+		private readonly Logger $logger
 	) {
 	}
 
@@ -110,17 +113,20 @@ class StripeEventHandlers {
 			return;
 		}
 
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Deliberate anomaly log: a signed PaymentIntent that does not match its order is rare and worth surfacing; completion still proceeds so a paid customer is never blocked.
-		error_log(
+		$this->logger->log(
+			'payment',
 			sprintf(
-				'TierMint: PaymentIntent %s reports %s %s but order %d is %d %s; completing anyway.',
+				'PaymentIntent %s reports %s %s but order %d is %d %s; completing anyway.',
 				trim( (string) ( $intent['id'] ?? '' ) ),
 				null === $amount ? 'an unknown amount' : (string) $amount,
 				'' === $currency ? 'in an unknown currency' : $currency,
 				(int) $order->id(),
 				$order->total(),
 				$order->currency()
-			)
+			),
+			array(),
+			'order',
+			(int) $order->id()
 		);
 	}
 

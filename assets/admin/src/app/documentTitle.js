@@ -70,7 +70,7 @@ export function applyDocumentTitle( routes, original ) {
  * Start syncing the title: once now, then on every hash change.
  *
  * The server title is captured once so repeated syncs never compound, and the
- * route list is read fresh each time so a late Pro registration is picked up.
+ * route list is read fresh each time so a route registered late is picked up.
  *
  * @param {Function} getRoutes Returns the current route list.
  * @return {Function} A teardown that stops listening.

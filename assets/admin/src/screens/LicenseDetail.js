@@ -17,6 +17,7 @@ import { del, get } from '../api/client';
 import ScreenHeader from '../components/ScreenHeader';
 import { SkeletonForm } from '../components/Skeleton';
 import StatusBadge from '../components/StatusBadge';
+import { joinList } from '../utils/list';
 import { firstReadPending } from '../utils/listState';
 
 /**
@@ -49,6 +50,25 @@ const ACTIVATION_STATUS_LABELS = {
 	active: __( 'Active', 'tiermint' ),
 	deactivated: __( 'Deactivated', 'tiermint' ),
 };
+
+/**
+ * Join the environment a client reported into one line, such as
+ * "php: 8.2.20, wp: 6.9.1". The keys are whatever the client sent.
+ *
+ * @param {?Object} environment The stored environment map, or null.
+ * @return {string} The joined pairs, or an empty string.
+ */
+function formatEnvironment( environment ) {
+	if ( ! environment || 'object' !== typeof environment ) {
+		return '';
+	}
+
+	return joinList(
+		Object.entries( environment )
+			.filter( ( [ , value ] ) => '' !== String( value ).trim() )
+			.map( ( [ key, value ] ) => `${ key }: ${ value }` )
+	);
+}
 
 /**
  * Build the react-query cache key for a single license.
@@ -296,7 +316,18 @@ export default function LicenseDetail( { params } ) {
 					) }
 					{ data.activations.map( ( activation ) => (
 						<tr key={ activation.id }>
-							<td>{ activation.site_url }</td>
+							<td>
+								{ activation.site_url }
+								{ formatEnvironment(
+									activation.environment
+								) && (
+									<div className="description">
+										{ formatEnvironment(
+											activation.environment
+										) }
+									</div>
+								) }
+							</td>
 							<td>
 								<StatusBadge
 									status={ activation.status }

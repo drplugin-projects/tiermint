@@ -45,6 +45,39 @@ import { minorToDecimal, decimalToMinor } from '../utils/currency';
 import { firstReadPending } from '../utils/listState';
 
 /**
+ * Price row keys core reads and writes itself.
+ *
+ * @type {string[]}
+ */
+const CORE_PRICE_KEYS = [
+	'id',
+	'product_id',
+	'name',
+	'amount',
+	'activation_limit',
+	'license_length',
+	'sort_order',
+	'min_quantity',
+	'max_quantity',
+	'status',
+];
+
+/**
+ * The keys of a price row that core does not use, such as an extension's
+ * per-tier data, so they go back to the server as they came.
+ *
+ * @param {Object} price A price row.
+ * @return {Object} The other keys.
+ */
+function extensionPriceKeys( price ) {
+	return Object.fromEntries(
+		Object.entries( price ).filter(
+			( [ key ] ) => ! CORE_PRICE_KEYS.includes( key )
+		)
+	);
+}
+
+/**
  * Normalize a price row loaded from the server into the form's shape.
  *
  * @param {Object} price    The server price row.
@@ -54,19 +87,16 @@ import { firstReadPending } from '../utils/listState';
  */
 function normalizePrice( price, currency ) {
 	return {
+		...extensionPriceKeys( price ),
 		id: price.id,
 		name: price.name || '',
 		amount: minorToDecimal( price.amount, currency ),
 		activation_limit: Number( price.activation_limit ) || 0,
-		// Keep the license-length grammar and sentinels as strings.
+		// Keep the license-length grammar and legacy values as strings.
 		license_length:
 			price.license_length === undefined || price.license_length === null
 				? null
 				: String( price.license_length ),
-		is_subscription: !! price.is_subscription,
-		billing_period: price.billing_period || 'month',
-		billing_interval: Number( price.billing_interval ) || 1,
-		trial_days: Number( price.trial_days ) || 0,
 		// Form value 0 means no quantity limit.
 		min_quantity: Number( price.min_quantity ) || 1,
 		max_quantity: Number( price.max_quantity ) || 0,
@@ -158,16 +188,13 @@ function buildBody( form, currency ) {
 		settings: form.settings,
 		// The API replaces all prices in their displayed order.
 		prices: form.prices.map( ( price, index ) => {
-			// Subscriptions allow one item. Null maximum means unlimited.
+			// Null maximum means unlimited.
 			const enteredMax = Number( price.max_quantity );
-			let minQuantity = Number( price.min_quantity ) || 1;
-			let maxQuantity = enteredMax > 0 ? enteredMax : null;
-			if ( price.is_subscription ) {
-				minQuantity = 1;
-				maxQuantity = 1;
-			}
+			const minQuantity = Number( price.min_quantity ) || 1;
+			const maxQuantity = enteredMax > 0 ? enteredMax : null;
 
 			const out = {
+				...extensionPriceKeys( price ),
 				name: price.name,
 				amount: decimalToMinor( price.amount, currency ),
 				activation_limit: Number( price.activation_limit ) || 0,
@@ -178,10 +205,6 @@ function buildBody( form, currency ) {
 					price.license_length === null
 						? null
 						: price.license_length,
-				is_subscription: !! price.is_subscription,
-				billing_period: price.billing_period,
-				billing_interval: Number( price.billing_interval ) || 1,
-				trial_days: Number( price.trial_days ) || 0,
 				min_quantity: minQuantity,
 				max_quantity: maxQuantity,
 				sort_order: index,
@@ -299,14 +322,6 @@ export default function ProductEdit( { params, boot } ) {
 	const productId = isNew ? null : params.id;
 	const currency =
 		( boot && boot.settings && boot.settings.currency ) || 'USD';
-	// Pro alone exposes recurring controls. The server enforces this boundary.
-	const recurringTiersEnabled = Boolean(
-		boot && boot.features && boot.features.recurring_tiers
-	);
-	// Pro alone exposes release channels and staged rollouts.
-	const releaseChannelsEnabled = Boolean(
-		boot && boot.features && boot.features.release_channels
-	);
 	const queryClient = useQueryClient();
 
 	// Subscribe so late extension renderers update the editor.
@@ -481,6 +496,27 @@ export default function ProductEdit( { params, boot } ) {
 	 * @return {void}
 	 */
 	const onSave = () => {
+		// An empty length asks the merchant to pick one. Saving it would store lifetime.
+		const unpicked = form.prices
+			.map( ( price, index ) =>
+				price.license_length === ''
+					? sprintf(
+							/* translators: %d: the position of the price in the list, starting at 1. */
+							__(
+								'Price %d needs a license length. Pick Lifetime or Duration.',
+								'tiermint'
+							),
+							index + 1
+					  )
+					: null
+			)
+			.filter( Boolean );
+
+		if ( unpicked.length > 0 ) {
+			setSaveError( { errors: { license_length: unpicked } } );
+			return;
+		}
+
 		submitted.current = JSON.stringify( form );
 		saveMutation.mutate( buildBody( form, currency ) );
 	};
@@ -576,12 +612,7 @@ export default function ProductEdit( { params, boot } ) {
 	);
 
 	const pricingPanel = (
-		<PricingPanel
-			form={ form }
-			setForm={ setForm }
-			currency={ currency }
-			recurringTiersEnabled={ recurringTiersEnabled }
-		/>
+		<PricingPanel form={ form } setForm={ setForm } currency={ currency } />
 	);
 
 	const bundlePanel = (
@@ -601,10 +632,7 @@ export default function ProductEdit( { params, boot } ) {
 			) }
 		</Notice>
 	) : (
-		<ReleasesPanel
-			productId={ productId }
-			channelsEnabled={ releaseChannelsEnabled }
-		/>
+		<ReleasesPanel productId={ productId } />
 	);
 
 	return (

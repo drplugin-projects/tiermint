@@ -264,13 +264,13 @@ class PackageSigner {
 	}
 
 	/**
-	 * Mint a signed URL for an add-on grant.
+	 * Mint a signed URL for a grant on any REST route.
 	 *
 	 * Preserve field order for verification.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string                    $route   REST route below the REST root, e.g. `tiermint/v1/pro/invoices/download`.
+	 * @param string                    $route   REST route below the REST root, e.g. `my-plugin/v1/file`.
 	 * @param string                    $context Domain-separation tag; see {@see signGrant()} for what is allowed.
 	 * @param array<string, int|string> $fields Ordered grant fields, keyed by query-parameter name.
 	 * @param int|null                  $now     Unix time to compute expiry from; null means current time.
@@ -286,7 +286,7 @@ class PackageSigner {
 			if ( in_array( (string) $name, self::APPENDED_PARAMS, true ) ) {
 				$message = sprintf( 'A signed grant field may not be named %s: this method appends that parameter itself.', (string) $name );
 
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only English; the name is the caller's own literal.
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw new InvalidArgumentException( $message );
 			}
 		}
@@ -362,7 +362,7 @@ class PackageSigner {
 				self::ORDER_CONTEXT
 			);
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only English; the context is the caller's own literal.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new InvalidArgumentException( $message );
 		}
 
@@ -372,7 +372,7 @@ class PackageSigner {
 			if ( ! is_int( $value ) && ! is_string( $value ) ) {
 				$message = sprintf( 'The signed-grant field "%s" must be an int or a string.', (string) $name );
 
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only English; the value is deliberately not repeated into the message.
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw new InvalidArgumentException( $message );
 			}
 
@@ -381,7 +381,7 @@ class PackageSigner {
 			if ( str_contains( $value, self::SEPARATOR ) ) {
 				$message = sprintf( 'The signed-grant field "%s" may not contain the canonical separator.', (string) $name );
 
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only English; the value is deliberately not repeated into the message.
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw new InvalidArgumentException( $message );
 			}
 

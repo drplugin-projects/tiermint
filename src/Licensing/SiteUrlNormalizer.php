@@ -37,21 +37,20 @@ class SiteUrlNormalizer {
 		$url = trim( $url );
 
 		if ( '' === $url ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'A site URL is required.', 'tiermint' ) );
 		}
 
-		// parse_url() needs an authority to find a host.
+		// The parser needs an authority to find a host.
 		$has_scheme = 1 === preg_match( '#^[a-zA-Z][a-zA-Z0-9+.\-]*://#', $url );
 		if ( ! $has_scheme && '/' !== substr( $url, 0, 1 ) ) {
 			$url = '//' . $url;
 		}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- This is a pure, WordPress-free primitive (unit tested without WordPress loaded); it reads only host, port, and path, which are consistent across PHP versions.
-		$parts = parse_url( $url );
+		$parts = wp_parse_url( $url );
 
 		if ( false === $parts || empty( $parts['host'] ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'The site URL could not be understood.', 'tiermint' ) );
 		}
 

@@ -12,6 +12,7 @@ namespace DrPlugin\WP\TierMint\Orders;
 // Prevent direct file access.
 defined( 'ABSPATH' ) || exit;
 
+use DrPlugin\WP\TierMint\Database\Logger;
 use DrPlugin\WP\TierMint\Database\Schema;
 
 /**
@@ -38,14 +39,23 @@ class OrderRepository {
 	private \wpdb $wpdb;
 
 	/**
+	 * Audit logger for cleanup faults.
+	 *
+	 * @var Logger
+	 */
+	private Logger $logger;
+
+	/**
 	 * Wire the repository with its database handle.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param \wpdb $wpdb The WordPress database abstraction.
+	 * @param \wpdb       $wpdb   The WordPress database abstraction.
+	 * @param Logger|null $logger Audit logger; null builds one over the same handle.
 	 */
-	public function __construct( \wpdb $wpdb ) {
-		$this->wpdb = $wpdb;
+	public function __construct( \wpdb $wpdb, ?Logger $logger = null ) {
+		$this->wpdb   = $wpdb;
+		$this->logger = $logger ?? new Logger( $wpdb );
 	}
 
 	/**
@@ -103,10 +113,10 @@ class OrderRepository {
 			return $cached;
 		}
 
-		$row = $this->fetchRow(
-			'SELECT * FROM ' . $this->ordersTable() . ' WHERE id = %d',
-			array( $id )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->fetchRow( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $this->ordersTable(), $id ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -133,10 +143,10 @@ class OrderRepository {
 			return $cached;
 		}
 
-		$row = $this->fetchRow(
-			'SELECT * FROM ' . $this->ordersTable() . ' WHERE uuid = %s',
-			array( $uuid )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->fetchRow( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE uuid = %s', $this->ordersTable(), $uuid ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -160,9 +170,10 @@ class OrderRepository {
 	 * @return Order|null The order, or null when no order carries the id.
 	 */
 	public function findByGatewayTxnId( string $gateway, string $txnId ): ?Order {
-		$row = $this->fetchRow(
-			'SELECT * FROM ' . $this->ordersTable() . ' WHERE gateway = %s AND gateway_txn_id = %s ORDER BY id ASC LIMIT 1',
-			array( $gateway, $txnId )
+		$wpdb = $this->wpdb;
+		$row  = $this->fetchRow(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE gateway = %s AND gateway_txn_id = %s ORDER BY id ASC LIMIT 1', $this->ordersTable(), $gateway, $txnId ) )
 		);
 
 		if ( null === $row ) {
@@ -192,7 +203,7 @@ class OrderRepository {
 		$id = $order->id();
 
 		if ( null === $id ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'Cannot update an order that has no id.', 'tiermint' ) );
 		}
 
@@ -233,7 +244,7 @@ class OrderRepository {
 		$id = $order->id();
 
 		if ( null === $id ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'Cannot transition an order that has no id.', 'tiermint' ) );
 		}
 
@@ -242,37 +253,40 @@ class OrderRepository {
 			return false;
 		}
 
-		$now = gmdate( 'Y-m-d H:i:s' );
+		$now     = gmdate( 'Y-m-d H:i:s' );
+		$wpdb    = $this->wpdb;
+		$sources = array_map( static fn ( OrderStatus $status ): string => $status->value, $fromStatuses );
 
-		$set    = 'status = %s, updated_at = %s';
-		$params = array( $to->value, $now );
+		if ( null === $completedAt ) {
+			$values = array_merge( array( $this->ordersTable(), $to->value, $now, $id ), $sources );
 
-		if ( null !== $completedAt ) {
-			$set     .= ', completed_at = %s';
-			$params[] = $completedAt;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$affected = $wpdb->query(
+				$wpdb->prepare(
+					'UPDATE %i SET status = %s, updated_at = %s WHERE id = %d AND status IN (' .
+					implode( ', ', array_fill( 0, count( $fromStatuses ), '%s' ) ) . ')',
+					$values
+				)
+			);
+		} else {
+			$values = array_merge( array( $this->ordersTable(), $to->value, $now, $completedAt, $id ), $sources );
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$affected = $wpdb->query(
+				$wpdb->prepare(
+					'UPDATE %i SET status = %s, updated_at = %s, completed_at = %s WHERE id = %d AND status IN (' .
+					implode( ', ', array_fill( 0, count( $fromStatuses ), '%s' ) ) . ')',
+					$values
+				)
+			);
 		}
-
-		$placeholders = implode( ', ', array_fill( 0, count( $fromStatuses ), '%s' ) );
-
-		$params[] = $id;
-		foreach ( $fromStatuses as $status ) {
-			$params[] = $status->value;
-		}
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The SQL embeds only Schema-derived identifiers and %s placeholders; every runtime value is bound via prepare() below.
-		$sql = 'UPDATE ' . $this->ordersTable() . ' SET ' . $set . ' WHERE id = %d AND status IN (' . $placeholders . ')';
-
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); the caller's write invalidates the object cache just below.
-		$affected = $wpdb->query( $wpdb->prepare( $sql, $params ) );
 
 		// Invalidate both cache keys: the id and uuid copies are now stale whether or not
 		// this call won, since a racing writer may have changed the row either way.
 		$this->forget( $id, $order->uuid() );
 
 		if ( false === $affected ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- $table is a Schema-derived internal identifier, never user input or HTML; kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderPersistenceException( 'Failed to transition an order status in ' . $this->ordersTable() . '.' );
 		}
 
@@ -299,23 +313,20 @@ class OrderRepository {
 		$id = $order->id();
 
 		if ( null === $id ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'Cannot stamp an order that has no id.', 'tiermint' ) );
 		}
 
 		$wpdb = $this->wpdb;
 		$now  = gmdate( 'Y-m-d H:i:s' );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The SQL embeds only the Schema-derived table name; every runtime value is bound via prepare() below.
-		$sql = 'UPDATE ' . $this->ordersTable() . ' SET gateway = %s, gateway_txn_id = %s, updated_at = %s WHERE id = %d';
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); the cache is invalidated just below.
-		$result = $wpdb->query( $wpdb->prepare( $sql, $gateway, $gatewayTxnId, $now, $id ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$result = $wpdb->query( $wpdb->prepare( 'UPDATE %i SET gateway = %s, gateway_txn_id = %s, updated_at = %s WHERE id = %d', $this->ordersTable(), $gateway, $gatewayTxnId, $now, $id ) );
 
 		$this->forget( $id, $order->uuid() );
 
 		if ( false === $result ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- $table is a Schema-derived internal identifier, never user input or HTML; kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderPersistenceException( 'Failed to stamp an order gateway in ' . $this->ordersTable() . '.' );
 		}
 	}
@@ -337,8 +348,13 @@ class OrderRepository {
 		$itemsDeleted  = $this->deleteWhere( $this->itemsTable(), array( 'order_id' => $id ) );
 
 		if ( false === $ordersDeleted || false === $itemsDeleted ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- A compensating delete faulted; there is no return channel to the caller (this is cleanup on an already-failing path), so record it so an orphan/partial row does not go unnoticed.
-			error_log( sprintf( 'TierMint: failed to delete order %d during compensating cleanup; a partial or orphan row may remain.', $id ) );
+			$this->logger->log(
+				'error',
+				sprintf( 'Failed to delete order %d during compensating cleanup; a partial or orphan row may remain.', $id ),
+				array(),
+				'order',
+				$id
+			);
 		}
 
 		$this->forget( $id, null !== $existing ? $existing->uuid() : null );
@@ -353,10 +369,10 @@ class OrderRepository {
 	 * @return int The sum of refunded amounts, as a positive integer.
 	 */
 	public function sumRefundedForOrder( int $parentId ): int {
-		$sum = $this->fetchVar(
-			'SELECT COALESCE( SUM( ABS( total ) ), 0 ) FROM ' . $this->ordersTable()
-				. ' WHERE parent_id = %d AND type = %s',
-			array( $parentId, OrderType::Refund->value )
+		$wpdb = $this->wpdb;
+		$sum  = $this->fetchVar(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_var( $wpdb->prepare( 'SELECT COALESCE( SUM( ABS( total ) ), 0 ) FROM %i WHERE parent_id = %d AND type = %s', $this->ordersTable(), $parentId, OrderType::Refund->value ) )
 		);
 
 		return (int) $sum;
@@ -374,10 +390,18 @@ class OrderRepository {
 	 * @return bool True when an id-less refund of exactly this amount is already recorded.
 	 */
 	public function hasUnattributedRefundOfAmount( int $parentId, int $amount ): bool {
+		$wpdb  = $this->wpdb;
 		$count = $this->fetchVar(
-			'SELECT COUNT(*) FROM ' . $this->ordersTable()
-				. ' WHERE parent_id = %d AND type = %s AND gateway_txn_id IS NULL AND ABS( total ) = %d',
-			array( $parentId, OrderType::Refund->value, $amount )
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT COUNT(*) FROM %i WHERE parent_id = %d AND type = %s AND gateway_txn_id IS NULL AND ABS( total ) = %d',
+					$this->ordersTable(),
+					$parentId,
+					OrderType::Refund->value,
+					$amount
+				)
+			)
 		);
 
 		return (int) $count > 0;
@@ -400,15 +424,19 @@ class OrderRepository {
 		$wpdb             = $this->wpdb;
 		$wpdb->last_error = '';
 
-		$sql = 'SELECT COUNT(*) FROM ' . $this->ordersTable()
-			. ' WHERE customer_id = %d AND discount_id = %d AND type = %s'
-			. " AND status NOT IN ('failed','abandoned')";
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); the two excluded statuses are fixed literals, not input; a once-per-customer probe has nothing to cache.
-		$count = $wpdb->get_var( $wpdb->prepare( $sql, $customerId, $discountId, OrderType::Purchase->value ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$count = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM %i WHERE customer_id = %d AND discount_id = %d AND type = %s AND status NOT IN ('failed','abandoned')",
+				$this->ordersTable(),
+				$customerId,
+				$discountId,
+				OrderType::Purchase->value
+			)
+		);
 
 		if ( '' !== $wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- $table is a Schema-derived internal identifier, never user input or HTML; kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderPersistenceException( 'Failed to read customer discount usage from ' . $this->ordersTable() . '.' );
 		}
 
@@ -431,13 +459,11 @@ class OrderRepository {
 		$wpdb             = $this->wpdb;
 		$wpdb->last_error = '';
 
-		$sql = 'SELECT COUNT(*) FROM ' . $this->ordersTable() . ' WHERE customer_id = %d';
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Value bound via prepare(); the SQL embeds only the Schema-derived table name; a one-off admin count has nothing to cache.
-		$count = $wpdb->get_var( $wpdb->prepare( $sql, $customerId ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE customer_id = %d', $this->ordersTable(), $customerId ) );
 
 		if ( '' !== $wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- The table name is a Schema-derived internal identifier, never user input or HTML; kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderPersistenceException( 'Failed to count customer orders in ' . $this->ordersTable() . '.' );
 		}
 
@@ -455,10 +481,10 @@ class OrderRepository {
 	 * @return array<int, int> The order ids, oldest first.
 	 */
 	public function idsForCustomer( int $customerId ): array {
-		$rows = $this->fetchRows(
-			'SELECT id FROM ' . $this->ordersTable() . ' WHERE customer_id = %d ORDER BY id ASC',
-			array( $customerId )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->fetchRows( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT id FROM %i WHERE customer_id = %d ORDER BY id ASC', $this->ordersTable(), $customerId ) ) );
 
 		return array_map( static fn ( object $r ): int => (int) $r->id, $rows );
 	}
@@ -502,168 +528,23 @@ class OrderRepository {
 	 * @return array<int, Order> The matching, hydrated orders, oldest first.
 	 */
 	public function pendingForAbandonment( string $before, int $limit ): array {
+		$wpdb = $this->wpdb;
 		$rows = $this->fetchRows(
-			'SELECT * FROM ' . $this->ordersTable()
-				. ' WHERE status = %s AND type = %s AND gateway_txn_id IS NULL AND created_at <= %s'
-				. ' ORDER BY created_at ASC, id ASC LIMIT %d',
-			array( OrderStatus::Pending->value, OrderType::Purchase->value, $before, max( 0, $limit ) )
-		);
-
-		return $this->hydratePage( $rows );
-	}
-
-	/**
-	 * Get pending purchases due for a recovery email.
-	 *
-	 * Filter sent and stale orders in SQL so they do not block fresh orders.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string      $before      A `Y-m-d H:i:s` UTC cutoff; orders created at/before it match.
-	 * @param string      $sentMetaKey The order-meta key marking an order already emailed.
-	 * @param int         $limit       The maximum number of orders to return.
-	 * @param string|null $after       An optional `Y-m-d H:i:s` UTC lower bound; orders created before
-	 *                                 it are excluded (too stale to recover). Null applies no lower bound.
-	 * @return array<int, Order> The matching, hydrated orders, oldest first.
-	 */
-	public function pendingAwaitingRecoveryEmail( string $before, string $sentMetaKey, int $limit, ?string $after = null ): array {
-		// The `email <> ''` guard is defensive: an order always carries a validated buyer email
-		// today, but a recovery email must never be addressed to an empty recipient.
-		$sql = 'SELECT o.* FROM ' . $this->ordersTable() . ' o'
-			. ' WHERE o.status = %s AND o.type = %s AND o.email <> %s AND o.created_at <= %s';
-
-		$params = array( OrderStatus::Pending->value, OrderType::Purchase->value, '', $before );
-
-		if ( null !== $after ) {
-			$sql     .= ' AND o.created_at >= %s';
-			$params[] = $after;
-		}
-
-		$sql     .= ' AND NOT EXISTS ( SELECT 1 FROM ' . $this->metaTable()
-			. ' m WHERE m.tiermint_order_id = o.id AND m.meta_key = %s )'
-			. ' ORDER BY o.created_at ASC, o.id ASC LIMIT %d';
-		$params[] = $sentMetaKey;
-		$params[] = max( 0, $limit );
-
-		return $this->hydratePage( $this->fetchRows( $sql, $params ) );
-	}
-
-	/**
-	 * Get orders due for a cart-recovery step.
-	 *
-	 * Pending and abandoned orders remain eligible until the drip ends. The first step skips
-	 * orders emailed by the former single-email flow.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string             $before           A `Y-m-d H:i:s` UTC cutoff; orders created at/before it match.
-	 * @param string|null        $after            An optional `Y-m-d H:i:s` UTC lower bound; older orders are excluded.
-	 * @param int                $stepsSent        The recovery `steps_sent` count an order must be at for this step.
-	 * @param array<int, string> $terminalStatuses Recovery statuses that make a row terminal (excluded).
-	 * @param string             $legacyMetaKey    The single-email-era sent marker, excluded on the first step only.
-	 * @param int                $limit            The maximum number of orders to return (batch cap).
-	 * @return array<int, Order> The matching, hydrated orders, oldest first.
-	 */
-	public function purchaseOrdersDueForRecovery( string $before, ?string $after, int $stepsSent, array $terminalStatuses, string $legacyMetaKey, int $limit ): array {
-		$sql = 'SELECT o.* FROM ' . $this->ordersTable() . ' o'
-			. ' LEFT JOIN ' . $this->recoveriesTable() . ' r ON r.order_id = o.id'
-			. ' WHERE o.status IN ( %s, %s ) AND o.type = %s AND o.email <> %s AND o.created_at <= %s';
-
-		$params = array(
-			OrderStatus::Pending->value,
-			OrderStatus::Abandoned->value,
-			OrderType::Purchase->value,
-			'',
-			$before,
-		);
-
-		if ( null !== $after ) {
-			$sql     .= ' AND o.created_at >= %s';
-			$params[] = $after;
-		}
-
-		if ( array() !== $terminalStatuses ) {
-			$placeholders = implode( ', ', array_fill( 0, count( $terminalStatuses ), '%s' ) );
-			$sql         .= ' AND ( r.id IS NULL OR r.status NOT IN ( ' . $placeholders . ' ) )';
-			foreach ( $terminalStatuses as $status ) {
-				$params[] = (string) $status;
-			}
-		}
-
-		if ( 0 === $stepsSent ) {
-			// The first step: the row is absent or still at zero, and the order was never
-			// emailed under the old single-email system (the meta guard).
-			$sql     .= ' AND ( r.id IS NULL OR r.steps_sent = 0 )'
-				. ' AND NOT EXISTS ( SELECT 1 FROM ' . $this->metaTable()
-				. ' m WHERE m.tiermint_order_id = o.id AND m.meta_key = %s )';
-			$params[] = $legacyMetaKey;
-		} else {
-			// A later step: the previous steps have been sent, so the row is present at the
-			// expected count.
-			$sql     .= ' AND r.steps_sent = %d';
-			$params[] = $stepsSent;
-		}
-
-		$sql     .= ' ORDER BY o.created_at ASC, o.id ASC LIMIT %d';
-		$params[] = max( 0, $limit );
-
-		return $this->hydratePage( $this->fetchRows( $sql, $params ) );
-	}
-
-	/**
-	 * Whether an email has a recovery marker after the cutoff.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string $email   The buyer email to match.
-	 * @param string $metaKey The order-meta key to look for.
-	 * @param string $since   A `Y-m-d H:i:s` UTC cutoff the marker value must be at/after.
-	 * @return bool True when such an order exists.
-	 */
-	public function emailHasOrderWithMetaSince( string $email, string $metaKey, string $since ): bool {
-		$found = $this->fetchVar(
-			'SELECT 1 FROM ' . $this->ordersTable() . ' o'
-				. ' INNER JOIN ' . $this->metaTable() . ' m ON m.tiermint_order_id = o.id'
-				. ' WHERE o.email = %s AND o.type = %s AND m.meta_key = %s AND m.meta_value >= %s'
-				. ' LIMIT 1',
-			array( $email, OrderType::Purchase->value, $metaKey, $since )
-		);
-
-		return null !== $found;
-	}
-
-	/**
-	 * Whether a customer bought a product.
-	 *
-	 * Fully refunded orders, renewals and upgrades do not count.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param int $customerId The customer to check.
-	 * @param int $productId  The product to check.
-	 * @return bool True when a qualifying purchase exists.
-	 */
-	public function hasPurchasedProduct( int $customerId, int $productId ): bool {
-		if ( $customerId <= 0 || $productId <= 0 ) {
-			return false;
-		}
-
-		$found = $this->fetchVar(
-			'SELECT 1 FROM ' . $this->ordersTable() . ' o'
-				. ' INNER JOIN ' . $this->itemsTable() . ' oi ON oi.order_id = o.id'
-				. ' WHERE o.customer_id = %d AND oi.product_id = %d'
-				. ' AND o.type = %s AND o.status IN ( %s, %s )'
-				. ' LIMIT 1',
-			array(
-				$customerId,
-				$productId,
-				OrderType::Purchase->value,
-				OrderStatus::Completed->value,
-				OrderStatus::PartiallyRefunded->value,
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT * FROM %i WHERE status = %s AND type = %s AND gateway_txn_id IS NULL AND created_at <= %s' .
+					' ORDER BY created_at ASC, id ASC LIMIT %d',
+					$this->ordersTable(),
+					OrderStatus::Pending->value,
+					OrderType::Purchase->value,
+					$before,
+					max( 0, $limit )
+				)
 			)
 		);
 
-		return null !== $found;
+		return $this->hydratePage( $rows );
 	}
 
 	/**
@@ -677,21 +558,69 @@ class OrderRepository {
 	 * @return array<int, Order> The matching, hydrated orders.
 	 */
 	public function query( array $args ): array {
-		list( $where, $params ) = $this->buildFilters( $args );
-
 		$orderby = $this->whitelistOrderby( $args['orderby'] ?? 'created_at' );
-		$order   = $this->whitelistOrder( $args['order'] ?? 'DESC' );
 		$perPage = $this->perPage( $args );
-		$page    = max( 1, (int) ( $args['page'] ?? 1 ) );
+		$offset  = ( max( 1, (int) ( $args['page'] ?? 1 ) ) - 1 ) * $perPage;
+		$wpdb    = $this->wpdb;
 
-		$sql = 'SELECT * FROM ' . $this->ordersTable() . $where
-			. ' ORDER BY ' . $orderby . ' ' . $order . ', id ' . $order
-			. ' LIMIT %d OFFSET %d';
+		list( $status, $byCustomer, $customerId, $productId, $bySearch, $like ) = $this->filters( $args );
 
-		$params[] = $perPage;
-		$params[] = ( $page - 1 ) * $perPage;
+		// The WHERE is the one in countQuery(); keep the copies in step.
+		if ( 'ASC' === $this->whitelistOrder( $args['order'] ?? 'DESC' ) ) {
+			$rows = $this->fetchRows(
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+				fn () => $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT * FROM %i o WHERE ( %s = '' OR o.status = %s ) AND ( %d = 0 OR o.customer_id = %d )" .
+						' AND ( %d = 0 OR EXISTS ( SELECT 1 FROM %i oi WHERE oi.order_id = o.id AND oi.product_id = %d ) )' .
+						' AND ( %d = 0 OR o.email LIKE %s OR o.uuid LIKE %s )' .
+						' ORDER BY %i ASC, o.id ASC LIMIT %d OFFSET %d',
+						$this->ordersTable(),
+						$status,
+						$status,
+						$byCustomer,
+						$customerId,
+						$productId,
+						$this->itemsTable(),
+						$productId,
+						$bySearch,
+						$like,
+						$like,
+						$orderby,
+						$perPage,
+						$offset
+					)
+				)
+			);
+		} else {
+			$rows = $this->fetchRows(
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+				fn () => $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT * FROM %i o WHERE ( %s = '' OR o.status = %s ) AND ( %d = 0 OR o.customer_id = %d )" .
+						' AND ( %d = 0 OR EXISTS ( SELECT 1 FROM %i oi WHERE oi.order_id = o.id AND oi.product_id = %d ) )' .
+						' AND ( %d = 0 OR o.email LIKE %s OR o.uuid LIKE %s )' .
+						' ORDER BY %i DESC, o.id DESC LIMIT %d OFFSET %d',
+						$this->ordersTable(),
+						$status,
+						$status,
+						$byCustomer,
+						$customerId,
+						$productId,
+						$this->itemsTable(),
+						$productId,
+						$bySearch,
+						$like,
+						$like,
+						$orderby,
+						$perPage,
+						$offset
+					)
+				)
+			);
+		}
 
-		return $this->hydratePage( $this->fetchRows( $sql, $params ) );
+		return $this->hydratePage( $rows );
 	}
 
 	/**
@@ -707,11 +636,18 @@ class OrderRepository {
 	 * @return array<int, Order> The matching, hydrated orders, newest first.
 	 */
 	public function exportRange( string $from, string $to, int $limit ): array {
+		$wpdb = $this->wpdb;
 		$rows = $this->fetchRows(
-			'SELECT * FROM ' . $this->ordersTable()
-				. ' WHERE created_at >= %s AND created_at <= %s'
-				. ' ORDER BY created_at DESC, id DESC LIMIT %d',
-			array( $from . ' 00:00:00', $to . ' 23:59:59', max( 0, $limit ) )
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT * FROM %i WHERE created_at >= %s AND created_at <= %s ORDER BY created_at DESC, id DESC LIMIT %d',
+					$this->ordersTable(),
+					$from . ' 00:00:00',
+					$to . ' 23:59:59',
+					max( 0, $limit )
+				)
+			)
 		);
 
 		return $this->hydratePage( $rows );
@@ -726,11 +662,31 @@ class OrderRepository {
 	 * @return int The total matching order count.
 	 */
 	public function countQuery( array $args ): int {
-		list( $where, $params ) = $this->buildFilters( $args );
+		$wpdb = $this->wpdb;
 
-		$sql = 'SELECT COUNT(*) FROM ' . $this->ordersTable() . $where;
+		list( $status, $byCustomer, $customerId, $productId, $bySearch, $like ) = $this->filters( $args );
 
-		return (int) $this->fetchVar( $sql, $params );
+		return (int) $this->fetchVar(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM %i o WHERE ( %s = '' OR o.status = %s ) AND ( %d = 0 OR o.customer_id = %d )" .
+					' AND ( %d = 0 OR EXISTS ( SELECT 1 FROM %i oi WHERE oi.order_id = o.id AND oi.product_id = %d ) )' .
+					' AND ( %d = 0 OR o.email LIKE %s OR o.uuid LIKE %s )',
+					$this->ordersTable(),
+					$status,
+					$status,
+					$byCustomer,
+					$customerId,
+					$productId,
+					$this->itemsTable(),
+					$productId,
+					$bySearch,
+					$like,
+					$like
+				)
+			)
+		);
 	}
 
 	/**
@@ -771,10 +727,10 @@ class OrderRepository {
 	 * @return array<int, OrderItem> The ordered line items.
 	 */
 	private function loadItems( int $orderId ): array {
-		$rows = $this->fetchRows(
-			'SELECT * FROM ' . $this->itemsTable() . ' WHERE order_id = %d ORDER BY id ASC',
-			array( $orderId )
-		);
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->fetchRows( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE order_id = %d ORDER BY id ASC', $this->itemsTable(), $orderId ) ) );
 
 		return array_map( static fn ( object $r ): OrderItem => OrderItem::fromRow( $r ), $rows );
 	}
@@ -794,11 +750,16 @@ class OrderRepository {
 			return array();
 		}
 
-		$rows = $this->fetchRows(
-			'SELECT * FROM ' . $this->itemsTable()
-				. ' WHERE order_id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ')'
-				. ' ORDER BY order_id ASC, id ASC',
-			$unique
+		$wpdb   = $this->wpdb;
+		$values = array_merge( array( $this->itemsTable() ), $unique );
+		$rows   = $this->fetchRows(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT * FROM %i WHERE order_id IN (' . implode( ',', array_fill( 0, count( $unique ), '%d' ) ) . ') ORDER BY order_id ASC, id ASC',
+					$values
+				)
+			)
 		);
 
 		$grouped = array();
@@ -831,50 +792,34 @@ class OrderRepository {
 	}
 
 	/**
-	 * Build the WHERE clause and bound params for the collection query.
+	 * Read the collection filters for the fixed WHERE in query() and countQuery().
+	 *
+	 * An empty status, a 0 product id or a 0 customer or search flag turns that filter
+	 * off. The customer filter has its own flag because any given value, 0 included,
+	 * filters; the search has one because MySQL collations compare a zero-width space
+	 * equal to ''. MySQL drops a clause that is off before it plans the query.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param array<string, mixed> $args The query args.
-	 * @return array{0: string, 1: array<int, mixed>} The clause (with leading space) and params.
+	 * @return array{0: string, 1: int, 2: int, 3: int, 4: int, 5: string} Status, customer
+	 *         flag, customer id, product id, search flag and the LIKE pattern.
 	 */
-	private function buildFilters( array $args ): array {
-		$clauses = array();
-		$params  = array();
+	private function filters( array $args ): array {
+		$status = isset( $args['status'] ) ? (string) $args['status'] : '';
+		$search = isset( $args['search'] ) ? trim( (string) $args['search'] ) : '';
 
-		if ( isset( $args['status'] ) && '' !== (string) $args['status'] ) {
-			$status = (string) $args['status'];
-
-			if ( null !== OrderStatus::tryFrom( $status ) ) {
-				$clauses[] = 'status = %s';
-				$params[]  = $status;
-			}
-		}
-
-		if ( isset( $args['customer_id'] ) && '' !== (string) $args['customer_id'] ) {
-			$clauses[] = 'customer_id = %d';
-			$params[]  = (int) $args['customer_id'];
-		}
-
-		if ( isset( $args['product_id'] ) && (int) $args['product_id'] > 0 ) {
-			// EXISTS rather than a join: an order holding the product on two lines must
-			// still be one row on the page, and the correlated lookup is served by the
-			// order_items `product_id` key.
-			$clauses[] = 'EXISTS ( SELECT 1 FROM ' . $this->itemsTable() . ' oi'
-				. ' WHERE oi.order_id = ' . $this->ordersTable() . '.id AND oi.product_id = %d )';
-			$params[]  = (int) $args['product_id'];
-		}
-
-		if ( isset( $args['search'] ) && '' !== trim( (string) $args['search'] ) ) {
-			$like      = '%' . $this->wpdb->esc_like( trim( (string) $args['search'] ) ) . '%';
-			$clauses[] = '(email LIKE %s OR uuid LIKE %s)';
-			$params[]  = $like;
-			$params[]  = $like;
-		}
-
-		$where = array() === $clauses ? '' : ' WHERE ' . implode( ' AND ', $clauses );
-
-		return array( $where, $params );
+		// The product filter is an EXISTS rather than a join: an order holding the product
+		// on two lines must still be one row on the page, and the correlated lookup is
+		// served by the order_items `product_id` key.
+		return array(
+			null !== OrderStatus::tryFrom( $status ) ? $status : '',
+			isset( $args['customer_id'] ) && '' !== (string) $args['customer_id'] ? 1 : 0,
+			isset( $args['customer_id'] ) ? (int) $args['customer_id'] : 0,
+			isset( $args['product_id'] ) ? max( 0, (int) $args['product_id'] ) : 0,
+			'' === $search ? 0 : 1,
+			'%' . $this->wpdb->esc_like( $search ) . '%',
+		);
 	}
 
 	/**
@@ -1004,29 +949,6 @@ class OrderRepository {
 	}
 
 	/**
-	 * Get the order-meta table name for recovery and attribution reads.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return string The table name.
-	 */
-	private function metaTable(): string {
-		return Schema::tableName( $this->wpdb, 'order_meta' );
-	}
-
-	/**
-	 * The fully-qualified `tiermint_recoveries` table name. Joined by the multi-step
-	 * cart-recovery eligibility read; the table is core-created and Pro-written.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return string The table name.
-	 */
-	private function recoveriesTable(): string {
-		return Schema::tableName( $this->wpdb, 'recoveries' );
-	}
-
-	/**
 	 * Insert a row into a Schema-defined table and return the new auto-increment id.
 	 *
 	 * @since 1.0.0
@@ -1043,11 +965,11 @@ class OrderRepository {
 	private function insertInto( string $table, array $data ): int {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Insert into a Schema-defined table; $wpdb->insert escapes every value; there is nothing to cache on a write.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; this class decides what to cache.
 		$inserted = $wpdb->insert( $table, $data );
 
 		if ( false === $inserted ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- $table is a Schema-derived internal identifier, never user input or HTML output; this is a developer-facing failure kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderPersistenceException( 'Failed to insert a row into ' . $table . '.' );
 		}
 
@@ -1069,11 +991,11 @@ class OrderRepository {
 	private function updateWhere( string $table, array $data, array $where ): void {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Update on a Schema-defined table; $wpdb->update escapes values and conditions; the write path invalidates the cache in the caller.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
 		$updated = $wpdb->update( $table, $data, $where );
 
 		if ( false === $updated ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- $table is a Schema-derived internal identifier, never user input or HTML output; this is a developer-facing failure kept out of the client response by the controller.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderPersistenceException( 'Failed to update a row in ' . $table . '.' );
 		}
 	}
@@ -1090,58 +1012,46 @@ class OrderRepository {
 	private function deleteWhere( string $table, array $where ) {
 		$wpdb = $this->wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Delete on a Schema-defined table; $wpdb->delete escapes the conditions; the write path invalidates the cache in the caller.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
 		return $wpdb->delete( $table, $where );
 	}
 
 	/**
-	 * Fetch a single row, binding all values through prepare().
+	 * Fetch a single row.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return object|null The row object, or null.
 	 */
-	private function fetchRow( string $sql, array $args = array() ): ?object {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); find()/findByUuid() own the read-through cache.
-		return $wpdb->get_row( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchRow( callable $query ): ?object {
+		return $query();
 	}
 
 	/**
-	 * Fetch a result set, binding all values through prepare().
+	 * Fetch a result set.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return array<int, object> The rows (empty on no match).
 	 */
-	private function fetchRows( string $sql, array $args = array() ): array {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); these are bounded admin/collection reads.
-		$rows = $wpdb->get_results( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchRows( callable $query ): array {
+		$rows = $query();
 
 		return is_array( $rows ) ? $rows : array();
 	}
 
 	/**
-	 * Fetch a single scalar, binding all values through prepare().
+	 * Fetch a single scalar.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string            $sql  SQL with Schema-derived identifiers and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return string|null The scalar value, or null.
 	 */
-	private function fetchVar( string $sql, array $args = array() ): ?string {
-		$wpdb = $this->wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- SQL embeds only Schema-derived table names; runtime values are bound via prepare(); count/sum probes have nothing to cache.
-		$value = $wpdb->get_var( array() === $args ? $sql : $wpdb->prepare( $sql, $args ) );
+	private function fetchVar( callable $query ): ?string {
+		$value = $query();
 
 		return null === $value ? null : (string) $value;
 	}

@@ -17,7 +17,7 @@ const DEFAULT_SETTINGS = { currency: 'USD' };
  *
  * @param {Object} [source] Explicit boot object, mainly for tests. Defaults to
  *                          `window.tierMint` when omitted.
- * @return {{apiRoot: string, nonce: string, caps: Object, settings: Object, features: Object, productFields: Object, catalog: Object, listSeparator: string, pro: boolean, admin: Object}}
+ * @return {{apiRoot: string, nonce: string, caps: Object, settings: Object, productFields: Object, catalog: Object, listSeparator: string, pro: boolean, admin: Object}}
  *         A fully populated, safe boot object.
  */
 export function readBootData( source ) {
@@ -42,13 +42,6 @@ export function readBootData( source ) {
 			raw.settings && typeof raw.settings === 'object'
 				? raw.settings
 				: { ...DEFAULT_SETTINGS },
-		// The server prints a `features` map (recurring_tiers, release_channels)
-		// the screens gate their Pro controls on; surface it so they never read
-		// the global directly.
-		features:
-			raw.features && typeof raw.features === 'object'
-				? raw.features
-				: {},
 		// The product editor reads the field/panel definitions from here; a
 		// dropped key would silently blank the fields, so keep a safe shape.
 		productFields:

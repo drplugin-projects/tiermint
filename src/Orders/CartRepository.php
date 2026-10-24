@@ -54,9 +54,6 @@ class CartRepository {
 			return null;
 		}
 
-		// Reading our own cart cookie is a stateless identity read, not a form
-		// submission, so no nonce applies; the value is unslashed and key-sanitized.
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Cookie read only; carries no capability and mutates nothing.
 		$token = sanitize_key( wp_unslash( $_COOKIE[ self::COOKIE ] ) );
 
 		return '' === $token ? null : $token;

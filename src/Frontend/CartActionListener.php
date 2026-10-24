@@ -155,12 +155,12 @@ class CartActionListener implements Hookable {
 			return;
 		}
 
-		$action = sanitize_key( wp_unslash( $_POST['tiermint_cart_action'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.NonceVerification.Missing -- Unslashed and sanitized inline; the nonce is verified immediately below before any mutation.
-
 		$nonce = isset( $_POST[ self::NONCE_FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::NONCE_FIELD ] ) ) : '';
 		if ( ! wp_verify_nonce( $nonce, self::NONCE_ACTION ) ) {
 			return;
 		}
+
+		$action = sanitize_key( wp_unslash( $_POST['tiermint_cart_action'] ) );
 
 		if ( ! in_array( $action, array( 'add', 'remove', 'update', 'apply_discount', 'remove_discount' ), true ) ) {
 			return;

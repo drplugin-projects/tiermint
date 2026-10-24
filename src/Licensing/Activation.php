@@ -147,29 +147,29 @@ final class Activation {
 		?DateTimeImmutable $lastCheckedAt
 	) {
 		if ( $licenseId <= 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'An activation must belong to a license.', 'tiermint' ) );
 		}
 
 		if ( '' === $siteUrl ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'An activation must have a site URL.', 'tiermint' ) );
 		}
 
 		if ( strlen( $siteUrl ) > self::MAX_SITE_URL_LENGTH ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'An activation site URL cannot be longer than 191 characters.', 'tiermint' ) );
 		}
 
 		// The hash is the fixed-width lookup key; anything but 64 hex chars could never be
 		// a real SHA-256 digest and would break the composite unique index.
 		if ( 1 !== preg_match( '/^[0-9a-fA-F]{64}$/', $siteHash ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'An activation site hash must be a 64-character hexadecimal string.', 'tiermint' ) );
 		}
 
 		if ( null !== $fingerprint && strlen( $fingerprint ) > self::MAX_FINGERPRINT_LENGTH ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'An activation fingerprint cannot be longer than 64 characters.', 'tiermint' ) );
 		}
 

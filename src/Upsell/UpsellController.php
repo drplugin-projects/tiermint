@@ -20,7 +20,7 @@ use WP_REST_Server;
 /**
  * The one write the upsell surfaces make: dismissing a notice.
  *
- * REST, not `wp_ajax_`, so the free core adds no admin-ajax handler. The topic
+ * REST, not `wp_ajax_`, so the plugin adds no admin-ajax handler. The topic
  * is bound to a closed enum so the stored list cannot fill with junk.
  *
  * @since 1.0.0

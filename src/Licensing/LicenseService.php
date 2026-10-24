@@ -24,7 +24,6 @@ use DrPlugin\WP\TierMint\Products\Product;
 use DrPlugin\WP\TierMint\Products\ProductPrice;
 use DrPlugin\WP\TierMint\Products\ProductService;
 use DrPlugin\WP\TierMint\Products\ProductType;
-use Throwable;
 
 /**
  * Applies license purchase and lifecycle rules.
@@ -112,7 +111,7 @@ class LicenseService {
 	}
 
 	/**
-	 * Load a customer's licenses, newest first.
+	 * Load the licenses a customer sees on the account pages, newest first.
 	 *
 	 * Anonymous visitors return an empty list.
 	 *
@@ -126,7 +125,24 @@ class LicenseService {
 			return array();
 		}
 
-		return $this->licenses->findByCustomerId( $customerId );
+		$licenses = $this->licenses->findByCustomerId( $customerId );
+
+		/**
+		 * Filters the licenses a customer sees on the account pages and in
+		 * their downloads. The privacy export and erasure do not use it.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param License[] $licenses   The customer's licenses, newest first.
+		 * @param int       $customerId The customer id.
+		 */
+		$filtered = apply_filters( 'tiermint_customer_licenses', $licenses, $customerId );
+
+		if ( ! is_array( $filtered ) ) {
+			return $licenses;
+		}
+
+		return array_values( array_filter( $filtered, static fn ( $license ): bool => $license instanceof License ) );
 	}
 
 	/**
@@ -234,7 +250,7 @@ class LicenseService {
 	 * @since 1.0.0
 	 *
 	 * @param License $license The license to disable.
-	 * @param string  $reason  Why, for the audit trail: 'admin' or 'refund'.
+	 * @param string  $reason  A free label for the audit trail. Core passes 'admin', 'refund' and 'gdpr-erasure'.
 	 * @return License The reloaded, disabled license.
 	 *
 	 * @throws LicenseTransitionException When the license could not be disabled and
@@ -256,7 +272,7 @@ class LicenseService {
 				return $fresh;
 			}
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured domain message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseTransitionException( __( 'The license could not be disabled because it changed state concurrently.', 'tiermint' ) );
 		}
 
@@ -271,7 +287,7 @@ class LicenseService {
 		$fresh = $this->reload( $license );
 
 		/**
-		 * Fires after a license was disabled (admin action or full refund).
+		 * Fires after a license was disabled, for any reason.
 		 *
 		 * @since 1.0.0
 		 *
@@ -361,7 +377,7 @@ class LicenseService {
 	 * @param License                $license The license to renew.
 	 * @param string|null            $length  A strtotime-compatible relative length
 	 *                                        (e.g. '+1 year'), or null to make it lifetime.
-	 * @param Order|null             $order   The renewal order driving this, when there is one.
+	 * @param Order|null             $order   The order driving this, when there is one.
 	 * @param DateTimeImmutable|null $now     The renewal instant (tests inject).
 	 * @return License The reloaded, renewed license. A database fault propagates as
 	 *                 LicensePersistenceException from the repository.
@@ -398,7 +414,7 @@ class LicenseService {
 		$won = $this->licenses->renew( $license, $newExpiresAt );
 
 		if ( ! $won ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured domain message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseTransitionException( __( 'A disabled license cannot be renewed. Re-enable it first.', 'tiermint' ) );
 		}
 
@@ -412,7 +428,7 @@ class LicenseService {
 		 * @since 1.0.0
 		 *
 		 * @param License    $fresh The renewed license.
-		 * @param Order|null $order The renewal order, when one drove the renewal.
+		 * @param Order|null $order The order that drove the renewal, when there is one.
 		 */
 		do_action( 'tiermint_license_renewed', $fresh, $order );
 
@@ -430,13 +446,13 @@ class LicenseService {
 	/**
 	 * Renew a license to an exact expiry time.
 	 *
-	 * Subscription renewals follow the gateway period end without drift.
+	 * Use it when the new expiry is known exactly, so repeated renewals do not drift.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param License           $license   The license to renew.
 	 * @param DateTimeImmutable $expiresAt The new absolute expiry (any timezone; stored as UTC).
-	 * @param Order|null        $order     The renewal order driving this, when there is one.
+	 * @param Order|null        $order     The order driving this, when there is one.
 	 * @return License The reloaded, renewed license. A database fault propagates as
 	 *                 LicensePersistenceException from the repository.
 	 *
@@ -449,7 +465,7 @@ class LicenseService {
 		$won = $this->licenses->renew( $license, $newExpiresAt );
 
 		if ( ! $won ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured domain message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseTransitionException( __( 'A disabled license cannot be renewed. Re-enable it first.', 'tiermint' ) );
 		}
 
@@ -480,7 +496,7 @@ class LicenseService {
 	 *
 	 * @param License      $license The license to re-point.
 	 * @param ProductPrice $newTier The tier to move to (must belong to the license's product).
-	 * @param Order|null   $order   The order driving the change (a proration invoice), when there is one.
+	 * @param Order|null   $order   The order driving the change, when there is one.
 	 * @return License The reloaded license carrying the new tier's price id and cap. A
 	 *                 database fault propagates as LicensePersistenceException from the repository.
 	 *
@@ -490,7 +506,7 @@ class LicenseService {
 		// A license can only move between tiers of its own product; a tier from
 		// another product would point the entitlement at an unrelated catalog item.
 		if ( $newTier->productId() !== $license->productId() ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured domain message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new LicenseValidationException( __( 'A license can only change to a price tier of its own product.', 'tiermint' ) );
 		}
 
@@ -771,7 +787,7 @@ class LicenseService {
 		// the product's settings defaults. A tier whose length is NULL means
 		// lifetime by schema, so no settings fallback applies then.
 		$limit  = null !== $price ? $price->activationLimit() : $this->intOrNull( $settings['default_activation_limit'] ?? null );
-		$length = null !== $price ? $price->resolvedLicenseLength() : $this->stringOrNull( $settings['default_license_length'] ?? null );
+		$length = null !== $price ? $price->licenseLength() : $this->stringOrNull( $settings['default_license_length'] ?? null );
 
 		/**
 		 * Filters the activation limit a purchase grants (null = unlimited).
@@ -815,43 +831,20 @@ class LicenseService {
 			}
 		}
 
-		$id      = $this->createWithFreshKey(
+		$license = $this->createWithFreshKey(
 			(int) $order->id(),
 			(int) $order->customerId(),
 			(int) $product->id(),
 			null !== $price ? $price->id() : null,
 			$item->id(),
 			$limit,
-			$expiresAt,
-			null
+			$expiresAt
 		);
-		$license = $this->licenses->find( $id );
-
-		if ( null === $license ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
-			throw new LicensePersistenceException( sprintf( 'License %d vanished immediately after minting.', $id ) );
-		}
+		$id      = (int) $license->id();
 
 		if ( null !== $bundleProductId ) {
 			// Lineage: which bundle granted this child license.
 			update_metadata( 'tiermint_license', $id, self::META_BUNDLE_PRODUCT, $bundleProductId );
-		}
-
-		/**
- * Filter the seats granted by a purchased license.
-		 *
-		 * @since 1.0.0
-		 *
-		 * @param int|null          $seatLimit The seat limit, or null for an ordinary license.
-		 * @param Product           $product   The licensed product.
-		 * @param ProductPrice|null $price     The granting tier, or null.
-		 * @param Order             $order     The purchase order.
-		 */
-		$seatLimit = apply_filters( 'tiermint_license_seat_limit', null, $product, $price, $order );
-
-		if ( is_int( $seatLimit ) && $seatLimit > 0 ) {
-			update_metadata( 'tiermint_license', $id, SeatService::META_IS_ORG, 1 );
-			update_metadata( 'tiermint_license', $id, SeatService::META_SEAT_LIMIT, $seatLimit );
 		}
 
 		/**
@@ -880,66 +873,26 @@ class LicenseService {
 	}
 
 	/**
-	 * Mint a child license for an organization seat.
+	 * Store a new active license with a fresh key.
 	 *
-	 * The child has its own key and starts with no activations.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param License $org The organization license (its own row, `is_org` meta set).
-	 * @return License The freshly minted child license.
-	 *
-	 * @throws LicensePersistenceException When the write keeps failing (including
-	 *                                     exhausted key-collision retries).
-	 */
-	public function mintChild( License $org ): License {
-		$id    = $this->createWithFreshKey(
-			$org->orderId(),
-			$org->customerId(),
-			$org->productId(),
-			$org->priceId(),
-			$org->orderItemId(),
-			$org->activationLimit(),
-			$org->expiresAt(),
-			(int) $org->id()
-		);
-		$child = $this->licenses->find( $id );
-
-		if ( null === $child ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
-			throw new LicensePersistenceException( sprintf( 'Child license %d vanished immediately after minting.', $id ) );
-		}
-
-		$this->logger->log(
-			'license',
-			sprintf( 'Child seat license %d minted for org license %d.', $id, (int) $org->id() ),
-			array( 'parent_id' => (int) $org->id() ),
-			'license',
-			$id
-		);
-
-		return $child;
-	}
-
-	/**
-	 * Insert a license with a new key, retrying collisions.
+	 * It starts with no activations and fires no hook; a caller that needs an
+	 * event fires its own.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param int                    $orderId         The owning order id.
 	 * @param int                    $customerId      The owning customer id.
-	 * @param int                    $productId       The concrete product id.
-	 * @param int|null               $priceId         The granting tier id, or null.
+	 * @param int                    $productId       The product id.
+	 * @param int|null               $priceId         The price tier id, or null.
 	 * @param int|null               $orderItemId     The owning order line id, or null.
-	 * @param int|null               $activationLimit The effective activation limit.
-	 * @param DateTimeImmutable|null $expiresAt       The effective expiry, or null for lifetime.
-	 * @param int|null               $parentId        The parent license id (seat lineage), or null.
-	 * @return int The new license id.
+	 * @param int|null               $activationLimit The activation limit, or null for unlimited.
+	 * @param DateTimeImmutable|null $expiresAt       The expiry, or null for lifetime.
+	 * @return License The stored license.
 	 *
-	 * @throws LicensePersistenceException When every retry collided (which in practice
-	 *                                     means the random source is broken).
+	 * @throws LicensePersistenceException When the write fails, every key collides, or
+	 *                                     the new row cannot be read back.
 	 */
-	private function createWithFreshKey( int $orderId, int $customerId, int $productId, ?int $priceId, ?int $orderItemId, ?int $activationLimit, ?DateTimeImmutable $expiresAt, ?int $parentId ): int {
+	public function createWithFreshKey( int $orderId, int $customerId, int $productId, ?int $priceId, ?int $orderItemId, ?int $activationLimit, ?DateTimeImmutable $expiresAt ): License {
 		$lastCollision = null;
 
 		for ( $attempt = 0; $attempt < self::KEY_RETRIES; $attempt++ ) {
@@ -955,19 +908,29 @@ class LicenseService {
 				$activationLimit,
 				0,
 				$expiresAt,
-				$parentId,
 				null,
 				null
 			);
 
 			try {
-				return $this->licenses->create( $license );
+				$id = $this->licenses->create( $license );
 			} catch ( DuplicateLicenseKeyException $collision ) {
 				$lastCollision = $collision;
+
+				continue;
 			}
+
+			$stored = $this->licenses->find( $id );
+
+			if ( null === $stored ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
+				throw new LicensePersistenceException( sprintf( 'License %d vanished immediately after it was created.', $id ) );
+			}
+
+			return $stored;
 		}
 
-		// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+		// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 		throw new LicensePersistenceException( 'Exhausted license key collision retries.', 0, $lastCollision );
 	}
 
@@ -1051,11 +1014,12 @@ class LicenseService {
 			$length = '+' . $length . ' day';
 		}
 
-		try {
-			$moved = @$base->modify( $length ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Pre-8.3 modify() warns instead of throwing; the false return is handled right below.
-		} catch ( Throwable $t ) {
+		// date_parse() uses the same parser as modify() but never warns.
+		if ( 0 < date_parse( $length )['error_count'] ) {
 			return null;
 		}
+
+		$moved = $base->modify( $length );
 
 		return false === $moved ? null : $moved;
 	}

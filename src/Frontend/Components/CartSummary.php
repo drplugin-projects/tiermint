@@ -20,7 +20,6 @@ use DrPlugin\WP\TierMint\Orders\Cart;
 use DrPlugin\WP\TierMint\Orders\CartLine;
 use DrPlugin\WP\TierMint\Orders\CartService;
 use DrPlugin\WP\TierMint\Orders\OrderService;
-use DrPlugin\WP\TierMint\Orders\PricingMode;
 use DrPlugin\WP\TierMint\Products\ProductPrice;
 use DrPlugin\WP\TierMint\Products\ProductService;
 use DrPlugin\WP\TierMint\Util\Money;
@@ -128,7 +127,7 @@ class CartSummary extends AbstractComponent {
 				'type'        => 'boolean',
 				'default'     => true,
 				'label'       => __( 'Show plan details', 'tiermint' ),
-				'description' => __( "Show each line's license length, activation limit, and billing under the product name.", 'tiermint' ),
+				'description' => __( "Show each line's license length and activation limit under the product name.", 'tiermint' ),
 				'control'     => 'toggle',
 			),
 		);
@@ -176,21 +175,44 @@ class CartSummary extends AbstractComponent {
 		}
 
 		$data = array(
-			'title'              => (string) $attrs['title'],
-			'show_actions'       => (bool) $attrs['show_actions'],
-			'show_plan_details'  => $showPlanDetails,
-			'is_empty'           => $cartState->isEmpty(),
-			'lines'              => $lines,
-			'discount'           => $discount,
+			'title'             => (string) $attrs['title'],
+			'show_actions'      => (bool) $attrs['show_actions'],
+			'show_plan_details' => $showPlanDetails,
+			'is_empty'          => $cartState->isEmpty(),
+			'lines'             => $lines,
+			'discount'          => $discount,
 			// Use the same combined reduction as the order layer.
-			'subtotal'           => $this->money->format( $total - $discount['total_minor'] ),
-			'checkout_url'       => $this->resolveCheckoutUrl( (int) $attrs['checkout_page'] ),
-			'notices'            => $notices,
-			// Gross mode relabels the total row to say the figure already includes tax.
-			'prices_include_tax' => PricingMode::includesTax(),
+			'subtotal'          => $this->money->format( $total - $discount['total_minor'] ),
+			'checkout_url'      => $this->resolveCheckoutUrl( (int) $attrs['checkout_page'] ),
+			'notices'           => $notices,
+			'total_label'       => $this->totalLabel(),
 		);
 
 		return $isSample ? $this->renderSample( $data ) : $this->renderTemplate( $data );
+	}
+
+	/**
+	 * The label of the summary's last row.
+	 *
+	 * @return string The label, stripped of tags; "Total" when a listener returns nothing usable.
+	 */
+	private function totalLabel(): string {
+		$default = __( 'Total', 'tiermint' );
+
+		/**
+		 * Filters the label of the cart summary's last row.
+		 *
+		 * A store can rename it, for example to "Total due". Tags are stripped;
+		 * an empty or non-string return keeps "Total".
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $label The label. Default "Total".
+		 */
+		$label = apply_filters( 'tiermint_cart_summary_total_label', $default );
+		$label = is_string( $label ) ? wp_strip_all_tags( $label ) : '';
+
+		return '' === $label ? $default : $label;
 	}
 
 	/**

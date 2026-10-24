@@ -73,7 +73,7 @@ class ApiKeyService {
 		$publicKey = 'tmk_' . bin2hex( random_bytes( 16 ) );
 
 		// 32 random bytes as unpadded base64url: 43 characters.
-		$secret = 'tms_' . rtrim( strtr( base64_encode( random_bytes( 32 ) ), '+/', '-_' ), '=' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Credential encoding, not obfuscation.
+		$secret = 'tms_' . sodium_bin2base64( random_bytes( 32 ), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING );
 
 		$key = new ApiKey(
 			null,
@@ -148,7 +148,7 @@ class ApiKeyService {
 		$key = $this->repository->find( $id );
 
 		if ( null === $key ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only message; the controller maps it to a generic 404.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw ApiKeyNotFoundException::forId( $id );
 		}
 

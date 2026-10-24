@@ -14,6 +14,6 @@ if ( '' !== $tiermint_account_html ) {
 	printf(
 		'<div %1$s>%2$s</div>',
 		get_block_wrapper_attributes(), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_block_wrapper_attributes() returns escaped attributes.
-		$tiermint_account_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- component renderers return fully escaped HTML.
+		wp_kses( $tiermint_account_html, DrPlugin\WP\TierMint\Frontend\Kses::allowed() )
 	);
 }

@@ -69,8 +69,8 @@ class WebhookDispatcher implements Hookable {
 		add_action( 'tiermint_license_activated', array( $this, 'onLicenseActivated' ), 10, 2 );
 		add_action( 'tiermint_license_deactivated', array( $this, 'onLicenseDeactivated' ), 10, 2 );
 		add_action( 'tiermint_license_expired', array( $this, 'onLicenseExpired' ) );
-		add_action( 'tiermint_license_renewed', array( $this, 'onLicenseRenewed' ) );
 		add_action( 'tiermint_customer_created', array( $this, 'onCustomerCreated' ) );
+		add_action( 'tiermint_send_webhook', array( $this, 'onSendWebhook' ), 10, 2 );
 	}
 
 	/**
@@ -150,16 +150,31 @@ class WebhookDispatcher implements Hookable {
 	}
 
 	/**
-	 * Fan out license.renewed.
+	 * Send an event an extension added through `tiermint_webhook_events`.
 	 *
-	 * @param License $license The renewed license (order context optional and
-	 *                         deliberately omitted from the snapshot: the
-	 *                         renewal order, when any, emits its own
-	 *                         order.completed).
+	 * Listens on `tiermint_send_webhook`. A license or an order is snapshotted
+	 * the way core's own events are; an array goes out as it is.
+	 *
+	 * @param mixed $event   The catalog event name.
+	 * @param mixed $subject A License, an Order, or a JSON-safe array.
 	 * @return void
 	 */
-	public function onLicenseRenewed( License $license ): void {
-		$this->dispatch( 'license.renewed', $this->licenseData( $license ) );
+	public function onSendWebhook( $event, $subject ): void {
+		if ( ! is_string( $event ) || ! in_array( $event, $this->endpoints->eventCatalog(), true ) ) {
+			return;
+		}
+
+		if ( $subject instanceof License ) {
+			$data = $this->licenseData( $subject );
+		} elseif ( $subject instanceof Order ) {
+			$data = $this->orderData( $subject );
+		} elseif ( is_array( $subject ) ) {
+			$data = $subject;
+		} else {
+			return;
+		}
+
+		$this->dispatch( $event, $data );
 	}
 
 	/**

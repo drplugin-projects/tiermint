@@ -146,7 +146,6 @@ final class ProductMeta extends AbstractProductComponent {
 		$updated = null;
 
 		if ( $showVersion || $showUpdated ) {
-			// The default query excludes prerelease channels.
 			$latest = $this->releases->latestPublished( $productId );
 
 			if ( null !== $latest ) {

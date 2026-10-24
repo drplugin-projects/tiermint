@@ -53,7 +53,7 @@ class CheckoutService {
 	 *               stamped pending order, the session, and the buyer-facing advisories the
 	 *               charge-time seam produced (empty when nothing is hooked). The notices
 	 *               travel with the result because the REST controller sees only this array,
-	 *               and without them a total the tax engine moved is indistinguishable from
+	 *               and without them a total a tax extension moved is indistinguishable from
 	 *               a catalog price change. GatewayNotFoundException propagates from the
 	 *               registry for an unknown id, and OrderValidationException from
 	 *               OrderService for an empty or unpurchasable cart.
@@ -68,7 +68,7 @@ class CheckoutService {
 		$gateway = $this->gateways->get( $gatewayId );
 
 		if ( ! $gateway->isConfigured() ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured message, surfaced through the REST error envelope, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new GatewayConfigurationException( __( 'This payment method is not available right now.', 'tiermint' ) );
 		}
 

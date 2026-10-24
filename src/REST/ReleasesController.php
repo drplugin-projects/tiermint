@@ -40,9 +40,7 @@ use WP_REST_Server;
 final class ReleasesController extends AbstractRestController {
 
 	/**
-	 * Scalar fields sent to the service.
-	 *
-	 * Package files arrive separately. Pro controls channels and rollouts.
+	 * Scalar fields sent to the service. Package files arrive separately.
 	 *
 	 * @var array<int, string>
 	 */
@@ -52,8 +50,6 @@ final class ReleasesController extends AbstractRestController {
 		'requires_wp',
 		'tested_up_to',
 		'requires_php',
-		'channel',
-		'rollout_percent',
 	);
 
 	/**
@@ -71,16 +67,33 @@ final class ReleasesController extends AbstractRestController {
 	private ProductRepository $products;
 
 	/**
+	 * Tells whether PHP received a temp file with this request.
+	 *
+	 * @var callable(string): bool
+	 */
+	private $isUploadedFile;
+
+	/**
 	 * Set release services and product reads.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param ReleaseService    $releases The releases domain service.
-	 * @param ProductRepository $products Product reads for the synthesized package filename.
+	 * @param ReleaseService    $releases       The releases domain service.
+	 * @param ProductRepository $products       Product reads for the synthesized package filename.
+	 * @param callable|null     $isUploadedFile Upload check; defaults to is_uploaded_file().
 	 */
-	public function __construct( ReleaseService $releases, ProductRepository $products ) {
-		$this->releases = $releases;
-		$this->products = $products;
+	public function __construct( ReleaseService $releases, ProductRepository $products, ?callable $isUploadedFile = null ) {
+		$this->releases       = $releases;
+		$this->products       = $products;
+		$this->isUploadedFile = $isUploadedFile ?? static function ( string $path ): bool {
+			// The WordPress test suite cannot make a real upload. Core's REST
+			// attachments controller skips the check there too.
+			if ( defined( 'DIR_TESTDATA' ) && DIR_TESTDATA ) {
+				return is_file( $path );
+			}
+
+			return is_uploaded_file( $path );
+		};
 	}
 
 	/**
@@ -191,6 +204,10 @@ final class ReleasesController extends AbstractRestController {
 	public function create( WP_REST_Request $request ) {
 		$file = $this->packageFile( $request );
 
+		if ( $file instanceof WP_Error ) {
+			return $file;
+		}
+
 		if ( array() === $file ) {
 			return $this->invalidParams( array( __( 'A package file is required. Upload it as the "package" multipart field.', 'tiermint' ) ) );
 		}
@@ -244,10 +261,16 @@ final class ReleasesController extends AbstractRestController {
 				return $owned;
 			}
 
+			$file = $this->packageFile( $request );
+
+			if ( $file instanceof WP_Error ) {
+				return $file;
+			}
+
 			$release = $this->releases->update(
 				(int) $request->get_param( 'release_id' ),
 				$this->payload( $request ),
-				$this->packageFile( $request )
+				$file
 			);
 		} catch ( ProductNotFoundException | ReleaseException | StorageException $e ) {
 			return $this->toErrorResponse( $e );
@@ -394,14 +417,14 @@ final class ReleasesController extends AbstractRestController {
 	}
 
 	/**
-	 * Return the uploaded package or an empty array.
+	 * Return the uploaded package, an empty array, or a refusal for a non-ZIP file.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param WP_REST_Request $request The incoming request.
-	 * @return array<string, mixed> The `$_FILES`-shaped package entry, or an empty array.
+	 * @return array<string, mixed>|WP_Error The `$_FILES`-shaped package entry, an empty array, or the refusal.
 	 */
-	private function packageFile( WP_REST_Request $request ): array {
+	private function packageFile( WP_REST_Request $request ) {
 		$files = $request->get_file_params();
 
 		if ( ! isset( $files['package'] ) || ! is_array( $files['package'] ) ) {
@@ -416,6 +439,23 @@ final class ReleasesController extends AbstractRestController {
 
 		if ( UPLOAD_ERR_OK !== (int) ( $package['error'] ?? UPLOAD_ERR_OK ) ) {
 			return array();
+		}
+
+		$path = (string) $package['tmp_name'];
+
+		if ( ! ( $this->isUploadedFile )( $path ) ) {
+			return array();
+		}
+
+		// Judge the content only. Package storage does not use the media file types.
+		if ( ! function_exists( 'wp_zip_file_is_valid' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		// An empty archive is 22 bytes. ZipArchive opens a 0-byte file as a new
+		// archive and deletes it on close, so refuse short files first.
+		if ( (int) filesize( $path ) < 22 || ! wp_zip_file_is_valid( $path ) ) {
+			return $this->invalidParams( array( __( 'The package must be a ZIP file.', 'tiermint' ) ) );
 		}
 
 		return $package;
@@ -452,11 +492,10 @@ final class ReleasesController extends AbstractRestController {
 	 * @return array<string, mixed> The response representation.
 	 */
 	private function releaseToArray( Release $release ): array {
-		return array(
+		$data = array(
 			'id'               => (int) $release->id(),
 			'product_id'       => $release->productId(),
 			'version'          => $release->version(),
-			'channel'          => $release->channel(),
 			'status'           => $release->status()->value,
 			'has_package'      => true,
 			'package_filename' => $this->packageFilename( $release ),
@@ -466,11 +505,25 @@ final class ReleasesController extends AbstractRestController {
 			'requires_wp'      => $release->requiresWp(),
 			'tested_up_to'     => $release->testedUpTo(),
 			'requires_php'     => $release->requiresPhp(),
-			'rollout_percent'  => $release->rolloutPercent(),
 			'released_at'      => $this->formatInstant( $release->releasedAt() ),
 			'created_at'       => $this->formatInstant( $release->createdAt() ),
 			'updated_at'       => $this->formatInstant( $release->updatedAt() ),
 		);
+
+		/**
+		 * Filters a release in the releases REST responses.
+		 *
+		 * An extension that stores its own data per release adds it here. A return
+		 * that is not an array keeps core's data.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array<string, mixed> $data    The release fields.
+		 * @param Release              $release The release.
+		 */
+		$filtered = apply_filters( 'tiermint_rest_release', $data, $release );
+
+		return is_array( $filtered ) ? $filtered : $data;
 	}
 
 	/**
@@ -552,46 +605,34 @@ final class ReleasesController extends AbstractRestController {
 	 */
 	private function writeArgs(): array {
 		return array(
-			'version'         => array(
+			'version'      => array(
 				'description'       => __( 'Release version (one to four dot-separated numbers, optional pre-release suffix).', 'tiermint' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
-			'changelog'       => array(
+			'changelog'    => array(
 				'description'       => __( 'Release changelog as Markdown source.', 'tiermint' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_textarea_field',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
-			'requires_wp'     => array(
+			'requires_wp'  => array(
 				'description'       => __( 'Minimum required WordPress version.', 'tiermint' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
-			'tested_up_to'    => array(
+			'tested_up_to' => array(
 				'description'       => __( 'Highest WordPress version tested against.', 'tiermint' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
-			'requires_php'    => array(
+			'requires_php' => array(
 				'description'       => __( 'Minimum required PHP version.', 'tiermint' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
-				'validate_callback' => 'rest_validate_request_arg',
-			),
-			'channel'         => array(
-				'description'       => __( 'Release channel (stable, rc, or beta). Honored only with TierMint Pro active.', 'tiermint' ),
-				'type'              => 'string',
-				'sanitize_callback' => 'sanitize_text_field',
-				'validate_callback' => 'rest_validate_request_arg',
-			),
-			'rollout_percent' => array(
-				'description'       => __( 'Staged rollout percentage (0-100). Honored only with TierMint Pro active.', 'tiermint' ),
-				'type'              => 'integer',
-				'sanitize_callback' => 'rest_sanitize_request_arg',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
 		);

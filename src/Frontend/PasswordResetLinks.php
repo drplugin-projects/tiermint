@@ -14,18 +14,30 @@ use DrPlugin\WP\TierMint\Core\Hookable;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Swaps only the wp-login base of the reset link in password emails.
+ * Swaps only the wp-login base of the reset link in password emails, keeping the
+ * query, so the same key still works on wp-login.
  *
- * Page-gated: while a published reset page exists, the lost-password mail and the
- * set-password (registration, checkout auto-register, admin-created) mail point at
- * it; otherwise WordPress builds its normal link (self-heal). The query is kept
- * verbatim, so the login, key and wp_lang survive and an admin can still paste the
- * same key and login into wp-login. Rebuilding the message is deliberately avoided:
- * it would drop other plugins' edits and cannot re-mint the key.
+ * TierMint's own sends always get the reset page link. Other WordPress password
+ * emails get it only while replace_wp_login is on, and both need a published page.
  *
  * @since 1.0.0
  */
 class PasswordResetLinks implements Hookable {
+
+	/**
+	 * The settings option carrying the toggle.
+	 *
+	 * @var string
+	 */
+	private const SETTINGS_OPTION = 'tiermint_settings';
+
+	/**
+	 * Priority of the one-shot filters. It differs from the global filters, so
+	 * removing a one-shot filter never removes a global one.
+	 *
+	 * @var int
+	 */
+	private const SCOPED_PRIORITY = 11;
 
 	/**
 	 * Resolves the reset page.
@@ -49,8 +61,53 @@ class PasswordResetLinks implements Hookable {
 	 * @return void
 	 */
 	public function hooks(): void {
-		add_filter( 'retrieve_password_message', array( $this, 'rewriteMessage' ), 10, 4 );
-		add_filter( 'wp_new_user_notification_email', array( $this, 'rewriteNewUserEmail' ), 10, 3 );
+		add_filter( 'retrieve_password_message', array( $this, 'filterMessage' ), 10, 4 );
+		add_filter( 'wp_new_user_notification_email', array( $this, 'filterNewUserEmail' ), 10, 3 );
+	}
+
+	/**
+	 * Rewrite any lost-password email body while replace_wp_login is on.
+	 *
+	 * @param string   $message   The email body.
+	 * @param string   $key       The reset key (unused).
+	 * @param string   $userLogin The account login (unused).
+	 * @param \WP_User $userData  The account (unused).
+	 * @return string
+	 */
+	public function filterMessage( $message, $key = '', $userLogin = '', $userData = null ): string {
+		return $this->enabled() ? $this->rewriteMessage( $message ) : (string) $message;
+	}
+
+	/**
+	 * Rewrite any new-user notification email while replace_wp_login is on.
+	 *
+	 * @param array<string, mixed> $email    The wp_mail arguments.
+	 * @param \WP_User             $user     The new user (unused).
+	 * @param string               $blogname The site name (unused).
+	 * @return array<string, mixed>
+	 */
+	public function filterNewUserEmail( $email, $user = null, $blogname = '' ): array {
+		return $this->enabled() ? $this->rewriteNewUserEmail( $email ) : (array) $email;
+	}
+
+	/**
+	 * Run one of TierMint's own mail sends with the reset link rewritten.
+	 *
+	 * The toggle does not apply here.
+	 *
+	 * @param callable(): mixed $send The mail send.
+	 * @return mixed What the send returned.
+	 */
+	public function withBrandedLinks( callable $send ) {
+		add_filter( 'retrieve_password_message', array( $this, 'rewriteMessage' ), self::SCOPED_PRIORITY, 4 );
+		add_filter( 'wp_new_user_notification_email', array( $this, 'rewriteNewUserEmail' ), self::SCOPED_PRIORITY, 3 );
+
+		try {
+			return $send();
+		} finally {
+			remove_filter( 'retrieve_password_message', array( $this, 'rewriteMessage' ), self::SCOPED_PRIORITY );
+			remove_filter( 'wp_new_user_notification_email', array( $this, 'rewriteNewUserEmail' ), self::SCOPED_PRIORITY );
+		}
 	}
 
 	/**
@@ -68,8 +125,6 @@ class PasswordResetLinks implements Hookable {
 
 	/**
 	 * Rewrite the set-password link inside a new-user notification email.
-	 *
-	 * Covers the registration, checkout auto-register, and admin-created user mails.
 	 *
 	 * @param array<string, mixed> $email    The wp_mail arguments (to, subject, message, headers).
 	 * @param \WP_User             $user     The new user (unused).
@@ -126,5 +181,16 @@ class PasswordResetLinks implements Hookable {
 	 */
 	private function url(): ?string {
 		return $this->pages->url( PageResolver::PASSWORD_RESET );
+	}
+
+	/**
+	 * Whether the replace_wp_login toggle is on.
+	 *
+	 * @return bool
+	 */
+	private function enabled(): bool {
+		$settings = get_option( self::SETTINGS_OPTION );
+
+		return is_array( $settings ) && ! empty( $settings['frontend']['replace_wp_login'] );
 	}
 }

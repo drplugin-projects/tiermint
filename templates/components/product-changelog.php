@@ -49,8 +49,8 @@ if ( array() === $tiermint_releases ) {
 			<?php if ( '' !== $tiermint_notes ) : ?>
 				<div class="tiermint-product-changelog__notes">
 					<?php
-					// ChangelogRenderer returns wp_kses_post-sanitized HTML.
-					echo $tiermint_notes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- ChangelogRenderer returns wp_kses_post-sanitized HTML.
+					// The notes can come from the object cache, so they are filtered again here.
+					echo wp_kses_post( $tiermint_notes );
 					?>
 				</div>
 			<?php endif; ?>

@@ -5,13 +5,6 @@
  */
 
 /**
- * Server sentinel for the billing-period license length.
- *
- * @type {string}
- */
-export const LICENSE_LENGTH_BILLING = 'billing_period';
-
-/**
  * Storage grammar for a duration.
  *
  * @type {RegExp}
@@ -27,9 +20,6 @@ const DURATION = /^\+(\d+) (day|week|month|year)s?$/;
 export function parseLicenseLength( raw ) {
 	if ( raw === null || raw === undefined ) {
 		return { mode: 'lifetime' };
-	}
-	if ( raw === LICENSE_LENGTH_BILLING ) {
-		return { mode: 'billing' };
 	}
 	const match = DURATION.exec( raw );
 	if ( match ) {

@@ -27,7 +27,7 @@ final class PaymentSession {
 	 * @since 1.0.0
 	 *
 	 * @param string      $gateway        The gateway id that created the session, e.g. 'stripe'.
-	 * @param string      $transactionId  The gateway-side transaction id (Stripe: the PaymentIntent id, "pi_..."; PayPal: the order id).
+	 * @param string      $transactionId  The gateway-side transaction id (Stripe: the PaymentIntent id, "pi_...").
 	 * @param string      $clientSecret   The secret the browser uses to confirm the payment client-side; empty for redirect-based gateways.
 	 * @param string|null $publishableKey The gateway's publishable (browser-safe) key, when the gateway has one.
 	 * @param string|null $redirectUrl    The gateway approval URL the browser navigates to, for redirect-based gateways; null otherwise.

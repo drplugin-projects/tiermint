@@ -65,13 +65,11 @@ class ReleaseRepository {
 	public function create( Release $release ): Release {
 		$now = gmdate( 'Y-m-d H:i:s' );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Repository-owned custom table write; $wpdb->insert escapes every value; caching is handled here.
 		$inserted = $this->wpdb->insert(
 			$this->table(),
 			array(
 				'product_id'       => $release->productId(),
 				'version'          => $release->version(),
-				'channel'          => $release->channel(),
 				'storage_provider' => $release->storageProvider(),
 				'storage_key'      => $release->storageKey(),
 				'filesize'         => $release->filesize(),
@@ -80,7 +78,6 @@ class ReleaseRepository {
 				'tested_up_to'     => $release->testedUpTo(),
 				'requires_php'     => $release->requiresPhp(),
 				'changelog'        => $release->changelog(),
-				'rollout_percent'  => $release->rolloutPercent(),
 				'status'           => $release->status()->value,
 				'released_at'      => $this->formatInstant( $release->releasedAt() ),
 				'created_at'       => $now,
@@ -90,23 +87,22 @@ class ReleaseRepository {
 
 		if ( false === $inserted ) {
 			if ( $this->versionCollisionExists( $release->productId(), $release->version(), null ) ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only message; never echoed as HTML.
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw DuplicateReleaseVersionException::forProductAndVersion( $release->productId(), $release->version() );
 			}
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ReleasePersistenceException( 'Failed to insert release: ' . $this->wpdb->last_error );
 		}
 
 		$id = (int) $this->wpdb->insert_id;
 
-		$this->forget( $id, $release->productId(), $release->channel() );
+		$this->forget( $id, $release->productId() );
 
 		$stored = $this->find( $id );
 
 		if ( null === $stored ) {
 			// The row was just written; failing to read it back is a genuine fault, not a miss.
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
 			throw new ReleasePersistenceException( 'Failed to read back a just-created release.' );
 		}
 
@@ -130,33 +126,10 @@ class ReleaseRepository {
 			return $cached;
 		}
 
-		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE id = %d';
-		$row = $this->getRowOrFail( $this->wpdb->prepare( $sql, $id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		$wpdb = $this->wpdb;
 
-		if ( null === $row ) {
-			return null;
-		}
-
-		$found = $this->fromRow( $row );
-		$this->cache( $found );
-
-		return $found;
-	}
-
-	/**
-	 * Load a release by its product and version (the `product_version` unique key).
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param int    $productId The owning product id.
-	 * @param string $version   The version string.
-	 * @return Release|null The release, or null when no release carries the pair.
-	 *
-	 * @throws ReleasePersistenceException When the read faults at the database.
-	 */
-	public function findByProductAndVersion( int $productId, string $version ): ?Release {
-		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE product_id = %d AND version = %s';
-		$row = $this->getRowOrFail( $this->wpdb->prepare( $sql, $productId, $version ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$row = $this->getRowOrFail( fn () => $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $this->table(), $id ) ) );
 
 		if ( null === $row ) {
 			return null;
@@ -179,8 +152,10 @@ class ReleaseRepository {
 	 * @throws ReleasePersistenceException When the read faults at the database.
 	 */
 	public function listForProduct( int $productId ): array {
-		$sql  = 'SELECT * FROM ' . $this->table() . ' WHERE product_id = %d';
-		$rows = $this->getResultsOrFail( $this->wpdb->prepare( $sql, $productId ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		$wpdb = $this->wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+		$rows = $this->getResultsOrFail( fn () => $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE product_id = %d', $this->table(), $productId ) ) );
 
 		$releases = array_map( array( $this, 'fromRow' ), $rows );
 
@@ -193,28 +168,36 @@ class ReleaseRepository {
 	}
 
 	/**
-	 * Get the newest published release on a channel.
+	 * Get the newest published release of a product.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param int    $productId The owning product id.
-	 * @param string $channel   The release channel (core always 'stable').
+	 * @param int $productId The owning product id.
 	 * @return Release|null The latest published release, or null when none exists.
 	 *
 	 * @throws ReleasePersistenceException When the read faults at the database.
 	 */
-	public function latestPublished( int $productId, string $channel = 'stable' ): ?Release {
-		$cached = wp_cache_get( $this->latestKey( $productId, $channel ), self::CACHE_GROUP );
+	public function latestPublished( int $productId ): ?Release {
+		$cached = wp_cache_get( $this->latestKey( $productId ), self::CACHE_GROUP );
 
 		if ( $cached instanceof Release ) {
 			return $cached;
 		}
 
-		$sql = 'SELECT * FROM ' . $this->table() .
-			" WHERE product_id = %d AND channel = %s AND status = 'published'" .
-			' ORDER BY released_at DESC, id DESC LIMIT 1';
+		$wpdb = $this->wpdb;
 
-		$row = $this->getRowOrFail( $this->wpdb->prepare( $sql, $productId, $channel ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values bound via prepare(); the SQL embeds only the Schema-derived table name.
+		$row = $this->getRowOrFail(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_row(
+				$wpdb->prepare(
+					'SELECT * FROM %i' .
+					" WHERE product_id = %d AND status = 'published'" .
+					' ORDER BY released_at DESC, id DESC LIMIT 1',
+					$this->table(),
+					$productId
+				)
+			)
+		);
 
 		if ( null === $row ) {
 			// No negative caching: the next publish must be visible immediately.
@@ -224,43 +207,16 @@ class ReleaseRepository {
 		$latest = $this->fromRow( $row );
 
 		wp_cache_set( $this->idKey( (int) $latest->id() ), $latest, self::CACHE_GROUP );
-		wp_cache_set( $this->latestKey( $productId, $channel ), $latest, self::CACHE_GROUP );
+		wp_cache_set( $this->latestKey( $productId ), $latest, self::CACHE_GROUP );
 
 		return $latest;
 	}
 
 	/**
-	 * List published releases for selected channels.
+	 * List a product's published releases, newest first.
 	 *
-	 * @since 1.0.0
-	 *
-	 * @param int                $productId The owning product id.
-	 * @param array<int, string> $channels  The allowed channels (any order; deduplicated).
-	 * @return array<int, Release> The published releases on those channels, newest first.
-	 *
-	 * @throws ReleasePersistenceException When the read faults at the database.
-	 */
-	public function publishedForChannels( int $productId, array $channels ): array {
-		$allowed = $this->normalizeChannels( $channels );
-
-		if ( array() === $allowed ) {
-			// No channels means nothing can be served; never touch the database.
-			return array();
-		}
-
-		$allowedSet = array_flip( $allowed );
-
-		return array_values(
-			array_filter(
-				$this->allPublished( $productId ),
-				static fn ( Release $release ): bool => isset( $allowedSet[ $release->channel() ] )
-			)
-		);
-	}
-
-	/**
-	 * Every published release for a product, newest released_at first (ties by id), cached
-	 * under one per-product key. A miss is not cached so a first publish is visible at once.
+	 * Newest means the latest release date, then the highest id. The list is cached per
+	 * product; an empty list is not, so a first publish is visible at once.
 	 *
 	 * @since 1.0.0
 	 *
@@ -269,18 +225,27 @@ class ReleaseRepository {
 	 *
 	 * @throws ReleasePersistenceException When the read faults at the database.
 	 */
-	private function allPublished( int $productId ): array {
+	public function published( int $productId ): array {
 		$cached = wp_cache_get( $this->publishedKey( $productId ), self::CACHE_GROUP );
 
 		if ( is_array( $cached ) ) {
 			return $cached;
 		}
 
-		$sql = 'SELECT * FROM ' . $this->table() .
-			" WHERE product_id = %d AND status = 'published'" .
-			' ORDER BY released_at DESC, id DESC';
+		$wpdb = $this->wpdb;
 
-		$rows = $this->getResultsOrFail( $this->wpdb->prepare( $sql, $productId ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Value bound via prepare(); the SQL embeds only the Schema-derived table name.
+		$rows = $this->getResultsOrFail(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; this class decides what to cache.
+			fn () => $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT * FROM %i' .
+					" WHERE product_id = %d AND status = 'published'" .
+					' ORDER BY released_at DESC, id DESC',
+					$this->table(),
+					$productId
+				)
+			)
+		);
 
 		$releases = array_map( array( $this, 'fromRow' ), $rows );
 
@@ -293,94 +258,84 @@ class ReleaseRepository {
 	}
 
 	/**
-	 * Normalize a channel set for a lookup: cast to strings, drop blanks, and deduplicate.
-	 * Order does not matter (the SQL orders by released_at, the caller filters by membership).
+	 * Update release fields and clear affected caches.
+	 *
+	 * With a column list, only those columns are written, so a stale copy cannot undo a
+	 * concurrent edit of another column. Status and the release date never take part in a
+	 * scoped write: status moves go through {@see transitionStatus()}.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array<int, string> $channels The raw channel list.
-	 * @return array<int, string> The cleaned, deduplicated channels.
-	 */
-	private function normalizeChannels( array $channels ): array {
-		$clean = array();
-
-		foreach ( $channels as $channel ) {
-			$channel = (string) $channel;
-
-			if ( '' !== $channel ) {
-				$clean[ $channel ] = true;
-			}
-		}
-
-		return array_keys( $clean );
-	}
-
-	/**
-	 * Update mutable release fields and clear affected caches.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param Release $release The release to persist (must carry an id).
+	 * @param Release                 $release The release to persist (must carry an id).
+	 * @param array<int, string>|null $columns The columns to write, or null for the whole row.
 	 * @return void
 	 *
-	 * @throws ReleaseException                 When the release has no id to update.
+	 * @throws ReleaseException                 When the release has no id, or the column list
+	 *                                          is empty or names a column a scoped write may not set.
 	 * @throws DuplicateReleaseVersionException When the new version already exists for the product.
 	 * @throws ReleasePersistenceException      When the write faults for any other reason.
 	 */
-	public function update( Release $release ): void {
+	public function update( Release $release, ?array $columns = null ): void {
 		$id = $release->id();
 
 		if ( null === $id ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
 			throw new ReleaseException( 'Cannot update a release that has no id.' );
 		}
 
-		// The previous channel may differ from the new one; capture it so its latest-lookup
-		// entry is invalidated too (core stays on 'stable', but a re-channel must not strand a
-		// stale cache).
-		$previousChannel = (string) $this->fetchScalar(
-			'SELECT channel FROM ' . $this->table() . ' WHERE id = %d',
-			array( $id )
-		);
+		$values = $this->updatableValues( $release );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Repository-owned custom table write; $wpdb->update escapes values and conditions; caching is handled here.
-		$updated = $this->wpdb->update(
-			$this->table(),
-			array(
-				'product_id'       => $release->productId(),
-				'version'          => $release->version(),
-				'channel'          => $release->channel(),
-				'storage_provider' => $release->storageProvider(),
-				'storage_key'      => $release->storageKey(),
-				'filesize'         => $release->filesize(),
-				'checksum_sha256'  => $release->checksumSha256(),
-				'requires_wp'      => $release->requiresWp(),
-				'tested_up_to'     => $release->testedUpTo(),
-				'requires_php'     => $release->requiresPhp(),
-				'changelog'        => $release->changelog(),
-				'rollout_percent'  => $release->rolloutPercent(),
-				'status'           => $release->status()->value,
-				'released_at'      => $this->formatInstant( $release->releasedAt() ),
-				'updated_at'       => gmdate( 'Y-m-d H:i:s' ),
-			),
-			array( 'id' => $id )
-		);
+		if ( null === $columns ) {
+			$values['product_id']  = $release->productId();
+			$values['status']      = $release->status()->value;
+			$values['released_at'] = $this->formatInstant( $release->releasedAt() );
+		} else {
+			$unknown = array_diff( $columns, array_keys( $values ) );
+
+			if ( array() === $columns || array() !== $unknown ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
+				throw new ReleaseException( 'A scoped release update needs at least one column, and only these: ' . implode( ', ', array_keys( $values ) ) . '.' );
+			}
+
+			$values = array_intersect_key( $values, array_flip( $columns ) );
+		}
+
+		$values['updated_at'] = gmdate( 'Y-m-d H:i:s' );
+
+		$updated = $this->wpdb->update( $this->table(), $values, array( 'id' => $id ) );
 
 		if ( false === $updated ) {
-			if ( $this->versionCollisionExists( $release->productId(), $release->version(), $id ) ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only message; never echoed as HTML.
+			if ( array_key_exists( 'version', $values ) && $this->versionCollisionExists( $release->productId(), $release->version(), $id ) ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 				throw DuplicateReleaseVersionException::forProductAndVersion( $release->productId(), $release->version() );
 			}
 
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ReleasePersistenceException( 'Failed to update release: ' . $this->wpdb->last_error );
 		}
 
-		$this->forget( $id, $release->productId(), $release->channel() );
+		$this->forget( $id, $release->productId() );
+	}
 
-		if ( '' !== $previousChannel && $previousChannel !== $release->channel() ) {
-			wp_cache_delete( $this->latestKey( $release->productId(), $previousChannel ), self::CACHE_GROUP );
-		}
+	/**
+	 * The columns an update may write, keyed by column name.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param Release $release The release to read the values from.
+	 * @return array<string, mixed> The column values.
+	 */
+	private function updatableValues( Release $release ): array {
+		return array(
+			'version'          => $release->version(),
+			'storage_provider' => $release->storageProvider(),
+			'storage_key'      => $release->storageKey(),
+			'filesize'         => $release->filesize(),
+			'checksum_sha256'  => $release->checksumSha256(),
+			'requires_wp'      => $release->requiresWp(),
+			'tested_up_to'     => $release->testedUpTo(),
+			'requires_php'     => $release->requiresPhp(),
+			'changelog'        => $release->changelog(),
+		);
 	}
 
 	/**
@@ -402,7 +357,6 @@ class ReleaseRepository {
 		$id = $release->id();
 
 		if ( null === $id ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer message; never echoed as HTML.
 			throw new ReleaseException( 'Cannot transition a release that has no id.' );
 		}
 
@@ -411,35 +365,40 @@ class ReleaseRepository {
 			return false;
 		}
 
-		$now = gmdate( 'Y-m-d H:i:s' );
-
-		$set    = 'status = %s, updated_at = %s';
-		$params = array( $to->value, $now );
+		$now     = gmdate( 'Y-m-d H:i:s' );
+		$wpdb    = $this->wpdb;
+		$sources = array_map( static fn ( ReleaseStatus $status ): string => $status->value, $fromStatuses );
 
 		if ( ReleaseStatus::Published === $to ) {
 			// Publishing is the one move that stamps the release date the update server orders on.
-			$set     .= ', released_at = %s';
-			$params[] = $now;
+			$values = array_merge( array( $this->table(), $to->value, $now, $now, $id ), $sources );
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$affected = $wpdb->query(
+				$wpdb->prepare(
+					'UPDATE %i SET status = %s, updated_at = %s, released_at = %s WHERE id = %d AND status IN (' .
+					implode( ', ', array_fill( 0, count( $fromStatuses ), '%s' ) ) . ')',
+					$values
+				)
+			);
+		} else {
+			$values = array_merge( array( $this->table(), $to->value, $now, $id ), $sources );
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$affected = $wpdb->query(
+				$wpdb->prepare(
+					'UPDATE %i SET status = %s, updated_at = %s WHERE id = %d AND status IN (' .
+					implode( ', ', array_fill( 0, count( $fromStatuses ), '%s' ) ) . ')',
+					$values
+				)
+			);
 		}
-
-		$placeholders = implode( ', ', array_fill( 0, count( $fromStatuses ), '%s' ) );
-
-		$params[] = $id;
-		foreach ( $fromStatuses as $status ) {
-			$params[] = $status->value;
-		}
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The SQL embeds only the Schema-derived table name and %s placeholders; every runtime value is bound via prepare() below.
-		$sql = 'UPDATE ' . $this->table() . ' SET ' . $set . ' WHERE id = %d AND status IN (' . $placeholders . ')';
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); cache invalidated below.
-		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $params ) );
 
 		// Invalidate whether or not this call won: a racing writer may have changed the row.
-		$this->forget( $id, $release->productId(), $release->channel() );
+		$this->forget( $id, $release->productId() );
 
 		if ( false === $affected ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ReleasePersistenceException( 'Failed to transition release status: ' . $this->wpdb->last_error );
 		}
 
@@ -457,19 +416,18 @@ class ReleaseRepository {
 	 * @throws ReleasePersistenceException When the delete faults at the database.
 	 */
 	public function delete( int $id ): void {
-		// Load first so the product and channel are known for latest-lookup invalidation.
+		// Load first so the product is known for latest-lookup invalidation.
 		$existing = $this->find( $id );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Repository-owned custom table write; $wpdb->delete escapes the conditions; caching is handled here.
 		$deleted = $this->wpdb->delete( $this->table(), array( 'id' => $id ) );
 
 		if ( false === $deleted ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ReleasePersistenceException( 'Failed to delete release: ' . $this->wpdb->last_error );
 		}
 
 		if ( null !== $existing ) {
-			$this->forget( $id, $existing->productId(), $existing->channel() );
+			$this->forget( $id, $existing->productId() );
 		} else {
 			wp_cache_delete( $this->idKey( $id ), self::CACHE_GROUP );
 		}
@@ -486,16 +444,15 @@ class ReleaseRepository {
 	 * @return bool True when another row already carries the pair.
 	 */
 	private function versionCollisionExists( int $productId, string $version, ?int $exceptId ): bool {
-		$sql    = 'SELECT id FROM ' . $this->table() . ' WHERE product_id = %d AND version = %s';
-		$params = array( $productId, $version );
+		$wpdb = $this->wpdb;
 
 		if ( null !== $exceptId ) {
-			$sql     .= ' AND id != %d';
-			$params[] = $exceptId;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$existing = $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE product_id = %d AND version = %s AND id != %d', $this->table(), $productId, $version, $exceptId ) );
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; this class decides what to cache.
+			$existing = $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE product_id = %d AND version = %s', $this->table(), $productId, $version ) );
 		}
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); a one-off existence probe on the write failure path.
-		$existing = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $params ) );
 
 		return null !== $existing;
 	}
@@ -505,19 +462,18 @@ class ReleaseRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $preparedSql The already-prepared SQL.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return object|null The row, or null when it genuinely does not exist.
 	 *
 	 * @throws ReleasePersistenceException When the read faulted at the database.
 	 */
-	private function getRowOrFail( string $preparedSql ): ?object {
+	private function getRowOrFail( callable $query ): ?object {
 		$this->wpdb->last_error = '';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Callers prepare the SQL; the repository fronts reads with wp_cache where the hot path needs it.
-		$row = $this->wpdb->get_row( $preparedSql );
+		$row = $query();
 
 		if ( '' !== $this->wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ReleasePersistenceException( 'Release read failed: ' . $this->wpdb->last_error );
 		}
 
@@ -530,48 +486,22 @@ class ReleaseRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $preparedSql The already-prepared SQL.
+	 * @param callable(): mixed $query Runs the prepared query.
 	 * @return array<int, object> The rows (possibly empty).
 	 *
 	 * @throws ReleasePersistenceException When the read faulted at the database.
 	 */
-	private function getResultsOrFail( string $preparedSql ): array {
+	private function getResultsOrFail( callable $query ): array {
 		$this->wpdb->last_error = '';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Callers prepare the SQL; list reads are deliberately uncached.
-		$rows = $this->wpdb->get_results( $preparedSql );
+		$rows = $query();
 
 		if ( '' !== $this->wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ReleasePersistenceException( 'Release list read failed: ' . $this->wpdb->last_error );
 		}
 
 		return is_array( $rows ) ? $rows : array();
-	}
-
-	/**
-	 * Fetch one scalar with read-fault detection.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string            $sql  SQL with the Schema-derived table name and %d/%s placeholders.
-	 * @param array<int, mixed> $args Values bound into the placeholders.
-	 * @return string|null The scalar value, or null.
-	 *
-	 * @throws ReleasePersistenceException When the read faulted at the database.
-	 */
-	private function fetchScalar( string $sql, array $args ): ?string {
-		$this->wpdb->last_error = '';
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Values bound via prepare(); a small identity probe with nothing to cache.
-		$value = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $args ) );
-
-		if ( '' !== $this->wpdb->last_error ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map persistence failures to a generic message.
-			throw new ReleasePersistenceException( 'Release scalar read failed: ' . $this->wpdb->last_error );
-		}
-
-		return null === $value ? null : (string) $value;
 	}
 
 	/**
@@ -587,7 +517,6 @@ class ReleaseRepository {
 			(int) $row->id,
 			(int) $row->product_id,
 			(string) $row->version,
-			(string) $row->channel,
 			(string) $row->storage_provider,
 			(string) $row->storage_key,
 			null === $row->filesize ? null : (int) $row->filesize,
@@ -596,7 +525,6 @@ class ReleaseRepository {
 			null === $row->tested_up_to ? null : (string) $row->tested_up_to,
 			null === $row->requires_php ? null : (string) $row->requires_php,
 			null === $row->changelog ? null : (string) $row->changelog,
-			(int) $row->rollout_percent,
 			ReleaseStatus::from( (string) $row->status ),
 			$this->parseInstant( $row->released_at ),
 			$this->parseInstant( $row->created_at ),
@@ -657,14 +585,13 @@ class ReleaseRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param int    $id        The release id.
-	 * @param int    $productId The owning product id.
-	 * @param string $channel   The release channel.
+	 * @param int $id        The release id.
+	 * @param int $productId The owning product id.
 	 * @return void
 	 */
-	private function forget( int $id, int $productId, string $channel ): void {
+	private function forget( int $id, int $productId ): void {
 		wp_cache_delete( $this->idKey( $id ), self::CACHE_GROUP );
-		wp_cache_delete( $this->latestKey( $productId, $channel ), self::CACHE_GROUP );
+		wp_cache_delete( $this->latestKey( $productId ), self::CACHE_GROUP );
 		wp_cache_delete( $this->publishedKey( $productId ), self::CACHE_GROUP );
 	}
 
@@ -681,20 +608,19 @@ class ReleaseRepository {
 	}
 
 	/**
-	 * The cache key for a product/channel latest-published lookup.
+	 * The cache key for a product's latest-published lookup.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param int    $productId The owning product id.
-	 * @param string $channel   The release channel.
+	 * @param int $productId The owning product id.
 	 * @return string The cache key.
 	 */
-	private function latestKey( int $productId, string $channel ): string {
-		return 'release_latest_' . $productId . '_' . $channel;
+	private function latestKey( int $productId ): string {
+		return 'release_latest_' . $productId;
 	}
 
 	/**
-	 * The cache key for a product's full published-release list ({@see allPublished()}).
+	 * The cache key for a product's published-release list ({@see published()}).
 	 *
 	 * @since 1.0.0
 	 *

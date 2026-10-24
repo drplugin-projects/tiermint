@@ -63,7 +63,7 @@ final class BundleItem {
 	 */
 	public function __construct( ?int $bundleProductId, int $childProductId, ?int $childPriceId, int $sortOrder ) {
 		if ( $childProductId <= 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ProductException( __( 'A bundle item must reference a valid child product.', 'tiermint' ) );
 		}
 

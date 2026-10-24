@@ -18,20 +18,13 @@ use DrPlugin\WP\TierMint\Updates\ReleaseRepository;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Renders published stable release notes for a product.
+ * Renders published release notes for a product.
  *
- * It uses the shared changelog renderer and hides prerelease channels.
+ * It uses the shared changelog renderer.
  *
  * @since 1.0.0
  */
 final class ProductChangelog extends AbstractProductComponent {
-
-	/**
-	 * Storefront changelogs use the stable channel only.
-	 *
-	 * @var string
-	 */
-	private const CHANNEL = 'stable';
 
 	/**
 	 * Maximum releases rendered by one block.
@@ -115,8 +108,7 @@ final class ProductChangelog extends AbstractProductComponent {
 	}
 
 	/**
-	 * Reduce the product's latest published stable releases to rendered changelog
-	 * rows.
+	 * Reduce the product's latest published releases to rendered changelog rows.
 	 *
 	 * @param Product              $product The product to render.
 	 * @param array<string, mixed> $attrs   Resolved attribute values (display toggles).
@@ -133,8 +125,8 @@ final class ProductChangelog extends AbstractProductComponent {
 		$showDates         = (bool) ( $attrs['show_dates'] ?? true );
 		$showCompatibility = (bool) ( $attrs['show_compatibility'] ?? true );
 
-		// The newest stable releases appear first.
-		$published = $this->releases->publishedForChannels( $productId, array( self::CHANNEL ) );
+		// The newest releases appear first.
+		$published = $this->releases->published( $productId );
 
 		$rows = array();
 		foreach ( array_slice( $published, 0, $count ) as $release ) {

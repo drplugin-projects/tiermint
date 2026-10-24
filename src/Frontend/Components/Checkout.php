@@ -23,7 +23,6 @@ use DrPlugin\WP\TierMint\Licensing\LicenseService;
 use DrPlugin\WP\TierMint\Orders\Cart;
 use DrPlugin\WP\TierMint\Orders\CartService;
 use DrPlugin\WP\TierMint\Orders\OrderService;
-use DrPlugin\WP\TierMint\Orders\PricingMode;
 use DrPlugin\WP\TierMint\Payments\GatewayRegistry;
 use DrPlugin\WP\TierMint\Products\Product;
 use DrPlugin\WP\TierMint\Products\ProductPrice;
@@ -213,7 +212,7 @@ class Checkout extends AbstractComponent {
 				'type'        => 'boolean',
 				'default'     => true,
 				'label'       => __( 'Show plan details', 'tiermint' ),
-				'description' => __( "Repeat each line's license length, activation limit, and billing in the order summary.", 'tiermint' ),
+				'description' => __( "Repeat each line's license length and activation limit in the order summary.", 'tiermint' ),
 				'control'     => 'toggle',
 			),
 			'show_discount'     => array(
@@ -302,18 +301,17 @@ class Checkout extends AbstractComponent {
 		$renewal = $this->renewalBanner( $cart );
 
 		$data = array(
-			'title'              => (string) $attrs['title'],
-			'button_text'        => (string) $attrs['button_text'],
-			'show_summary'       => (bool) $attrs['show_summary'],
-			'editable_summary'   => (bool) ( $attrs['editable_summary'] ?? true ),
-			'show_plan_details'  => (bool) ( $attrs['show_plan_details'] ?? true ),
-			'show_discount'      => (bool) ( $attrs['show_discount'] ?? true ),
-			'layout'             => $layout,
-			'renewal'            => $renewal,
-			'cart_error'         => $this->cartErrorMessage(),
-			'action_url'         => remove_query_arg( 'tiermint_cart_error' ),
-			// Gross mode relabels the summary tax row; the row itself is unchanged.
-			'prices_include_tax' => PricingMode::includesTax(),
+			'title'             => (string) $attrs['title'],
+			'button_text'       => (string) $attrs['button_text'],
+			'show_summary'      => (bool) $attrs['show_summary'],
+			'editable_summary'  => (bool) ( $attrs['editable_summary'] ?? true ),
+			'show_plan_details' => (bool) ( $attrs['show_plan_details'] ?? true ),
+			'show_discount'     => (bool) ( $attrs['show_discount'] ?? true ),
+			'layout'            => $layout,
+			'renewal'           => $renewal,
+			'cart_error'        => $this->cartErrorMessage(),
+			'action_url'        => remove_query_arg( 'tiermint_cart_error' ),
+			'tax_label'         => $this->taxLabel(),
 		);
 
 		if ( $cart->isEmpty() ) {
@@ -480,7 +478,7 @@ class Checkout extends AbstractComponent {
 			'country' => $this->refineBillingField(
 				array(
 					'show'        => $collectCountry,
-					'required'    => $this->collection->countryRequired(),
+					'required'    => false,
 					'options'     => $collectCountry ? $this->collection->countryOptions() : array(),
 					'value'       => '',
 					'label'       => __( 'Country', 'tiermint' ),
@@ -523,8 +521,9 @@ class Checkout extends AbstractComponent {
 		/**
 		 * Filters one native checkout billing field's presentation.
 		 *
-		 * Extensions can change displayed field copy and the prefilled value.
-		 * Core keeps `show`, `required` and `options`.
+		 * Extensions can change displayed field copy and the prefilled value,
+		 * and can set `required` to true. Core keeps `show` and `options`, and a
+		 * listener cannot make a field core requires optional.
 		 *
 		 * @since 1.0.0
 		 *
@@ -533,7 +532,48 @@ class Checkout extends AbstractComponent {
 		 */
 		$refined = apply_filters( 'tiermint_checkout_billing_field', $field, $key );
 
-		return is_array( $refined ) ? array_merge( $field, $refined ) : $field;
+		if ( ! is_array( $refined ) ) {
+			return $field;
+		}
+
+		$merged         = array_merge( $field, $refined );
+		$merged['show'] = $field['show'];
+
+		if ( array_key_exists( 'options', $field ) ) {
+			$merged['options'] = $field['options'];
+		} else {
+			unset( $merged['options'] );
+		}
+
+		if ( array_key_exists( 'required', $merged ) || array_key_exists( 'required', $field ) ) {
+			$merged['required'] = ! empty( $field['required'] ) || true === ( $refined['required'] ?? false );
+		}
+
+		return $merged;
+	}
+
+	/**
+	 * The order summary's tax row label.
+	 *
+	 * @return string The label, stripped of tags; "Tax" when a listener returns nothing usable.
+	 */
+	private function taxLabel(): string {
+		$default = __( 'Tax', 'tiermint' );
+
+		/**
+		 * Filters the label of the checkout summary's tax row.
+		 *
+		 * A store can name the row after its tax, for example "VAT" or "Sales
+		 * tax". Tags are stripped; an empty or non-string return keeps "Tax".
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $label The label. Default "Tax".
+		 */
+		$label = apply_filters( 'tiermint_checkout_tax_label', $default );
+		$label = is_string( $label ) ? wp_strip_all_tags( $label ) : '';
+
+		return '' === $label ? $default : $label;
 	}
 
 	/**
@@ -562,11 +602,11 @@ class Checkout extends AbstractComponent {
 	 * @return array<string, mixed>|null Banner data, or null.
 	 */
 	private function renewalBanner( Cart $cart ): ?array {
-		if ( ! isset( $_GET['tiermint_renew'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only renewal preload from a signed-nothing public link; adding to the cart still requires the nonce-verified POST.
+		if ( ! isset( $_GET['tiermint_renew'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only: a renewal link carries the license key to show a renewal banner; nothing is written.
 			return null;
 		}
 
-		$key = sanitize_text_field( wp_unslash( $_GET['tiermint_renew'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only renewal preload; see above.
+		$key = sanitize_text_field( wp_unslash( $_GET['tiermint_renew'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only: the key is looked up for the banner; nothing is written.
 
 		if ( 1 !== preg_match( '/^[A-Za-z0-9][A-Za-z0-9\-]{14,62}[A-Za-z0-9]$/', $key ) ) {
 			return null;
@@ -611,18 +651,15 @@ class Checkout extends AbstractComponent {
 	 * @return int|null Price id, or null when nothing is purchasable.
 	 */
 	private function renewalPriceId( Product $product, ?int $grantedPriceId ): ?int {
-		// Renewal offers use the same recurring-tier gate as checkout.
-		$recurringSupported = ProductService::recurringTiersSupported();
-
 		if ( null !== $grantedPriceId ) {
 			foreach ( $product->prices() as $price ) {
-				if ( $price->id() === $grantedPriceId && $price->isPurchasable( $recurringSupported ) ) {
+				if ( $price->id() === $grantedPriceId && $price->isPurchasable() ) {
 					return $price->id();
 				}
 			}
 		}
 
-		$fallback = $product->defaultPrice( $recurringSupported );
+		$fallback = $product->defaultPrice();
 
 		return null !== $fallback ? $fallback->id() : null;
 	}
@@ -692,7 +729,7 @@ class Checkout extends AbstractComponent {
 		 *
 		 * @since 1.0.0
 		 *
-		 * @param array<int, array<string, mixed>> $fields Field definitions; empty in the free core.
+		 * @param array<int, array<string, mixed>> $fields Field definitions, none by default.
 		 * @param RenderContext                    $ctx    Per-request customer state (customer, if known).
 		 */
 		$fields = apply_filters( 'tiermint_checkout_fields', array(), $ctx );

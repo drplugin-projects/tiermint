@@ -221,7 +221,7 @@ final class BuyButton extends AbstractComponent {
 			return null;
 		}
 
-		return $this->resolvePrice( $product, $priceId, ProductService::recurringTiersSupported() );
+		return $this->resolvePrice( $product, $priceId );
 	}
 
 	/**
@@ -248,18 +248,17 @@ final class BuyButton extends AbstractComponent {
 	 *
 	 * A selected tier must belong to the product and be purchasable.
 	 *
-	 * @param Product $product            The product being sold.
-	 * @param int     $priceId            The requested price tier id, or 0 for the default.
-	 * @param bool    $recurringSupported Whether recurring tiers can be billed on this install.
+	 * @param Product $product The product being sold.
+	 * @param int     $priceId The requested price tier id, or 0 for the default.
 	 * @return ProductPrice|null The resolved purchasable tier, or null when none applies.
 	 */
-	private function resolvePrice( Product $product, int $priceId, bool $recurringSupported ): ?ProductPrice {
+	private function resolvePrice( Product $product, int $priceId ): ?ProductPrice {
 		if ( $priceId <= 0 ) {
-			return $product->defaultPrice( $recurringSupported );
+			return $product->defaultPrice();
 		}
 
 		foreach ( $product->prices() as $price ) {
-			if ( $price->id() === $priceId && $price->isPurchasable( $recurringSupported ) ) {
+			if ( $price->id() === $priceId && $price->isPurchasable() ) {
 				return $price;
 			}
 		}

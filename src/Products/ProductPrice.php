@@ -12,26 +12,14 @@ namespace DrPlugin\WP\TierMint\Products;
 // Prevent direct file access.
 defined( 'ABSPATH' ) || exit;
 
-use DateTimeImmutable;
-use Throwable;
-
 /**
  * Immutable product price tier.
  *
- * Amounts use minor units. Pro handles recurring fields.
+ * Amounts use minor units.
  *
  * @since 1.0.0
  */
 final class ProductPrice {
-
-	/**
-	 * License length sentinel for one billing period.
-	 *
-	 * Date parsers reject it, so it cannot be a valid length.
-	 *
-	 * @var string
-	 */
-	public const LICENSE_LENGTH_BILLING = 'billing_period';
 
 	/**
 	 * Primary key, or null for a tier that has not been persisted yet.
@@ -76,34 +64,6 @@ final class ProductPrice {
 	private ?string $licenseLength;
 
 	/**
-	 * Whether the tier bills on a recurring schedule (core stores it; Pro acts).
-	 *
-	 * @var bool
-	 */
-	private bool $isSubscription;
-
-	/**
-	 * Billing period (day, week, month, year), or null for a one-time tier.
-	 *
-	 * @var string|null
-	 */
-	private ?string $billingPeriod;
-
-	/**
-	 * Billing interval count (e.g. every 1 year), or null for a one-time tier.
-	 *
-	 * @var int|null
-	 */
-	private ?int $billingInterval;
-
-	/**
-	 * Number of trial days before the first charge.
-	 *
-	 * @var int
-	 */
-	private int $trialDays;
-
-	/**
 	 * Display sort order among a product's tiers.
 	 *
 	 * @var int
@@ -118,14 +78,14 @@ final class ProductPrice {
 	private PriceStatus $status;
 
 	/**
-	 * Minimum units per purchase. Subscription tiers use one.
+	 * Minimum units per purchase.
 	 *
 	 * @var int
 	 */
 	private int $minQuantity;
 
 	/**
-	 * Maximum units per purchase, or null for unlimited. Subscription tiers use one.
+	 * Maximum units per purchase, or null for unlimited.
 	 *
 	 * @var int|null
 	 */
@@ -142,17 +102,13 @@ final class ProductPrice {
 	 * @param int         $amount          Unsigned minor units (must be >= 0).
 	 * @param int|null    $activationLimit Activation cap, or null for unlimited.
 	 * @param string|null $licenseLength   Relative length string, or null for lifetime.
-	 * @param bool        $isSubscription  Whether the tier is recurring.
-	 * @param string|null $billingPeriod   Billing period, or null.
-	 * @param int|null    $billingInterval Billing interval, or null.
-	 * @param int         $trialDays       Trial days before first charge.
 	 * @param int         $sortOrder       Display sort order.
 	 * @param PriceStatus $status          Tier status.
-	 * @param int         $minQuantity     Minimum units per purchase (>= 1; forced to 1 for a subscription).
-	 * @param int|null    $maxQuantity     Maximum units per purchase, or null for unlimited (forced to 1 for a subscription).
+	 * @param int         $minQuantity     Minimum units per purchase (>= 1).
+	 * @param int|null    $maxQuantity     Maximum units per purchase, or null for unlimited.
 	 *
 	 * @throws ProductException When the name is empty, the amount is negative, or the
-	 *                          quantity rule is invalid on a one-time tier.
+	 *                          quantity rule is invalid.
 	 */
 	public function __construct(
 		?int $id,
@@ -161,80 +117,40 @@ final class ProductPrice {
 		int $amount,
 		?int $activationLimit,
 		?string $licenseLength,
-		bool $isSubscription,
-		?string $billingPeriod,
-		?int $billingInterval,
-		int $trialDays,
 		int $sortOrder,
 		PriceStatus $status,
 		int $minQuantity,
 		?int $maxQuantity
 	) {
 		if ( '' === trim( $name ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ProductException( __( 'A price tier must have a non-empty name.', 'tiermint' ) );
 		}
 
 		if ( $amount < 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ProductException( __( 'A price amount cannot be negative.', 'tiermint' ) );
 		}
 
 		// Reject values that unsigned columns would silently change to zero.
 		if ( null !== $activationLimit && $activationLimit < 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ProductException( __( 'An activation limit cannot be negative.', 'tiermint' ) );
 		}
 
-		if ( $trialDays < 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
-			throw new ProductException( __( 'A trial length cannot be negative.', 'tiermint' ) );
-		}
-
 		if ( $sortOrder < 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new ProductException( __( 'A sort order cannot be negative.', 'tiermint' ) );
 		}
 
-		if ( null !== $billingInterval && $billingInterval < 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
-			throw new ProductException( __( 'A billing interval cannot be negative.', 'tiermint' ) );
+		if ( $minQuantity < 1 ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
+			throw new ProductException( __( 'A minimum quantity must be at least 1.', 'tiermint' ) );
 		}
 
-		if ( $isSubscription ) {
-			// Recurring tiers need a valid period and an interval of at least one.
-			if ( ! in_array( $billingPeriod, array( 'day', 'week', 'month', 'year' ), true ) ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
-				throw new ProductException( __( 'A recurring price tier needs a billing period of day, week, month, or year.', 'tiermint' ) );
-			}
-
-			$billingInterval = $billingInterval ?? 1;
-
-			if ( $billingInterval < 1 ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
-				throw new ProductException( __( 'A recurring price tier needs a billing interval of at least 1.', 'tiermint' ) );
-			}
-		} else {
-			// One-time tiers do not store subscription fields.
-			$billingPeriod   = null;
-			$billingInterval = null;
-			$trialDays       = 0;
-		}
-
-		if ( $isSubscription ) {
-			// A subscription always represents one entitlement.
-			$minQuantity = 1;
-			$maxQuantity = 1;
-		} else {
-			if ( $minQuantity < 1 ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
-				throw new ProductException( __( 'A minimum quantity must be at least 1.', 'tiermint' ) );
-			}
-
-			if ( null !== $maxQuantity && $maxQuantity < $minQuantity ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
-				throw new ProductException( __( 'A maximum quantity cannot be less than the minimum quantity.', 'tiermint' ) );
-			}
+		if ( null !== $maxQuantity && $maxQuantity < $minQuantity ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
+			throw new ProductException( __( 'A maximum quantity cannot be less than the minimum quantity.', 'tiermint' ) );
 		}
 
 		$this->id              = $id;
@@ -243,10 +159,6 @@ final class ProductPrice {
 		$this->amount          = $amount;
 		$this->activationLimit = $activationLimit;
 		$this->licenseLength   = $licenseLength;
-		$this->isSubscription  = $isSubscription;
-		$this->billingPeriod   = $billingPeriod;
-		$this->billingInterval = $billingInterval;
-		$this->trialDays       = $trialDays;
 		$this->sortOrder       = $sortOrder;
 		$this->status          = $status;
 		$this->minQuantity     = $minQuantity;
@@ -274,10 +186,6 @@ final class ProductPrice {
 			(int) ( $data['amount'] ?? 0 ),
 			self::nullableInt( $data['activation_limit'] ?? null ),
 			self::nullableString( $data['license_length'] ?? null ),
-			(bool) ( $data['is_subscription'] ?? false ),
-			self::nullableString( $data['billing_period'] ?? null ),
-			self::nullableInt( $data['billing_interval'] ?? null ),
-			(int) ( $data['trial_days'] ?? 0 ),
 			(int) ( $data['sort_order'] ?? 0 ),
 			$status,
 			(int) ( $data['min_quantity'] ?? 1 ),
@@ -312,10 +220,6 @@ final class ProductPrice {
 			'amount'           => $this->amount,
 			'activation_limit' => $this->activationLimit,
 			'license_length'   => $this->licenseLength,
-			'is_subscription'  => $this->isSubscription ? 1 : 0,
-			'billing_period'   => $this->billingPeriod,
-			'billing_interval' => $this->billingInterval,
-			'trial_days'       => $this->trialDays,
 			'sort_order'       => $this->sortOrder,
 			'min_quantity'     => $this->minQuantity,
 			'max_quantity'     => $this->maxQuantity,
@@ -390,46 +294,18 @@ final class ProductPrice {
 	}
 
 	/**
-	 * Resolve the billing-period sentinel at mint time.
-	 *
-	 * An incomplete subscription resolves to a lifetime license.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return string|null The strtotime-relative length, or null for lifetime.
-	 */
-	public function resolvedLicenseLength(): ?string {
-		if ( self::LICENSE_LENGTH_BILLING !== $this->licenseLength ) {
-			return $this->licenseLength;
-		}
-
-		if ( ! $this->isSubscription || null === $this->billingPeriod || null === $this->billingInterval ) {
-			return null;
-		}
-
-		return sprintf( '+%d %s', $this->billingInterval, $this->billingPeriod );
-	}
-
-	/**
 	 * Validate a license length before a create or update.
 	 *
 	 * Legacy rows can still hydrate with a historic value.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string|null $length         The candidate license length.
-	 * @param bool        $isSubscription Whether the owning tier is a subscription.
+	 * @param string|null $length The candidate license length.
 	 * @return string|null The validation message, or null when the value is valid.
 	 */
-	public static function licenseLengthError( ?string $length, bool $isSubscription ): ?string {
+	public static function licenseLengthError( ?string $length ): ?string {
 		if ( null === $length ) {
 			return null;
-		}
-
-		if ( self::LICENSE_LENGTH_BILLING === $length ) {
-			return $isSubscription
-				? null
-				: __( '"Same as billing interval" is only available on a subscription price tier.', 'tiermint' );
 		}
 
 		// A plain number is not a meaningful date interval.
@@ -437,63 +313,13 @@ final class ProductPrice {
 			return __( 'A license length needs a unit, for example "+1 year". A plain number is not accepted; leave it blank for a lifetime license.', 'tiermint' );
 		}
 
-		try {
-			$base   = new DateTimeImmutable( '2000-01-01 00:00:00' );
-			$parsed = @$base->modify( $length ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Pre-8.3 modify() warns instead of throwing on a bad string; the false return is handled right below.
-		} catch ( Throwable $t ) {
-			$parsed = false;
-		}
-
-		if ( false === $parsed ) {
+		// Valid when PHP's date parser reads it without errors. date_parse() never warns.
+		if ( 0 < date_parse( $length )['error_count'] ) {
 			/* translators: %s: the submitted license length value. */
 			return sprintf( __( '"%s" is not a valid license length. Use a value like "+1 year", or leave it blank for a lifetime license.', 'tiermint' ), $length );
 		}
 
 		return null;
-	}
-
-	/**
-	 * Whether the tier is a subscription.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return bool
-	 */
-	public function isSubscription(): bool {
-		return $this->isSubscription;
-	}
-
-	/**
-	 * The billing period, or null.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return string|null
-	 */
-	public function billingPeriod(): ?string {
-		return $this->billingPeriod;
-	}
-
-	/**
-	 * The billing interval, or null.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return int|null
-	 */
-	public function billingInterval(): ?int {
-		return $this->billingInterval;
-	}
-
-	/**
-	 * The trial length in days.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return int
-	 */
-	public function trialDays(): int {
-		return $this->trialDays;
 	}
 
 	/**
@@ -577,17 +403,14 @@ final class ProductPrice {
 	}
 
 	/**
-	 * Whether the tier can be sold on this site.
-	 *
-	 * Recurring tiers need a billing provider.
+	 * Whether the tier can be sold on this site: it is active.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param bool $recurringSupported Whether recurring tiers can be billed on this install.
-	 * @return bool True when the tier is active and sellable under that verdict.
+	 * @return bool
 	 */
-	public function isPurchasable( bool $recurringSupported ): bool {
-		return $this->isActive() && ( $recurringSupported || ! $this->isSubscription );
+	public function isPurchasable(): bool {
+		return $this->isActive();
 	}
 
 	/**

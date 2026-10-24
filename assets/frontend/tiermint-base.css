@@ -559,9 +559,9 @@
 	white-space: nowrap;
 }
 
-/* Tax-inclusive price note -------------------------------------------- */
+/* Price note ---------------------------------------------------------- */
 
-/* The "incl. tax" affordance reads as secondary beside the gross price. */
+/* The note from tiermint_price_note reads as secondary beside the price. */
 .tiermint-price__note {
 	font-size: var(--tiermint-font-size-sm);
 	color: var(--tiermint-color-text-muted);

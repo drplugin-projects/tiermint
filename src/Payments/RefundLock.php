@@ -52,21 +52,21 @@ class RefundLock {
 	 */
 	public function withOrderLock( int $orderId, callable $callback ) {
 		$name = $this->lockName( $orderId );
+		$wpdb = $this->wpdb;
 
 		// Only a successful claim may write a refund.
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Advisory lock acquire; the only bound value is the lock name, and there is nothing to cache.
-		$acquired = $this->wpdb->get_var( $this->wpdb->prepare( 'SELECT GET_LOCK(%s, %d)', $name, self::TIMEOUT_SECONDS ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Named lock, nothing to cache.
+		$acquired = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, %d)', $name, self::TIMEOUT_SECONDS ) );
 
 		if ( '1' !== (string) $acquired ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal; controllers map it to a generic message, never echo it.
 			throw new RefundLockException( 'Could not acquire the per-order refund lock; another refund is in progress.' );
 		}
 
 		try {
 			return $callback();
 		} finally {
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Advisory lock release bound by name; nothing to cache.
-			$this->wpdb->query( $this->wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $name ) );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Named lock, nothing to cache.
+			$wpdb->query( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $name ) );
 		}
 	}
 

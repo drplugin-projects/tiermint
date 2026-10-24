@@ -297,18 +297,13 @@ class ProductGrid extends AbstractComponent {
 		$showThumbnails = (bool) ( $attrs['show_thumbnails'] ?? true );
 		$linkToDetails  = (bool) ( $attrs['link_to_details'] ?? true );
 
-		// A card's price and buy form come from the product's default purchasable tier,
-		// which skips recurring tiers the store cannot bill (a product whose only tier is
-		// an unsupported subscription shows no price and no buy button).
-		$recurringSupported = ProductService::recurringTiersSupported();
-
 		// One batched read of the best automatic discount for every priced card, so a sale
 		// strikes each covered card and a grid page stays a bounded number of queries.
-		$discounted = $this->discountedByProduct( $products, $showPrice, $recurringSupported );
+		$discounted = $this->discountedByProduct( $products, $showPrice );
 
 		$cards = array();
 		foreach ( $products as $product ) {
-			$cards[] = $this->cardData( $product, $showPrice, $recurringSupported, $showBuyButton, $showThumbnails, $linkToDetails, $discounted );
+			$cards[] = $this->cardData( $product, $showPrice, $showBuyButton, $showThumbnails, $linkToDetails, $discounted );
 		}
 
 		// An empty grid in an editor canvas would render only "No products found.",
@@ -337,7 +332,7 @@ class ProductGrid extends AbstractComponent {
 	private function sampleCards( bool $showPrice, bool $showThumbnails ): array {
 		$samples = array(
 			array( __( 'Starter Plugin', 'tiermint' ), 4900 ),
-			array( __( 'Pro Toolkit', 'tiermint' ), 7900 ),
+			array( __( 'Developer Toolkit', 'tiermint' ), 7900 ),
 			array( __( 'Premium Suite', 'tiermint' ), 12900 ),
 		);
 
@@ -364,17 +359,16 @@ class ProductGrid extends AbstractComponent {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param Product              $product            The product to reduce.
-	 * @param bool                 $showPrice          Whether the price should be displayed.
-	 * @param bool                 $recurringSupported Whether recurring tiers can be billed on this install.
-	 * @param bool                 $showBuyButton      Whether a buy button should be rendered.
-	 * @param bool                 $showThumbnails     Whether the card shows the product's thumbnail image.
-	 * @param bool                 $linkToDetails      Whether the card links to the details page.
-	 * @param array<int, int|null> $discounted         The discounted unit price keyed by product id (from the batched resolve).
+	 * @param Product              $product        The product to reduce.
+	 * @param bool                 $showPrice      Whether the price should be displayed.
+	 * @param bool                 $showBuyButton  Whether a buy button should be rendered.
+	 * @param bool                 $showThumbnails Whether the card shows the product's thumbnail image.
+	 * @param bool                 $linkToDetails  Whether the card links to the details page.
+	 * @param array<int, int|null> $discounted     The discounted unit price keyed by product id (from the batched resolve).
 	 * @return array{name: string, monogram: string, image: string|null, description: string|null, url: string|null, price_html: string|null, buy: array{product_id: int, price_id: int, quantity: int}|null}
 	 */
-	private function cardData( Product $product, bool $showPrice, bool $recurringSupported, bool $showBuyButton, bool $showThumbnails, bool $linkToDetails, array $discounted ): array {
-		$default  = $product->defaultPrice( $recurringSupported );
+	private function cardData( Product $product, bool $showPrice, bool $showBuyButton, bool $showThumbnails, bool $linkToDetails, array $discounted ): array {
+		$default  = $product->defaultPrice();
 		$hasPrice = null !== $default;
 
 		return array(
@@ -401,19 +395,18 @@ class ProductGrid extends AbstractComponent {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array<int, Product> $products           The products on the page.
-	 * @param bool                $showPrice          Whether prices are displayed at all.
-	 * @param bool                $recurringSupported Whether recurring tiers can be billed on this install.
+	 * @param array<int, Product> $products  The products on the page.
+	 * @param bool                $showPrice Whether prices are displayed at all.
 	 * @return array<int, int|null> The discounted unit price keyed by product id (only covered products present).
 	 */
-	private function discountedByProduct( array $products, bool $showPrice, bool $recurringSupported ): array {
+	private function discountedByProduct( array $products, bool $showPrice ): array {
 		if ( ! $showPrice || null === $this->discounts ) {
 			return array();
 		}
 
 		$nodes = array();
 		foreach ( $products as $product ) {
-			$default = $product->defaultPrice( $recurringSupported );
+			$default = $product->defaultPrice();
 			if ( null === $default ) {
 				continue;
 			}
@@ -683,18 +676,14 @@ class ProductGrid extends AbstractComponent {
 	 * @return array<int, string> The sanitized visitor slugs.
 	 */
 	private function visitorSelection( string $key ): array {
-		// This public filter only reads state from a shareable URL.
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$raw = isset( $_GET[ $key ] ) ? wp_unslash( $_GET[ $key ] ) : array();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only filter state from a shareable URL.
+		$raw = isset( $_GET[ $key ] ) ? map_deep( wp_unslash( $_GET[ $key ] ), 'sanitize_title' ) : array();
 
 		$slugs = array();
 		foreach ( (array) $raw as $value ) {
-			if ( ! is_scalar( $value ) ) {
-				continue;
-			}
-			$slug = sanitize_title( (string) $value );
-			if ( '' !== $slug ) {
-				$slugs[] = $slug;
+			// A nested array is not a slug.
+			if ( is_string( $value ) && '' !== $value ) {
+				$slugs[] = $value;
 			}
 		}
 

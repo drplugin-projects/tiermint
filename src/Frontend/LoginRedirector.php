@@ -153,8 +153,8 @@ class LoginRedirector implements Hookable {
 		}
 
 		if ( 'rp' === $action || 'resetpass' === $action ) {
-			$key   = $this->rawRequestValue( 'key' );
-			$login = $this->rawRequestValue( 'login' );
+			$key   = $this->resetKey();
+			$login = $this->resetLogin();
 
 			// A bare cookie-based reset load (no key/login) stays on wp-login.
 			if ( '' === $key || '' === $login ) {
@@ -262,16 +262,20 @@ class LoginRedirector implements Hookable {
 	}
 
 	/**
-	 * Point lost-password links to the reset page when one is published.
+	 * Point lost-password links to the reset page when enabled and one is published.
 	 *
-	 * Page-gated, not toggle-gated: while the reset page exists, the sign-in form's
-	 * lost-password link and any wp_lostpassword_url() caller reach the branded page.
+	 * TierMint's own sign-in form links to the reset page directly, so it keeps
+	 * that link with the toggle off.
 	 *
 	 * @param string $url      The default lost-password URL.
 	 * @param string $redirect The redirect target the caller requested, or ''.
 	 * @return string
 	 */
 	public function filterLostPasswordUrl( string $url, string $redirect = '' ): string {
+		if ( ! $this->enabled() ) {
+			return $url;
+		}
+
 		$page = $this->pages->url( PageResolver::PASSWORD_RESET );
 		if ( null === $page ) {
 			return $url;
@@ -335,18 +339,25 @@ class LoginRedirector implements Hookable {
 	}
 
 	/**
-	 * A raw, unslashed request value, or '' when absent.
+	 * The reset key from the request, stripped to letters and digits.
 	 *
-	 * Used for the reset key and login, which sanitize_key would corrupt; they are
-	 * rawurlencoded onto the branded page and validated there.
-	 *
-	 * @param string $key The request key.
 	 * @return string
 	 */
-	private function rawRequestValue( string $key ): string {
-		return isset( $_REQUEST[ $key ] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only routing decision; the value is validated on the reset page.
-			? (string) wp_unslash( $_REQUEST[ $key ] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Rawurlencoded onto the reset page and validated by check_password_reset_key there.
-			: '';
+	private function resetKey(): string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only routing; the reset page validates the key.
+		$key = isset( $_REQUEST['key'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['key'] ) ) : '';
+
+		return PasswordResetCookie::cleanKey( $key );
+	}
+
+	/**
+	 * The account login from the request, sanitized.
+	 *
+	 * @return string
+	 */
+	private function resetLogin(): string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only routing; the reset page validates the login.
+		return isset( $_REQUEST['login'] ) && is_string( $_REQUEST['login'] ) ? sanitize_user( wp_unslash( $_REQUEST['login'] ) ) : '';
 	}
 
 	/**
@@ -356,8 +367,8 @@ class LoginRedirector implements Hookable {
 	 * @return string
 	 */
 	private function withRedirectTo( string $url ): string {
-		$requested = isset( $_REQUEST['redirect_to'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only routing decision; no state change.
-			? esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- esc_url_raw sanitizes; the target page re-validates the host.
+		$requested = isset( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only routing decision; no state change.
+			? esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- The target page re-validates the host.
 			: '';
 
 		if ( '' === $requested ) {

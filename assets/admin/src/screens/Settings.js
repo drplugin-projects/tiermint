@@ -730,7 +730,7 @@ export default function Settings( { boot, params } ) {
 			: { url: '', intro: '', features: [], linkLabel: '' };
 
 	// Extension-provided field renderers. Subscribing to the registry re-renders
-	// this screen when a renderer registers late (for example a Pro bundle that
+	// this screen when a renderer registers late (for example a bundle that
 	// finishes loading after a deep link mounts the screen).
 	const fieldRenderers = useContext( FieldRendererContext );
 	const renderers = useSyncExternalStore(
@@ -1112,7 +1112,7 @@ export default function Settings( { boot, params } ) {
 													);
 												} }
 											>
-												{ gatewayLabel( group.id ) }
+												{ gatewayLabel( group ) }
 											</a>
 										</li>
 									);

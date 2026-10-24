@@ -62,6 +62,7 @@ final class UpdateCheckController extends AbstractRestController {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'check' ),
+					// Public because customers' sites call it; the license key is the credential.
 					'permission_callback' => '__return_true',
 					'args'                => array(
 						'product_slug'      => array(
@@ -88,12 +89,6 @@ final class UpdateCheckController extends AbstractRestController {
 							'description'       => __( 'The currently installed version, for the update_available verdict.', 'tiermint' ),
 							'sanitize_callback' => 'sanitize_text_field',
 						),
-						'channel'           => array(
-							'type'              => 'string',
-							'required'          => false,
-							'description'       => __( 'Release channel. The free core always serves stable; Pro honors this parameter.', 'tiermint' ),
-							'sanitize_callback' => 'sanitize_text_field',
-						),
 					),
 				),
 			)
@@ -118,7 +113,6 @@ final class UpdateCheckController extends AbstractRestController {
 
 		$siteUrl   = trim( (string) $request->get_param( 'site_url' ) );
 		$installed = trim( (string) $request->get_param( 'installed_version' ) );
-		$channel   = trim( (string) $request->get_param( 'channel' ) );
 
 		try {
 			$payload = $this->updates->check(
@@ -127,7 +121,7 @@ final class UpdateCheckController extends AbstractRestController {
 				'' !== $siteUrl ? $siteUrl : null,
 				'' !== $installed ? $installed : null,
 				null,
-				'' !== $channel ? $channel : null
+				$request->get_params()
 			);
 		} catch ( ProductNotFoundException $e ) {
 			// Do not reveal product names.

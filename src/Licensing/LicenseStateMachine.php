@@ -80,7 +80,7 @@ final class LicenseStateMachine {
 	 */
 	public function assertAllowed( LicenseStatus $from, LicenseStatus $to ): void {
 		if ( ! $this->allows( $from, $to ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer-facing message, surfaced as a structured API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw LicenseTransitionException::between( $from, $to );
 		}
 	}

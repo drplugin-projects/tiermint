@@ -133,7 +133,6 @@ function typeLabel( type ) {
 	const map = {
 		purchase: __( 'Purchase', 'tiermint' ),
 		renewal: __( 'Renewal', 'tiermint' ),
-		upgrade: __( 'Upgrade', 'tiermint' ),
 		refund: __( 'Refund', 'tiermint' ),
 	};
 	return map[ type ] || type;
@@ -341,8 +340,8 @@ export default function OrderDetail( { params, boot } ) {
 	const queryClient = useQueryClient();
 	const [ modalOpen, setModalOpen ] = useState( false );
 
-	// Extension-contributed header actions (Pro's invoice buttons). Filtered by
-	// capability here; each renders as `<Action order={ order } />` below.
+	// Extension-contributed header actions. Filtered by capability here; each
+	// renders as `<Action order={ order } />` below.
 	const extensionActions = useOrderDetailActions( boot?.caps );
 
 	const query = useQuery( {
@@ -511,6 +510,24 @@ export default function OrderDetail( { params, boot } ) {
 									order.billing_address
 								) }
 							</dd>
+						</div>
+					) }
+					{ order.company_name && (
+						<div>
+							<dt>{ __( 'Company', 'tiermint' ) }</dt>
+							<dd>{ order.company_name }</dd>
+						</div>
+					) }
+					{ order.tax_id && (
+						<div>
+							<dt>{ __( 'Tax ID', 'tiermint' ) }</dt>
+							<dd>{ order.tax_id }</dd>
+						</div>
+					) }
+					{ order.ip_address && (
+						<div>
+							<dt>{ __( 'IP address', 'tiermint' ) }</dt>
+							<dd>{ order.ip_address }</dd>
 						</div>
 					) }
 				</dl>

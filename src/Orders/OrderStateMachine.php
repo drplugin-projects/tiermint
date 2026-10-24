@@ -81,7 +81,7 @@ final class OrderStateMachine {
 	 */
 	public function assertCanTransition( OrderStatus $from, OrderStatus $to ): void {
 		if ( ! $this->canTransition( $from, $to ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured API error.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw OrderTransitionException::between( $from, $to );
 		}
 	}

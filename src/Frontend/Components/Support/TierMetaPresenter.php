@@ -37,20 +37,6 @@ final class TierMetaPresenter {
 	public const SHOW_ACTIVATION_LIMIT = 'show_activation_limit';
 
 	/**
-	 * Toggle attribute: show the billing-schedule line.
-	 *
-	 * @var string
-	 */
-	public const SHOW_BILLING = 'show_billing';
-
-	/**
-	 * Toggle attribute: show the free-trial line.
-	 *
-	 * @var string
-	 */
-	public const SHOW_TRIAL = 'show_trial';
-
-	/**
 	 * Schema rows for tier metadata toggles.
 	 *
 	 * @since 1.0.0
@@ -73,20 +59,6 @@ final class TierMetaPresenter {
 				'label'       => __( 'Show activation limit', 'tiermint' ),
 				'description' => __( 'Show how many sites each plan may activate.', 'tiermint' ),
 			),
-			self::SHOW_BILLING          => array(
-				'type'        => 'boolean',
-				'default'     => true,
-				'control'     => 'toggle',
-				'label'       => __( 'Show billing interval', 'tiermint' ),
-				'description' => __( 'Show the billing schedule on subscription plans.', 'tiermint' ),
-			),
-			self::SHOW_TRIAL            => array(
-				'type'        => 'boolean',
-				'default'     => true,
-				'control'     => 'toggle',
-				'label'       => __( 'Show free trial', 'tiermint' ),
-				'description' => __( 'Show the free-trial length on subscription plans.', 'tiermint' ),
-			),
 		);
 	}
 
@@ -102,8 +74,6 @@ final class TierMetaPresenter {
 		return array(
 			self::SHOW_LICENSE_LENGTH   => (bool) ( $attrs[ self::SHOW_LICENSE_LENGTH ] ?? true ),
 			self::SHOW_ACTIVATION_LIMIT => (bool) ( $attrs[ self::SHOW_ACTIVATION_LIMIT ] ?? true ),
-			self::SHOW_BILLING          => (bool) ( $attrs[ self::SHOW_BILLING ] ?? true ),
-			self::SHOW_TRIAL            => (bool) ( $attrs[ self::SHOW_TRIAL ] ?? true ),
 		);
 	}
 
@@ -113,7 +83,7 @@ final class TierMetaPresenter {
 	 * @since 1.0.0
 	 *
 	 * @param ProductPrice        $price The tier to describe.
-	 * @param array<string, bool> $flags The four display flags keyed by attribute name.
+	 * @param array<string, bool> $flags The display flags keyed by attribute name.
 	 * @return array<int, string>
 	 */
 	public static function lines( ProductPrice $price, array $flags ): array {
@@ -130,28 +100,17 @@ final class TierMetaPresenter {
 			$lines[] = self::activationLine( $price );
 		}
 
-		if ( ! empty( $flags[ self::SHOW_BILLING ] ) ) {
-			$billing = self::billingLine( $price );
-			if ( null !== $billing ) {
-				$lines[] = $billing;
-			}
-		}
-
-		if ( ! empty( $flags[ self::SHOW_TRIAL ] ) ) {
-			$trial = self::trialLine( $price );
-			if ( null !== $trial ) {
-				$lines[] = $trial;
-			}
-		}
-
 		/**
 		 * Filters the plain-text metadata lines for a price tier.
+		 *
+		 * The license line comes first when its flag is on and the length reads
+		 * as a duration or lifetime, then the activation line.
 		 *
 		 * @since 1.0.0
 		 *
 		 * @param array<int, string>  $lines The meta lines, in display order.
 		 * @param ProductPrice        $price The tier being described.
-		 * @param array<string, bool> $flags The four resolved display flags.
+		 * @param array<string, bool> $flags The resolved display flags.
 		 */
 		$lines = apply_filters( 'tiermint_tier_meta_lines', $lines, $price, $flags );
 
@@ -173,12 +132,6 @@ final class TierMetaPresenter {
 	 */
 	private static function licenseLine( ProductPrice $price ): ?string {
 		$raw = $price->licenseLength();
-
-		if ( ProductPrice::LICENSE_LENGTH_BILLING === $raw ) {
-			return null === $price->resolvedLicenseLength()
-				? __( 'Lifetime license', 'tiermint' )
-				: __( 'License lasts as long as your subscription', 'tiermint' );
-		}
 
 		if ( null === $raw ) {
 			return __( 'Lifetime license', 'tiermint' );
@@ -226,74 +179,5 @@ final class TierMetaPresenter {
 
 		/* translators: %d: number of site activations the license allows. */
 		return sprintf( _n( '%d activation', '%d activations', $limit, 'tiermint' ), $limit );
-	}
-
-	/**
-	 * Build the billing-schedule line.
-	 *
-	 * @param ProductPrice $price The tier.
-	 * @return string|null
-	 */
-	private static function billingLine( ProductPrice $price ): ?string {
-		if ( ! $price->isSubscription() ) {
-			return null;
-		}
-
-		$period   = $price->billingPeriod();
-		$interval = $price->billingInterval();
-
-		if ( null === $period || null === $interval ) {
-			return null;
-		}
-
-		if ( 1 === $interval ) {
-			switch ( $period ) {
-				case 'day':
-					return __( 'Billed daily', 'tiermint' );
-				case 'week':
-					return __( 'Billed weekly', 'tiermint' );
-				case 'month':
-					return __( 'Billed monthly', 'tiermint' );
-				case 'year':
-				default:
-					return __( 'Billed yearly', 'tiermint' );
-			}
-		}
-
-		switch ( $period ) {
-			case 'day':
-				/* translators: %d: number of days between charges. */
-				return sprintf( _n( 'Billed every %d day', 'Billed every %d days', $interval, 'tiermint' ), $interval );
-			case 'week':
-				/* translators: %d: number of weeks between charges. */
-				return sprintf( _n( 'Billed every %d week', 'Billed every %d weeks', $interval, 'tiermint' ), $interval );
-			case 'month':
-				/* translators: %d: number of months between charges. */
-				return sprintf( _n( 'Billed every %d month', 'Billed every %d months', $interval, 'tiermint' ), $interval );
-			case 'year':
-			default:
-				/* translators: %d: number of years between charges. */
-				return sprintf( _n( 'Billed every %d year', 'Billed every %d years', $interval, 'tiermint' ), $interval );
-		}
-	}
-
-	/**
-	 * Build the free-trial line.
-	 *
-	 * @param ProductPrice $price The tier.
-	 * @return string|null
-	 */
-	private static function trialLine( ProductPrice $price ): ?string {
-		if ( ! $price->isSubscription() ) {
-			return null;
-		}
-
-		$days = $price->trialDays();
-		if ( $days <= 0 ) {
-			return null;
-		}
-
-		/* translators: %d: number of free-trial days. The plural form exists for locales that inflect the compound; English keeps the unit singular. */
-		return sprintf( _n( '%d-day free trial', '%d-day free trial', $days, 'tiermint' ), $days );
 	}
 }

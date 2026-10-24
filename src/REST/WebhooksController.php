@@ -61,6 +61,7 @@ final class WebhooksController extends AbstractRestController {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'receive' ),
+					// Public because payment gateways call it; the gateway verifies the delivery signature first.
 					'permission_callback' => '__return_true',
 					'args'                => array(
 						'gateway' => array(

@@ -425,6 +425,9 @@ final class OrdersController extends AbstractRestController {
 			'country'           => $order->country(),
 			'terms_accepted_at' => $this->orderMeta( $order, CheckoutController::TERMS_META ),
 			'billing_address'   => $this->orderMeta( $order, CheckoutController::ADDRESS_META ),
+			'company_name'      => $this->orderMeta( $order, CheckoutController::COMPANY_META ),
+			'tax_id'            => $this->orderMeta( $order, CheckoutController::TAX_ID_META ),
+			'ip_address'        => $order->ipAddress(),
 			'items'             => array_map( array( $this, 'presentItem' ), $order->items() ),
 		);
 	}

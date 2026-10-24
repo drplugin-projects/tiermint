@@ -49,6 +49,13 @@ final class ApiKeyAuthenticator implements Hookable {
 	private const PUBLIC_ROUTE_PATTERN = '#^/tiermint/v1/(license/|checkout/|webhooks/)#';
 
 	/**
+	 * The routes a key may reach at all.
+	 *
+	 * @var string
+	 */
+	private const NAMESPACE_PATTERN = '#^/tiermint/v1(/|$)#';
+
+	/**
 	 * The api-key domain service.
 	 *
 	 * @var ApiKeyService
@@ -137,6 +144,12 @@ final class ApiKeyAuthenticator implements Hookable {
 		$this->pendingKey = null;
 
 		if ( ! empty( $userId ) ) {
+			return $userId;
+		}
+
+		// Keys work on the REST API only, where their limits apply. The REST
+		// server asks again once WordPress has defined REST_REQUEST.
+		if ( ! $this->isApiRequest() ) {
 			return $userId;
 		}
 
@@ -244,6 +257,15 @@ final class ApiKeyAuthenticator implements Hookable {
 
 		if ( null !== $result || null === $key || ! $request instanceof WP_REST_Request ) {
 			return $result;
+		}
+
+		// The key logs its owner in, so keep it off routes TierMint does not own.
+		if ( 1 !== preg_match( self::NAMESPACE_PATTERN, $request->get_route() ) ) {
+			return new WP_Error(
+				'tiermint_forbidden',
+				__( 'This API key works only on TierMint routes.', 'tiermint' ),
+				array( 'status' => 403 )
+			);
 		}
 
 		if ( 1 === preg_match( self::PUBLIC_ROUTE_PATTERN, $request->get_route() ) ) {
@@ -395,6 +417,26 @@ final class ApiKeyAuthenticator implements Hookable {
 	}
 
 	/**
+	 * Whether keys may authenticate this request.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return bool True on a REST request.
+	 */
+	private function isApiRequest(): bool {
+		/**
+		 * Filters whether a TierMint API key may authenticate this request.
+		 *
+		 * Keys work on REST requests only, like Application Passwords.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param bool $isApiRequest Whether this is a REST request.
+		 */
+		return (bool) apply_filters( 'tiermint_api_key_is_api_request', wp_is_serving_rest_request() );
+	}
+
+	/**
 	 * Get the Authorization header, including Apache's fallback name.
 	 *
 	 * @since 1.0.0
@@ -402,15 +444,14 @@ final class ApiKeyAuthenticator implements Hookable {
 	 * @return string The header value, or an empty string.
 	 */
 	private function authorizationHeader(): string {
-		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- The credential is parsed against a strict pattern and compared, never stored or echoed; sanitizing could corrupt it.
+		// Keys are tmk_ plus hex and secrets tms_ plus base64url, so sanitizing keeps them intact.
 		if ( ! empty( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
-			return trim( wp_unslash( (string) $_SERVER['HTTP_AUTHORIZATION'] ) );
+			return sanitize_text_field( wp_unslash( $_SERVER['HTTP_AUTHORIZATION'] ) );
 		}
 
 		if ( ! empty( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ) ) {
-			return trim( wp_unslash( (string) $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ) );
+			return sanitize_text_field( wp_unslash( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ) );
 		}
-		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		return '';
 	}

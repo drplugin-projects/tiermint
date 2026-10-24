@@ -45,13 +45,6 @@ final class RenderContext {
 	private ?array $licenses = null;
 
 	/**
-	 * Customer subscriptions, if available.
-	 *
-	 * @var object[]
-	 */
-	private array $subscriptions;
-
-	/**
 	 * Whether this is an editor preview.
 	 *
 	 * @var bool
@@ -91,7 +84,6 @@ final class RenderContext {
 	 *
 	 * @param Customer|null $customer        Current customer, if any.
 	 * @param callable      $licenseLoader   Deferred license query returning License[].
-	 * @param object[]      $subscriptions   Subscriptions (Pro), [] in core.
 	 * @param bool          $isEditorPreview       True inside editor previews.
 	 * @param Product|null  $product               Routed product on a details page, or null.
 	 * @param callable|null $productLoader         Deferred fallback product query (editor sample), or null.
@@ -100,7 +92,6 @@ final class RenderContext {
 	public function __construct(
 		?Customer $customer,
 		callable $licenseLoader,
-		array $subscriptions = array(),
 		bool $isEditorPreview = false,
 		?Product $product = null,
 		?callable $productLoader = null,
@@ -108,7 +99,6 @@ final class RenderContext {
 	) {
 		$this->customer              = $customer;
 		$this->licenseLoader         = $licenseLoader;
-		$this->subscriptions         = $subscriptions;
 		$this->isEditorPreview       = $isEditorPreview;
 		$this->product               = $product;
 		$this->productLoader         = $productLoader;
@@ -139,15 +129,6 @@ final class RenderContext {
 		}
 
 		return $this->licenses;
-	}
-
-	/**
-	 * Subscriptions for the customer ([] in the free core).
-	 *
-	 * @return object[]
-	 */
-	public function subscriptions(): array {
-		return $this->subscriptions;
 	}
 
 	/**

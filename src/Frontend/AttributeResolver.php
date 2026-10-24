@@ -45,11 +45,6 @@ class AttributeResolver {
 		$resolved = array();
 
 		foreach ( $schema as $name => $definition ) {
-			// The reserved Pro gating bucket is not an attribute.
-			if ( 'pro' === $name ) {
-				continue;
-			}
-
 			$default = $this->defaultFor( $definition );
 
 			if ( ! array_key_exists( $name, $input ) ) {

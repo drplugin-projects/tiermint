@@ -1,6 +1,6 @@
 <?php
 /**
- * The free core's storefront renewal-URL filter target.
+ * The storefront renewal-URL filter target.
  *
  * @package DrPlugin\WP\TierMint
  */
@@ -55,7 +55,7 @@ class RenewalUrlProvider implements Hookable {
 	 * @return string|null The renewal URL, or the incoming value.
 	 */
 	public function renewalUrl( ?string $url, string $licenseKey ): ?string {
-		// Never clobber a URL an earlier filter (Pro) already provided.
+		// Never clobber a URL an earlier filter already provided.
 		if ( null !== $url ) {
 			return $url;
 		}

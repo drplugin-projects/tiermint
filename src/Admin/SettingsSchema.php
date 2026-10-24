@@ -181,9 +181,12 @@ final class SettingsSchema {
 			if ( isset( $field['options'] ) ) {
 				$row['options'] = $field['options'];
 			}
-			// The gateway key selects a Payments sub-tab.
+			// The gateway key selects a Payments sub-tab, and the label names it.
 			if ( isset( $field['gateway'] ) ) {
 				$row['gateway'] = $field['gateway'];
+			}
+			if ( isset( $field['gateway_label'] ) ) {
+				$row['gateway_label'] = $field['gateway_label'];
 			}
 			// The group key selects a shared fieldset.
 			if ( isset( $field['group'] ) ) {
@@ -213,6 +216,38 @@ final class SettingsSchema {
 		}
 
 		return __( 'Whether to ask the buyer for a full billing address at checkout.', 'tiermint' );
+	}
+
+	/**
+	 * Describe the billing-country toggle, saying so when an extension collects
+	 * the country whatever the toggle says.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return string The field description.
+	 */
+	private function countryDescription(): string {
+		if ( $this->checkout->collectedByExtension( 'billing_country' ) ) {
+			return __( 'Ask the buyer for their country at checkout. The country is currently collected for another setting, so this choice takes effect only when that setting is turned off.', 'tiermint' );
+		}
+
+		return __( 'Ask the buyer for their country at checkout.', 'tiermint' );
+	}
+
+	/**
+	 * Describe the VAT toggle, saying so when an extension collects the number
+	 * whatever the toggle says.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return string The field description.
+	 */
+	private function vatDescription(): string {
+		if ( $this->checkout->collectedByExtension( 'vat_number' ) ) {
+			return __( 'Ask the buyer for a VAT, GST, or tax registration number at checkout. The number is currently collected for another setting, so this choice takes effect only when that setting is turned off.', 'tiermint' );
+		}
+
+		return __( 'Ask the buyer for a VAT, GST, or tax registration number at checkout.', 'tiermint' );
 	}
 
 	/**
@@ -260,7 +295,7 @@ final class SettingsSchema {
 				'group'       => 'pages',
 				'type'        => 'page',
 				'label'       => __( 'Checkout page', 'tiermint' ),
-				'description' => __( 'The page carrying the checkout block or shortcode; used for renewal and cart links.', 'tiermint' ),
+				'description' => __( 'The page with the checkout block or shortcode. Cart links and links to buy a new license open it.', 'tiermint' ),
 				'path'        => 'pages.checkout',
 				'default'     => 0,
 			),
@@ -300,7 +335,7 @@ final class SettingsSchema {
 				'group'       => 'pages',
 				'type'        => 'page',
 				'label'       => __( 'Password reset page', 'tiermint' ),
-				'description' => __( 'The page carrying the lost-password and set-new-password form. While it is published, every password email links to it; unset it to use the WordPress screens. wp-login.php?tiermint_wp_login=1 always reaches the WordPress screen.', 'tiermint' ),
+				'description' => __( 'The page carrying the lost-password and set-new-password form. While it is published, TierMint\'s own forms and emails link to it, and WordPress password emails do too when wp-login is replaced. Unset it to use the WordPress screens. wp-login.php?tiermint_wp_login=1 always reaches the WordPress screen.', 'tiermint' ),
 				'path'        => 'pages.password_reset',
 				'default'     => 0,
 			),
@@ -332,7 +367,7 @@ final class SettingsSchema {
 				'label'       => __( 'Hide the admin toolbar for customers', 'tiermint' ),
 				'description' => __( 'Hide the WordPress toolbar on the front end for logged-in users who cannot edit posts. Administrators and editors always keep it.', 'tiermint' ),
 				'path'        => 'frontend.hide_admin_bar',
-				'default'     => true,
+				'default'     => false,
 			),
 			array(
 				'id'          => 'replace_wp_login',
@@ -340,7 +375,7 @@ final class SettingsSchema {
 				'group'       => 'frontend',
 				'type'        => 'toggle',
 				'label'       => __( 'Use the sign-in page instead of wp-login', 'tiermint' ),
-				'description' => __( 'Redirect front-end sign-in and password-reset requests to your pages. Requires published pages; logout, confirmations and admin logins keep working, and wp-login.php?tiermint_wp_login=1 always shows the WordPress screen.', 'tiermint' ),
+				'description' => __( 'Redirect front-end sign-in and password-reset requests, and the links in WordPress password emails, to your pages. Requires published pages; logout, confirmations and admin logins keep working, and wp-login.php?tiermint_wp_login=1 always shows the WordPress screen.', 'tiermint' ),
 				'path'        => 'frontend.replace_wp_login',
 				'default'     => false,
 			),
@@ -410,7 +445,7 @@ final class SettingsSchema {
 				'group'       => 'checkout',
 				'type'        => 'toggle',
 				'label'       => __( 'Collect a billing country', 'tiermint' ),
-				'description' => __( 'Ask the buyer for their country at checkout. Always collected when a tax engine is active.', 'tiermint' ),
+				'description' => $this->countryDescription(),
 				'path'        => 'checkout.collect_country',
 				'default'     => false,
 			),
@@ -420,7 +455,7 @@ final class SettingsSchema {
 				'group'       => 'checkout',
 				'type'        => 'toggle',
 				'label'       => __( 'Collect a VAT or tax ID', 'tiermint' ),
-				'description' => __( 'Ask the buyer for a VAT, GST, or tax registration number at checkout.', 'tiermint' ),
+				'description' => $this->vatDescription(),
 				'path'        => 'checkout.collect_vat',
 				'default'     => false,
 			),
@@ -706,13 +741,14 @@ final class SettingsSchema {
 				'default'     => true,
 			),
 			array(
-				'id'          => 'stripe_mode',
-				'section'     => 'payments',
-				'gateway'     => 'stripe',
-				'type'        => 'select',
-				'label'       => __( 'Stripe mode', 'tiermint' ),
-				'description' => __( 'Test mode uses your test keys and charges nothing real.', 'tiermint' ),
-				'options'     => array(
+				'id'            => 'stripe_mode',
+				'section'       => 'payments',
+				'gateway'       => 'stripe',
+				'gateway_label' => __( 'Stripe', 'tiermint' ),
+				'type'          => 'select',
+				'label'         => __( 'Stripe mode', 'tiermint' ),
+				'description'   => __( 'Test mode uses your test keys and charges nothing real.', 'tiermint' ),
+				'options'       => array(
 					array(
 						'value' => 'test',
 						'label' => __( 'Test', 'tiermint' ),
@@ -722,83 +758,89 @@ final class SettingsSchema {
 						'label' => __( 'Live', 'tiermint' ),
 					),
 				),
-				'path'        => 'payments.stripe.mode',
-				'default'     => 'test',
+				'path'          => 'payments.stripe.mode',
+				'default'       => 'test',
 			),
 			array(
-				'id'          => 'stripe_publishable_key_test',
-				'section'     => 'payments',
-				'gateway'     => 'stripe',
-				'group'       => 'test',
-				'type'        => 'text',
-				'label'       => __( 'Test publishable key', 'tiermint' ),
-				'description' => __( 'Starts with pk_test_.', 'tiermint' ),
-				'path'        => 'payments.stripe.publishable_key_test',
-				'default'     => '',
+				'id'            => 'stripe_publishable_key_test',
+				'section'       => 'payments',
+				'gateway'       => 'stripe',
+				'gateway_label' => __( 'Stripe', 'tiermint' ),
+				'group'         => 'test',
+				'type'          => 'text',
+				'label'         => __( 'Test publishable key', 'tiermint' ),
+				'description'   => __( 'Starts with pk_test_.', 'tiermint' ),
+				'path'          => 'payments.stripe.publishable_key_test',
+				'default'       => '',
 			),
 			array(
-				'id'          => 'stripe_publishable_key_live',
-				'section'     => 'payments',
-				'gateway'     => 'stripe',
-				'group'       => 'live',
-				'type'        => 'text',
-				'label'       => __( 'Live publishable key', 'tiermint' ),
-				'description' => __( 'Starts with pk_live_.', 'tiermint' ),
-				'path'        => 'payments.stripe.publishable_key_live',
-				'default'     => '',
+				'id'            => 'stripe_publishable_key_live',
+				'section'       => 'payments',
+				'gateway'       => 'stripe',
+				'gateway_label' => __( 'Stripe', 'tiermint' ),
+				'group'         => 'live',
+				'type'          => 'text',
+				'label'         => __( 'Live publishable key', 'tiermint' ),
+				'description'   => __( 'Starts with pk_live_.', 'tiermint' ),
+				'path'          => 'payments.stripe.publishable_key_live',
+				'default'       => '',
 			),
 			array(
-				'id'          => 'stripe_secret_key_test',
-				'section'     => 'payments',
-				'gateway'     => 'stripe',
-				'group'       => 'test',
-				'type'        => 'secret',
-				'label'       => __( 'Test secret key', 'tiermint' ),
-				'description' => __( 'Starts with sk_test_ or rk_test_. Stored encrypted; only the last characters are ever shown again.', 'tiermint' ),
-				'storage'     => 'stripe',
-				'stripe'      => array(
+				'id'            => 'stripe_secret_key_test',
+				'section'       => 'payments',
+				'gateway'       => 'stripe',
+				'gateway_label' => __( 'Stripe', 'tiermint' ),
+				'group'         => 'test',
+				'type'          => 'secret',
+				'label'         => __( 'Test secret key', 'tiermint' ),
+				'description'   => __( 'Starts with sk_test_ or rk_test_. Stored encrypted; only the last characters are ever shown again.', 'tiermint' ),
+				'storage'       => 'stripe',
+				'stripe'        => array(
 					'kind' => 'secret',
 					'mode' => 'test',
 				),
 			),
 			array(
-				'id'          => 'stripe_secret_key_live',
-				'section'     => 'payments',
-				'gateway'     => 'stripe',
-				'group'       => 'live',
-				'type'        => 'secret',
-				'label'       => __( 'Live secret key', 'tiermint' ),
-				'description' => __( 'Starts with sk_live_ or rk_live_. Stored encrypted; only the last characters are ever shown again.', 'tiermint' ),
-				'storage'     => 'stripe',
-				'stripe'      => array(
+				'id'            => 'stripe_secret_key_live',
+				'section'       => 'payments',
+				'gateway'       => 'stripe',
+				'gateway_label' => __( 'Stripe', 'tiermint' ),
+				'group'         => 'live',
+				'type'          => 'secret',
+				'label'         => __( 'Live secret key', 'tiermint' ),
+				'description'   => __( 'Starts with sk_live_ or rk_live_. Stored encrypted; only the last characters are ever shown again.', 'tiermint' ),
+				'storage'       => 'stripe',
+				'stripe'        => array(
 					'kind' => 'secret',
 					'mode' => 'live',
 				),
 			),
 			array(
-				'id'          => 'stripe_webhook_secret_test',
-				'section'     => 'payments',
-				'gateway'     => 'stripe',
-				'group'       => 'test',
-				'type'        => 'secret',
-				'label'       => __( 'Test webhook signing secret', 'tiermint' ),
-				'description' => __( 'Starts with whsec_. From the Stripe dashboard webhook endpoint.', 'tiermint' ),
-				'storage'     => 'stripe',
-				'stripe'      => array(
+				'id'            => 'stripe_webhook_secret_test',
+				'section'       => 'payments',
+				'gateway'       => 'stripe',
+				'gateway_label' => __( 'Stripe', 'tiermint' ),
+				'group'         => 'test',
+				'type'          => 'secret',
+				'label'         => __( 'Test webhook signing secret', 'tiermint' ),
+				'description'   => __( 'Starts with whsec_. From the Stripe dashboard webhook endpoint.', 'tiermint' ),
+				'storage'       => 'stripe',
+				'stripe'        => array(
 					'kind' => 'webhook_secret',
 					'mode' => 'test',
 				),
 			),
 			array(
-				'id'          => 'stripe_webhook_secret_live',
-				'section'     => 'payments',
-				'gateway'     => 'stripe',
-				'group'       => 'live',
-				'type'        => 'secret',
-				'label'       => __( 'Live webhook signing secret', 'tiermint' ),
-				'description' => __( 'Starts with whsec_. From the Stripe dashboard webhook endpoint.', 'tiermint' ),
-				'storage'     => 'stripe',
-				'stripe'      => array(
+				'id'            => 'stripe_webhook_secret_live',
+				'section'       => 'payments',
+				'gateway'       => 'stripe',
+				'gateway_label' => __( 'Stripe', 'tiermint' ),
+				'group'         => 'live',
+				'type'          => 'secret',
+				'label'         => __( 'Live webhook signing secret', 'tiermint' ),
+				'description'   => __( 'Starts with whsec_. From the Stripe dashboard webhook endpoint.', 'tiermint' ),
+				'storage'       => 'stripe',
+				'stripe'        => array(
 					'kind' => 'webhook_secret',
 					'mode' => 'live',
 				),
@@ -808,7 +850,7 @@ final class SettingsSchema {
 				'section'     => 'integrations',
 				'type'        => 'toggle',
 				'label'       => __( 'Elementor widgets', 'tiermint' ),
-				'description' => __( 'Add the TierMint widgets, dynamic tags, and display conditions to the Elementor editor. Turn off to remove them without deactivating Elementor.', 'tiermint' ),
+				'description' => __( 'Add the TierMint widgets and dynamic tags to the Elementor editor. Turn off to remove them without deactivating Elementor.', 'tiermint' ),
 				'path'        => 'integrations.elementor',
 				'default'     => true,
 			),

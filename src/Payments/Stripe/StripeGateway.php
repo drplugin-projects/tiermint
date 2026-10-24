@@ -104,7 +104,7 @@ final class StripeGateway implements GatewayInterface {
 		$secretKey = $this->settings->secretKey();
 
 		if ( null === $secretKey ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured configuration message, surfaced as an API error by controllers, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new GatewayConfigurationException( __( 'Stripe is not configured for the current mode. Enter your Stripe keys in the payment settings.', 'tiermint' ) );
 		}
 
@@ -127,7 +127,6 @@ final class StripeGateway implements GatewayInterface {
 		$clientSecret = $response['client_secret'] ?? null;
 
 		if ( ! is_string( $id ) || '' === $id || ! is_string( $clientSecret ) || '' === $clientSecret ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal message; controllers map it to a generic error, never echo it as HTML.
 			throw new GatewayRequestException( 'Stripe PaymentIntent response is missing its id or client secret.' );
 		}
 
@@ -149,7 +148,6 @@ final class StripeGateway implements GatewayInterface {
 		$secret = $this->settings->webhookSecret();
 
 		if ( null === $secret ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal message; the webhook receiver answers a generic 400, never echoes this.
 			throw new WebhookVerificationException( 'Stripe webhook signing secret is not configured.' );
 		}
 
@@ -161,7 +159,6 @@ final class StripeGateway implements GatewayInterface {
 		$type = is_array( $decoded ) ? ( $decoded['type'] ?? null ) : null;
 
 		if ( ! is_string( $id ) || '' === $id || ! is_string( $type ) || '' === $type ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal message; the webhook receiver answers a generic 400, never echoes this.
 			throw new WebhookVerificationException( 'Stripe webhook carried an unparseable event payload.' );
 		}
 
@@ -189,14 +186,13 @@ final class StripeGateway implements GatewayInterface {
 		$secretKey = $this->settings->secretKey();
 
 		if ( null === $secretKey ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured configuration message, surfaced as an API error by controllers, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new GatewayConfigurationException( __( 'Stripe is not configured for the current mode. Enter your Stripe keys in the payment settings.', 'tiermint' ) );
 		}
 
 		$paymentIntent = $order->gatewayTxnId();
 
 		if ( ! is_string( $paymentIntent ) || '' === $paymentIntent ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal message; controllers map it to a generic error, never echo it as HTML.
 			throw new GatewayRequestException( 'Stripe refund failed: order has no gateway transaction id to refund against.' );
 		}
 
@@ -213,7 +209,6 @@ final class StripeGateway implements GatewayInterface {
 		$id = $response['id'] ?? null;
 
 		if ( ! is_string( $id ) || '' === $id ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Log-only literal message; controllers map it to a generic error, never echo it as HTML.
 			throw new GatewayRequestException( 'Stripe refund response is missing its refund id.' );
 		}
 

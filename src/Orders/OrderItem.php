@@ -85,7 +85,7 @@ final class OrderItem {
 	private int $discount;
 
 	/**
-	 * Tax charged on this line, in unsigned minor units (populated by Pro).
+	 * Tax charged on this line, in unsigned minor units (0 unless an extension supplies tax).
 	 *
 	 * @var int
 	 */
@@ -131,17 +131,17 @@ final class OrderItem {
 		int $total
 	) {
 		if ( $productId <= 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'An order item must reference a valid product.', 'tiermint' ) );
 		}
 
 		if ( '' === trim( $productName ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'An order item must have a non-empty product name.', 'tiermint' ) );
 		}
 
 		if ( $quantity < 1 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'An order item quantity must be at least one.', 'tiermint' ) );
 		}
 
@@ -149,7 +149,7 @@ final class OrderItem {
 		// amounts: refunds live on their own negative-total order rows, never as a
 		// negative line here. Reject negatives so they cannot reach the columns.
 		if ( $subtotal < 0 || $discount < 0 || $tax < 0 || $total < 0 ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured validation message, surfaced as an API error, never echoed as HTML.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw new OrderException( __( 'An order item amount cannot be negative.', 'tiermint' ) );
 		}
 
@@ -235,36 +235,20 @@ final class OrderItem {
 	}
 
 	/**
-	 * Copy the line rebased to net for tax-inclusive (gross) pricing.
+	 * Copy the line with new money figures and a total derived from them.
 	 *
-	 * Carves the contained tax out of the gross-after-discount amount so the
-	 * ledger stays tax-exclusive. Both figures are unsigned minor units, already
-	 * range-checked by the caller (`0 <= charged <= contained <= subtotal - discount`).
-	 *
-	 * The split (integers, half away from zero, guarding a zero gross-after):
-	 *   gross_after   = subtotal - discount
-	 *   discount_tax  = divideHalfUp( contained * discount, gross_after )
-	 *   net_discount  = discount - discount_tax
-	 *   net_subtotal  = subtotal - contained - discount_tax
-	 *   total         = net_subtotal - net_discount + charged
-	 *
-	 * charged = contained (consumer) keeps the gross; charged = 0 (reverse charge)
-	 * books the net.
+	 * The constructor rejects negative values.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param int $contained Tax contained in the gross-after-discount amount.
-	 * @param int $charged   Tax charged (contained, or 0 when reverse charged).
-	 * @return self The rebased line item.
+	 * @param int $subtotal The line subtotal in minor units.
+	 * @param int $discount The line discount in minor units.
+	 * @param int $tax      The line tax in minor units.
+	 * @return self The new line item.
 	 *
-	 * @throws OrderException When the resulting amounts are invalid.
+	 * @throws OrderException When an amount or the derived total is negative.
 	 */
-	public function withInclusiveTax( int $contained, int $charged ): self {
-		$grossAfter  = $this->subtotal - $this->discount;
-		$discountTax = self::divideHalfUp( $contained * $this->discount, $grossAfter );
-		$netDiscount = $this->discount - $discountTax;
-		$netSubtotal = $this->subtotal - $contained - $discountTax;
-
+	public function withAmounts( int $subtotal, int $discount, int $tax ): self {
 		return new self(
 			$this->id,
 			$this->orderId,
@@ -273,34 +257,11 @@ final class OrderItem {
 			$this->productName,
 			$this->priceName,
 			$this->quantity,
-			$netSubtotal,
-			$netDiscount,
-			$charged,
-			$netSubtotal - $netDiscount + $charged
+			$subtotal,
+			$discount,
+			$tax,
+			$subtotal - $discount + $tax
 		);
-	}
-
-	/**
-	 * Divide and round half away from zero, guarding a zero divisor.
-	 *
-	 * Core keeps its own copy of this rule so the gross-mode split never has to
-	 * reach into Pro's tax engine.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param int $numerator   The dividend.
-	 * @param int $denominator The divisor; a zero divisor yields 0.
-	 * @return int The rounded quotient.
-	 */
-	private static function divideHalfUp( int $numerator, int $denominator ): int {
-		if ( 0 === $denominator || 0 === $numerator ) {
-			return 0;
-		}
-
-		$sign      = $numerator < 0 ? -1 : 1;
-		$magnitude = abs( $numerator );
-
-		return $sign * intdiv( ( 2 * $magnitude ) + $denominator, 2 * $denominator );
 	}
 
 	/**

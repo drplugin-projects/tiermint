@@ -181,15 +181,23 @@ class PasswordResetActionListener implements Hookable {
 	private ?Logger $logger;
 
 	/**
+	 * Puts the reset page link in the reset email.
+	 *
+	 * @var PasswordResetLinks
+	 */
+	private PasswordResetLinks $links;
+
+	/**
 	 * Wire the handler.
 	 *
-	 * @param RateLimiter         $limiter    The transient-backed rate limiter.
-	 * @param PageResolver        $pages      The storefront page resolver.
-	 * @param PasswordResetCookie $cookie     The exchange-credential cookie.
-	 * @param callable|null       $terminator Replaces exit in tests.
-	 * @param Logger|null         $logger     Audit logger, or null to skip logging.
+	 * @param RateLimiter             $limiter    The transient-backed rate limiter.
+	 * @param PageResolver            $pages      The storefront page resolver.
+	 * @param PasswordResetCookie     $cookie     The exchange-credential cookie.
+	 * @param callable|null           $terminator Replaces exit in tests.
+	 * @param Logger|null             $logger     Audit logger, or null to skip logging.
+	 * @param PasswordResetLinks|null $links      The email link rewriter, or null for a default one.
 	 */
-	public function __construct( RateLimiter $limiter, PageResolver $pages, PasswordResetCookie $cookie, ?callable $terminator = null, ?Logger $logger = null ) {
+	public function __construct( RateLimiter $limiter, PageResolver $pages, PasswordResetCookie $cookie, ?callable $terminator = null, ?Logger $logger = null, ?PasswordResetLinks $links = null ) {
 		$this->limiter    = $limiter;
 		$this->pages      = $pages;
 		$this->cookie     = $cookie;
@@ -197,6 +205,7 @@ class PasswordResetActionListener implements Hookable {
 			exit;
 		};
 		$this->logger     = $logger;
+		$this->links      = $links ?? new PasswordResetLinks( $pages );
 	}
 
 	/**
@@ -251,7 +260,10 @@ class PasswordResetActionListener implements Hookable {
 	}
 
 	/**
-	 * Whether the current request is the reset page, carries the cookie, or a marker.
+	 * Whether this is the reset page, or the reset cookie holds a valid key.
+	 *
+	 * A valid cookie makes any page that shows the form render the live key, so
+	 * that page must not be cached. Markers alone carry no secret.
 	 *
 	 * @return bool
 	 */
@@ -260,11 +272,7 @@ class PasswordResetActionListener implements Hookable {
 			return true;
 		}
 
-		if ( isset( $_COOKIE[ $this->cookie->name() ] ) ) {
-			return true;
-		}
-
-		return isset( $_GET[ self::STATUS_MARKER ] ) || isset( $_GET[ self::ERROR_MARKER ] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only cache decision; no state change.
+		return null !== $this->cookie->user();
 	}
 
 	/**
@@ -311,7 +319,7 @@ class PasswordResetActionListener implements Hookable {
 			return;
 		}
 
-		$result = retrieve_password( $login );
+		$result = $this->links->withBrandedLinks( static fn () => retrieve_password( $login ) );
 
 		if ( is_wp_error( $result ) ) {
 			$this->logRetrieveError( $result );
@@ -326,8 +334,8 @@ class PasswordResetActionListener implements Hookable {
 	 * @return void
 	 */
 	private function handleResetLink(): void {
-		$key   = $this->getValue( 'key' );
-		$login = $this->getValue( 'login' );
+		$key   = $this->linkKey();
+		$login = $this->linkLogin();
 
 		$result = check_password_reset_key( $key, $login );
 
@@ -423,7 +431,7 @@ class PasswordResetActionListener implements Hookable {
 			return false;
 		}
 
-		if ( '' === $this->getValue( 'key' ) || '' === $this->getValue( 'login' ) ) {
+		if ( '' === $this->linkKey() || '' === $this->linkLogin() ) {
 			return false;
 		}
 
@@ -525,15 +533,13 @@ class PasswordResetActionListener implements Hookable {
 	}
 
 	/**
-	 * The submitted login: trimmed and capped, otherwise raw (retrieve_password
-	 * unslashes and resolves it itself).
+	 * The submitted email or username, sanitized and capped.
 	 *
 	 * @return string
 	 */
 	private function requestLogin(): string {
-		$login = isset( $_POST[ self::LOGIN_FIELD ] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handleRequest.
-			? trim( (string) $_POST[ self::LOGIN_FIELD ] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- retrieve_password() unslashes and validates; sanitizing here would break logins with a backslash.
-			: '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handleRequest.
+		$login = isset( $_POST[ self::LOGIN_FIELD ] ) && is_string( $_POST[ self::LOGIN_FIELD ] ) ? sanitize_user( wp_unslash( $_POST[ self::LOGIN_FIELD ] ) ) : '';
 
 		return strlen( $login ) > 254 ? substr( $login, 0, 254 ) : $login;
 	}
@@ -546,20 +552,20 @@ class PasswordResetActionListener implements Hookable {
 	 * @return string
 	 */
 	private function postedPass( string $field ): string {
-		return isset( $_POST[ $field ] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handleSet.
-			? trim( (string) $_POST[ $field ] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Deliberate slashing parity; the value is validated by check_password_reset_key/reset_password, never rendered.
-			: '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Passwords stay raw, as in WordPress core: sanitizing would change valid passwords.
+		return isset( $_POST[ $field ] ) && is_string( $_POST[ $field ] ) ? trim( $_POST[ $field ] ) : '';
 	}
 
 	/**
-	 * The posted rp_key, unslashed and stripped to alphanumerics.
+	 * The posted rp_key, stripped to letters and digits.
 	 *
 	 * @return string
 	 */
 	private function postedKey(): string {
-		$raw = isset( $_POST[ self::KEY_FIELD ] ) ? (string) wp_unslash( $_POST[ self::KEY_FIELD ] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce verified in handleSet; stripped to alphanumerics below.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handleSet.
+		$key = isset( $_POST[ self::KEY_FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::KEY_FIELD ] ) ) : '';
 
-		return (string) preg_replace( '/[^A-Za-z0-9]/', '', $raw );
+		return PasswordResetCookie::cleanKey( $key );
 	}
 
 	/**
@@ -602,26 +608,35 @@ class PasswordResetActionListener implements Hookable {
 	}
 
 	/**
-	 * The honeypot field's trimmed value, or '' when absent.
+	 * The honeypot field's sanitized value, or '' when absent.
 	 *
 	 * @return string
 	 */
 	private function honeypotValue(): string {
-		return isset( $_POST[ self::HONEYPOT_FIELD ] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handleRequest.
-			? trim( (string) wp_unslash( $_POST[ self::HONEYPOT_FIELD ] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Trap field: only its emptiness matters.
-			: '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handleRequest.
+		return isset( $_POST[ self::HONEYPOT_FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::HONEYPOT_FIELD ] ) ) : '';
 	}
 
 	/**
-	 * A raw, unslashed request value from the query string, or '' when absent.
+	 * The reset key from the emailed link, stripped to letters and digits.
 	 *
-	 * @param string $key The query key.
 	 * @return string
 	 */
-	private function getValue( string $key ): string {
-		return isset( $_GET[ $key ] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- The reset key is validated by check_password_reset_key; the login by the same call.
-			? (string) wp_unslash( $_GET[ $key ] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- See above; both parts are validated downstream.
-			: '';
+	private function linkKey(): string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- The key is the credential; check_password_reset_key validates it.
+		$key = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : '';
+
+		return PasswordResetCookie::cleanKey( $key );
+	}
+
+	/**
+	 * The account login from the emailed link, sanitized.
+	 *
+	 * @return string
+	 */
+	private function linkLogin(): string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checked together with the key by check_password_reset_key.
+		return isset( $_GET['login'] ) && is_string( $_GET['login'] ) ? sanitize_user( wp_unslash( $_GET['login'] ) ) : '';
 	}
 
 	/**

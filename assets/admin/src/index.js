@@ -70,7 +70,7 @@ export function boot() {
 	// Start before mount so the sidebar is correct on first paint.
 	const stopMenuSync = startMenuSync();
 
-	// Read routes fresh each time so late Pro registrations are covered.
+	// Read routes fresh each time so routes registered late are covered.
 	const stopDocumentTitle = startDocumentTitle( () =>
 		buildRoutes( bootData )
 	);

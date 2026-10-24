@@ -13,6 +13,7 @@
  *     @type bool $is_empty Cart has no lines.
  *     @type array<int, array<string, mixed>> $lines Cart lines.
  *     @type string $subtotal Formatted total.
+ *     @type string $total_label Label of the last row.
  *     @type array<string, mixed> $discount Discount data.
  *     @type string|null $checkout_url Checkout link.
  *     @type array<int, string> $notices Cart notices.
@@ -158,7 +159,7 @@ $tiermint_form_action_raw = remove_query_arg( 'tiermint_cart_error' );
 						</tr>
 					<?php endif; ?>
 					<tr class="tiermint-cart-summary__totals">
-						<th scope="row" colspan="3"><?php echo esc_html( ! empty( $data['prices_include_tax'] ) ? __( 'Subtotal (incl. tax)', 'tiermint' ) : __( 'Total', 'tiermint' ) ); ?></th>
+						<th scope="row" colspan="3"><?php echo esc_html( $data['total_label'] ?? __( 'Total', 'tiermint' ) ); ?></th>
 						<td><?php echo esc_html( $data['subtotal'] ); ?></td>
 						<?php if ( $data['show_actions'] ) : ?>
 							<td></td>

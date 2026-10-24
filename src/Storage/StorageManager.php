@@ -59,7 +59,7 @@ final class StorageManager {
 	 */
 	public function for( string $providerId ): StorageProvider {
 		if ( ! isset( $this->providers[ $providerId ] ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Developer exception; $providerId is a trusted internal service id, never user input or HTML output.
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not HTML output here; escaped where printed.
 			throw StorageException::unknownProvider( $providerId );
 		}
 
