@@ -8,7 +8,7 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Sell plugins and digital downloads with Stripe checkout, license keys and an update server. TierMint takes no commission on your sales.
+Sell plugins and digital downloads with Stripe payments, license keys and an update server. TierMint takes no commission on your sales.
 
 == Description ==
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * REST surface streaming the sales report as a CSV file.
+ * REST surface returning the sales and orders reports as CSV text.
  *
  * @package DrPlugin\WP\TierMint
  */
@@ -31,7 +31,8 @@ use WP_REST_Server;
 /**
  * REST routes for sales and order CSV exports.
  *
- * Exports share data with their JSON views. The stream filter sends staged CSV files.
+ * Exports share data with their JSON views. Each returns `{ filename, content }`
+ * as normal REST JSON, and the admin screen saves the file.
  *
  * @since 1.0.0
  */
@@ -73,13 +74,6 @@ final class ReportsExportController extends AbstractRestController {
 	private OrderBuyers $buyers;
 
 	/**
-	 * The pending CSV body and filename.
-	 *
-	 * @var array{body: string, filename: string}|null
-	 */
-	private ?array $pending = null;
-
-	/**
 	 * Wire the controller.
 	 *
 	 * @since 1.0.0
@@ -97,19 +91,7 @@ final class ReportsExportController extends AbstractRestController {
 	}
 
 	/**
-	 * Register the export route and the streaming serve filter.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return void
-	 */
-	public function hooks(): void {
-		parent::hooks();
-		add_filter( 'rest_pre_serve_request', array( $this, 'serve' ), 10, 2 );
-	}
-
-	/**
-	 * Register `GET /reports/sales/export`.
+	 * Register `GET /reports/sales/export` and `GET /reports/orders/export`.
 	 *
 	 * @since 1.0.0
 	 *
@@ -144,12 +126,12 @@ final class ReportsExportController extends AbstractRestController {
 	}
 
 	/**
-	 * Stage a sales CSV export.
+	 * Build the sales CSV export.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param WP_REST_Request $request The incoming request.
-	 * @return WP_REST_Response|WP_Error The staged response, or an error envelope.
+	 * @return WP_REST_Response|WP_Error The file name and CSV, or an error envelope.
 	 */
 	public function salesExport( WP_REST_Request $request ) {
 		list( $from, $to ) = $this->reports->defaultRange(
@@ -169,23 +151,21 @@ final class ReportsExportController extends AbstractRestController {
 			return $this->serverError();
 		}
 
-		$this->pending = array(
-			'body'     => $this->csv->write( $this->header(), $this->rows( $report ) ),
-			'filename' => 'tiermint-sales-' . $report['from'] . '-to-' . $report['to'] . '.csv',
+		return $this->file(
+			'tiermint-sales-' . $report['from'] . '-to-' . $report['to'] . '.csv',
+			$this->csv->write( $this->header(), $this->rows( $report ) )
 		);
-
-		return new WP_REST_Response( null, 200 );
 	}
 
 	/**
-	 * Stage an orders CSV export.
+	 * Build the orders CSV export.
 	 *
 	 * Refuse oversized ranges instead of truncating buyer data.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param WP_REST_Request $request The incoming request.
-	 * @return WP_REST_Response|WP_Error The staged response, or an error envelope.
+	 * @return WP_REST_Response|WP_Error The file name and CSV, or an error envelope.
 	 */
 	public function ordersExport( WP_REST_Request $request ) {
 		list( $from, $to ) = $this->reports->defaultRange(
@@ -221,43 +201,29 @@ final class ReportsExportController extends AbstractRestController {
 			);
 		}
 
-		$this->pending = array(
-			'body'     => $this->csv->write( $this->ordersHeader(), $this->orderRows( $orders ) ),
-			'filename' => 'tiermint-orders-' . $from . '-to-' . $to . '.csv',
+		return $this->file(
+			'tiermint-orders-' . $from . '-to-' . $to . '.csv',
+			$this->csv->write( $this->ordersHeader(), $this->orderRows( $orders ) )
 		);
-
-		return new WP_REST_Response( null, 200 );
 	}
 
 	/**
-	 * Stream the staged CSV response.
-	 *
-	 * Return true only after this controller sends a file.
+	 * The export as REST JSON.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param bool  $served Whether something already served the response.
-	 * @param mixed $result The dispatched result (unused; filter signature).
-	 * @return bool True when this filter streamed the CSV; the incoming value otherwise.
+	 * @param string $filename The suggested file name.
+	 * @param string $content  The CSV text.
+	 * @return WP_REST_Response
 	 */
-	public function serve( $served, $result ) {
-		if ( $served || null === $this->pending ) {
-			return (bool) $served;
-		}
-
-		$pending       = $this->pending;
-		$this->pending = null;
-
-		if ( ! headers_sent() ) {
-			header( 'Content-Type: text/csv; charset=utf-8' );
-			header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( $pending['filename'] ) . '"' );
-			header( 'X-Robots-Tag: noindex, nofollow' );
-		}
-
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Streams a pre-serialized, RFC 4180-quoted text/csv body, not HTML; escaping it would corrupt the file.
-		echo $pending['body'];
-
-		return true;
+	private function file( string $filename, string $content ): WP_REST_Response {
+		return new WP_REST_Response(
+			array(
+				'filename' => sanitize_file_name( $filename ),
+				'content'  => $content,
+			),
+			200
+		);
 	}
 
 	/**

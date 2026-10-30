@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace DrPlugin\WP\TierMint\Frontend\Components;
 
 use DrPlugin\WP\TierMint\Frontend\AbstractComponent;
+use DrPlugin\WP\TierMint\Frontend\Kses;
 use DrPlugin\WP\TierMint\Frontend\PageResolver;
 use DrPlugin\WP\TierMint\Frontend\RegistrationActionListener;
 use DrPlugin\WP\TierMint\Frontend\RenderContext;
@@ -111,9 +112,16 @@ class RegistrationForm extends AbstractComponent {
 			);
 		}
 
+		// Core's hook, so CAPTCHA and anti-spam plugins can add their fields.
+		ob_start();
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core hook, fired as wp-login.php does.
+		do_action( 'register_form' );
+		$coreFields = Kses::stripElements( (string) ob_get_clean() );
+
 		return $this->renderTemplate(
 			array(
 				'state'          => 'form',
+				'core_fields'    => $coreFields,
 				'error'          => $this->errorNotice(),
 				'show_name'      => (bool) $attrs['show_name'],
 				'login_url'      => $this->loginUrl( $attrs['login_url'] ?? '' ),

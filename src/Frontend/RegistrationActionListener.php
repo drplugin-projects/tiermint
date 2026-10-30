@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace DrPlugin\WP\TierMint\Frontend;
 
 use DrPlugin\WP\TierMint\Core\Hookable;
+use DrPlugin\WP\TierMint\Customers\AccountRole;
 use DrPlugin\WP\TierMint\Customers\CustomerService;
 use DrPlugin\WP\TierMint\Util\RateLimiter;
 use DrPlugin\WP\TierMint\Util\RequestUrl;
@@ -168,7 +169,8 @@ class RegistrationActionListener implements Hookable {
 		}
 
 		// Mimic success for bot submissions.
-		if ( '' !== $this->honeypotValue() ) {
+		$honeypot = isset( $_POST[ self::HONEYPOT_FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::HONEYPOT_FIELD ] ) ) : '';
+		if ( '' !== $honeypot ) {
 			$this->redirect( null );
 
 			return;
@@ -206,6 +208,22 @@ class RegistrationActionListener implements Hookable {
 			return;
 		}
 
+		$login = $this->uniqueLogin( $email );
+
+		// Fire core's registration checks, as register_new_user() does, so CAPTCHA
+		// and anti-spam plugins apply. They run for every address, before the
+		// existing-email check.
+		$coreErrors = new \WP_Error();
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core hook, fired as register_new_user() does.
+		do_action( 'register_post', $login, $email, $coreErrors );
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core hook, fired as register_new_user() does.
+		$coreErrors = apply_filters( 'registration_errors', $coreErrors, $login, $email );
+		if ( ! $coreErrors instanceof \WP_Error || $coreErrors->has_errors() ) {
+			$this->redirect( 'invalid' );
+
+			return;
+		}
+
 		// Do not reveal whether the address exists.
 		if ( false !== email_exists( $email ) ) {
 			$this->redirect( null );
@@ -213,7 +231,7 @@ class RegistrationActionListener implements Hookable {
 			return;
 		}
 
-		$this->redirect( $this->createUser( $email, $name ) > 0 ? null : 'failed' );
+		$this->redirect( $this->createUser( $email, $name, $login ) > 0 ? null : 'failed' );
 	}
 
 	/**
@@ -221,14 +239,15 @@ class RegistrationActionListener implements Hookable {
 	 *
 	 * @param string $email The validated email.
 	 * @param string $name  The submitted name, or ''.
+	 * @param string $login The login the core registration hooks saw.
 	 * @return int The new user id, or 0 on failure.
 	 */
-	private function createUser( string $email, string $name ): int {
+	private function createUser( string $email, string $name, string $login ): int {
 		$args = array(
-			'user_login' => $this->uniqueLogin( $email ),
+			'user_login' => $login,
 			'user_email' => $email,
 			'user_pass'  => wp_generate_password( 24 ),
-			'role'       => (string) get_option( 'default_role' ),
+			'role'       => AccountRole::resolve( get_option( 'default_role' ) ),
 		);
 
 		if ( '' !== $name ) {
@@ -238,6 +257,8 @@ class RegistrationActionListener implements Hookable {
 		/**
 		 * Filters the arguments passed to wp_insert_user when the registration form
 		 * mints an account.
+		 *
+		 * The role cannot go beyond read. A role that can do more becomes subscriber.
 		 *
 		 * @since 1.0.0
 		 *
@@ -249,6 +270,8 @@ class RegistrationActionListener implements Hookable {
 		if ( ! is_array( $args ) ) {
 			return 0;
 		}
+
+		$args['role'] = AccountRole::resolve( $args['role'] ?? '' );
 
 		$userId = wp_insert_user( $args );
 
@@ -324,16 +347,6 @@ class RegistrationActionListener implements Hookable {
 		}
 
 		return $login;
-	}
-
-	/**
-	 * The honeypot field's sanitized value, or '' when absent.
-	 *
-	 * @return string
-	 */
-	private function honeypotValue(): string {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in maybeHandle before this runs.
-		return isset( $_POST[ self::HONEYPOT_FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::HONEYPOT_FIELD ] ) ) : '';
 	}
 
 	/**

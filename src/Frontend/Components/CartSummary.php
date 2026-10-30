@@ -244,7 +244,7 @@ class CartSummary extends AbstractComponent {
 			$subtotal = $line->unitAmount() * $quantity;
 
 			// A missing tier has no plan details.
-			$meta = ( $showPlanDetails && null !== $price ) ? TierMetaPresenter::lines( $price, $flags ) : array();
+			$meta = ( $showPlanDetails && null !== $price ) ? TierMetaPresenter::lines( $price, $flags, $this->isLicensed( $line->productId() ) ) : array();
 
 			$rows[] = array(
 				'product_id'     => $line->productId(),
@@ -276,6 +276,18 @@ class CartSummary extends AbstractComponent {
 		$product = $this->products->get( $productId );
 
 		return null === $product ? null : $product->activePrice( $priceId );
+	}
+
+	/**
+	 * Whether the product issues licenses, so its license facts apply.
+	 *
+	 * @param int $productId The cart line's product id.
+	 * @return bool
+	 */
+	private function isLicensed( int $productId ): bool {
+		$product = $this->products->get( $productId );
+
+		return null !== $product && $product->isLicensed();
 	}
 
 	/**

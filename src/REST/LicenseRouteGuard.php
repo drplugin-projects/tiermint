@@ -30,9 +30,11 @@ final class LicenseRouteGuard implements Hookable {
 	/**
 	 * The route pattern the guard applies to (relative to the REST prefix).
 	 *
+	 * Case-insensitive, as WordPress matches routes that way.
+	 *
 	 * @var string
 	 */
-	private const ROUTE_PATTERN = '#^/tiermint/v1/(license/(validate|activate|deactivate)|update-check|package/download|order/download)$#';
+	private const ROUTE_PATTERN = '#^/tiermint/v1/(license/(validate|activate|deactivate)|update-check|package/download|order/download)$#i';
 
 	/**
 	 * The transient-backed fixed-window limiter.

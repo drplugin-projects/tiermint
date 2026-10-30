@@ -146,6 +146,7 @@ export default function ProductTokenField( { label, value, onChange, help } ) {
 		<div className="tiermint-field tiermint-token-field">
 			<FormTokenField
 				__nextHasNoMarginBottom
+				__next40pxDefaultSize
 				__experimentalExpandOnFocus
 				__experimentalValidateInput={ validateInput }
 				label={ label }

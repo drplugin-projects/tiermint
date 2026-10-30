@@ -175,6 +175,7 @@ export default function TermsPanel( { selectedIds, onAdd, onRemove } ) {
 			<>
 				<FormTokenField
 					__nextHasNoMarginBottom
+					__next40pxDefaultSize
 					__experimentalExpandOnFocus
 					__experimentalValidateInput={ validateInput }
 					label={ __( 'Tags', 'tiermint' ) }

@@ -9,10 +9,6 @@
  * @package ActionScheduler
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly.
-}
-
 /**
  * Schedule an action to run one time.
  *

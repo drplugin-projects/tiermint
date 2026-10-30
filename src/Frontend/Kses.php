@@ -187,6 +187,20 @@ final class Kses {
 	}
 
 	/**
+	 * Remove script and style elements with their content.
+	 *
+	 * The kses passes remove these tags but keep their code as text.
+	 *
+	 * @param string $html Markup that WordPress or another plugin printed.
+	 * @return string The markup without them, or unchanged if the pattern fails (kses still removes the tags).
+	 */
+	public static function stripElements( string $html ): string {
+		$stripped = preg_replace( '#<(script|style)(?=[\s/>])[^>]*>.*?</\1(?=[\s/>])[^>]*>#is', '', $html );
+
+		return null !== $stripped ? $stripped : $html;
+	}
+
+	/**
 	 * Get the post allowlist merged with the component tags.
 	 *
 	 * @return array<string, array<string, mixed>>

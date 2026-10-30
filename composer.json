@@ -1,0 +1,61 @@
+{
+    "name": "drplugin/tiermint",
+    "description": "TierMint: sell digital products, licenses, and updates from WordPress (free core).",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.1",
+        "composer/installers": "^2",
+        "woocommerce/action-scheduler": "4.2.0"
+    },
+    "require-dev": {
+        "brain/monkey": "^2.6",
+        "php-stubs/wordpress-stubs": "^7.0",
+        "phpunit/phpunit": "^9.6",
+        "spatie/phpunit-snapshot-assertions": "^4.2",
+        "wp-phpunit/wp-phpunit": "^7.0",
+        "yoast/phpunit-polyfills": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "DrPlugin\\WP\\TierMint\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DrPlugin\\WP\\TierMint\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "8.1"
+        },
+        "sort-packages": true,
+        "optimize-autoloader": true,
+        "allow-plugins": {
+            "composer/installers": true
+        }
+    },
+    "extra": {
+        "installer-paths": {
+            "lib/{$name}/": [
+                "woocommerce/action-scheduler"
+            ]
+        }
+    },
+    "scripts": {
+        "test:unit": "@php vendor/bin/phpunit --configuration phpunit-unit.xml.dist",
+        "test:integration": "@php vendor/bin/phpunit --configuration phpunit-integration.xml.dist",
+        "lint": [
+            "phpcs --standard=../phpcs.xml .",
+            "phpcs --standard=../phpcs-client.xml client/"
+        ],
+        "lint:fix": "phpcbf --standard=../phpcs.xml ."
+    },
+    "scripts-descriptions": {
+        "test:unit": "Run the Brain Monkey unit suite (no WordPress loaded).",
+        "test:integration": "Run the wp-phpunit integration suite (inside wp-env; needs WP_TESTS_DIR).",
+        "lint": "Lint the plugin (src at PHP 8.1+, client/ at PHP 7.4+) against WPCS.",
+        "lint:fix": "Auto-fix fixable WPCS violations in the plugin (excludes client/)."
+    }
+}

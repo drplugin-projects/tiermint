@@ -5,10 +5,6 @@
  * @package ActionScheduler.
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly.
-}
-
 /**
  * Enqueue an action to run one time, as soon as possible
  *

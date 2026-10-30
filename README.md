@@ -15,7 +15,7 @@ npm run build
 
 The build writes `assets/admin/build` and `assets/blocks/build`, which the plugin loads. Use `npm run start` to rebuild on every change.
 
-The PHP needs no build step and no Composer packages. It runs on WordPress 6.9 or newer and PHP 8.1 or newer.
+The PHP needs no build step. Composer installs Action Scheduler into `lib/action-scheduler`, and that copy is committed, so you do not need to run Composer. The PHP runs on WordPress 6.9 or newer and PHP 8.1 or newer.
 
 ## What is where
 
@@ -28,7 +28,7 @@ The PHP needs no build step and no Composer packages. It runs on WordPress 6.9 o
 - `assets/blocks/src`: the block editor script
 - `assets/frontend`: storefront CSS and scripts
 - `client/`: the update client and license verifier that you add to the plugins you sell
-- `lib/action-scheduler`: Action Scheduler 4.2.0, bundled
+- `lib/action-scheduler`: Action Scheduler 4.2.0, unchanged, pinned in `composer.json`
 
 ## License
 

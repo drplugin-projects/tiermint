@@ -326,7 +326,7 @@ final class PricingTable extends AbstractComponent {
 			// Keep the amount for the discount display.
 			'amount'       => $price->amount(),
 			'tier_name'    => $price->name(),
-			'meta'         => TierMetaPresenter::lines( $price, $metaFlags ),
+			'meta'         => TierMetaPresenter::lines( $price, $metaFlags, $product->isLicensed() ),
 			'features'     => $showFeatures ? $this->features( $product ) : array(),
 			'is_highlight' => $isHighlight,
 			'plan_class'   => $planClass,

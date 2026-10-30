@@ -217,7 +217,8 @@ final class AccountDashboard extends AbstractComponent {
 			return $this->renderSample( $this->sampleDashboardData( $attrs, $title, $ctx ) );
 		}
 
-		if ( null === $ctx->customer() ) {
+		// A signed-in user gets a customer record with their first purchase.
+		if ( null === $ctx->customer() && ! is_user_logged_in() ) {
 			return $this->renderTemplate( $this->loggedOutData( $title, $ctx ) );
 		}
 
@@ -381,7 +382,7 @@ final class AccountDashboard extends AbstractComponent {
 		if ( (bool) $attrs['show_purchases'] ) {
 			$tabs[] = array_merge(
 				$this->tab( $base, 'purchases', __( 'Purchases', 'tiermint' ) ),
-				array( 'purchases' => $this->purchaseRows( $customerId ) )
+				array( 'purchases' => $customerId > 0 ? $this->purchaseRows( $customerId ) : array() )
 			);
 		}
 
@@ -410,8 +411,30 @@ final class AccountDashboard extends AbstractComponent {
 		return array(
 			'state'  => 'dashboard',
 			'title'  => $title,
-			'header' => $this->headerData( $customer ),
+			'header' => null !== $customer ? $this->headerData( $customer ) : $this->userHeaderData(),
 			'tabs'   => $tabs,
+		);
+	}
+
+	/**
+	 * Build the greeting for a signed-in user with no customer record yet.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return array{avatar: string, greeting: string} The avatar HTML (empty when avatars are off) and the greeting text.
+	 */
+	private function userHeaderData(): array {
+		$user   = wp_get_current_user();
+		$avatar = get_avatar( (int) $user->ID, 48 );
+		$name   = '' !== (string) $user->display_name ? (string) $user->display_name : (string) $user->user_email;
+
+		return array(
+			'avatar'   => is_string( $avatar ) ? $avatar : '',
+			'greeting' => sprintf(
+				/* translators: %s: the customer's display name. */
+				__( 'Hi, %s', 'tiermint' ),
+				$name
+			),
 		);
 	}
 

@@ -65,7 +65,9 @@ class AppearanceTokens implements Hookable {
 			return;
 		}
 
-		wp_add_inline_style( AssetManager::TOKENS_HANDLE, $css );
+		// Every value is validated in Appearance. Not esc_html(): it would break
+		// quoted font names.
+		wp_add_inline_style( AssetManager::TOKENS_HANDLE, wp_strip_all_tags( $css ) );
 	}
 
 	/**

@@ -82,12 +82,24 @@ final class TierMetaPresenter {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param ProductPrice        $price The tier to describe.
-	 * @param array<string, bool> $flags The display flags keyed by attribute name.
+	 * @param ProductPrice        $price    The tier to describe.
+	 * @param array<string, bool> $flags    The display flags keyed by attribute name.
+	 * @param bool                $licensed Whether the product issues licenses. The license
+	 *                                      length and activation lines show only when it does.
 	 * @return array<int, string>
 	 */
-	public static function lines( ProductPrice $price, array $flags ): array {
+	public static function lines( ProductPrice $price, array $flags, bool $licensed = true ): array {
 		$lines = array();
+
+		if ( ! $licensed ) {
+			$flags = array_merge(
+				$flags,
+				array(
+					self::SHOW_LICENSE_LENGTH   => false,
+					self::SHOW_ACTIVATION_LIMIT => false,
+				)
+			);
+		}
 
 		if ( ! empty( $flags[ self::SHOW_LICENSE_LENGTH ] ) ) {
 			$license = self::licenseLine( $price );

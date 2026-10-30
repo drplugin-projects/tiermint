@@ -267,7 +267,10 @@ export default function PricingPanel( { form, setForm, currency } ) {
 							__nextHasNoMarginBottom
 							__next40pxDefaultSize
 							type="number"
-							label={ __( 'Activation limit', 'tiermint' ) }
+							label={ __(
+								'Activation limit (0 = unlimited)',
+								'tiermint'
+							) }
 							value={ String( price.activation_limit ) }
 							onChange={ ( value ) =>
 								updatePrice(

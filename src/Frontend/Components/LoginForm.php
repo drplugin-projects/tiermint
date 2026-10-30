@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace DrPlugin\WP\TierMint\Frontend\Components;
 
 use DrPlugin\WP\TierMint\Frontend\AbstractComponent;
+use DrPlugin\WP\TierMint\Frontend\Kses;
 use DrPlugin\WP\TierMint\Frontend\PageResolver;
 use DrPlugin\WP\TierMint\Frontend\RenderContext;
 use DrPlugin\WP\TierMint\Util\RequestUrl;
@@ -116,13 +117,7 @@ class LoginForm extends AbstractComponent {
 			)
 		);
 
-		// The template's kses pass removes script and style tags but keeps their code as text.
-		$stripped = preg_replace( '#<(script|style)(?=[\s/>])[^>]*>.*?</\1(?=[\s/>])[^>]*>#is', '', $loginForm );
-
-		// On a regex failure keep the form; kses still removes the tags.
-		if ( null !== $stripped ) {
-			$loginForm = $stripped;
-		}
+		$loginForm = Kses::stripElements( $loginForm );
 
 		return $this->renderTemplate(
 			array(

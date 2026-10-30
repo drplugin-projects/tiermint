@@ -88,7 +88,7 @@ final class ProductTierSelector {
 				'min'          => $price->minQuantity(),
 				'max'          => $price->maxQuantity(),
 				'fixed_single' => $price->isFixedSingle(),
-				'meta'         => TierMetaPresenter::lines( $price, $flags ),
+				'meta'         => TierMetaPresenter::lines( $price, $flags, $product->isLicensed() ),
 			);
 			$first   = false;
 		}

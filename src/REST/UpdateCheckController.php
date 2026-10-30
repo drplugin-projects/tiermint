@@ -124,7 +124,8 @@ final class UpdateCheckController extends AbstractRestController {
 				$request->get_params()
 			);
 		} catch ( ProductNotFoundException $e ) {
-			// Do not reveal product names.
+			// An unknown slug, or a draft or archived product without a valid key,
+			// gets the generic 404.
 			return $this->notFound();
 		} catch ( LicensePersistenceException | ProductPersistenceException | ReleasePersistenceException $e ) {
 			// Let the client use its grace period.

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-24T16:47:56+00:00\n"
+"POT-Creation-Date: 2026-10-30T01:27:44+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: tiermint\n"
@@ -32,7 +32,7 @@ msgstr ""
 
 #. Description of the plugin
 #: tiermint.php
-msgid "Sell digital products with licensing, updates, and Stripe checkout, right from WordPress."
+msgid "Sell digital products with licensing, updates, and Stripe payments, right from WordPress."
 msgstr ""
 
 #. Author of the plugin
@@ -137,8 +137,8 @@ msgid "Customers"
 msgstr ""
 
 #: src/Admin/Menu.php:178
-#: src/Frontend/Components/AccountDashboard.php:282
-#: src/Frontend/Components/AccountDashboard.php:397
+#: src/Frontend/Components/AccountDashboard.php:283
+#: src/Frontend/Components/AccountDashboard.php:398
 #: assets/admin/build/index.js:41
 #: assets/admin/src/screens/Licenses.js:300
 #: assets/admin/src/screens/Licenses.js:471
@@ -168,7 +168,7 @@ msgstr ""
 #: assets/admin/src/screens/Settings.js:1264
 #: assets/admin/src/screens/Settings.js:1277
 #: assets/blocks/build/index.js:1
-#: assets/blocks/src/index.js:550
+#: assets/blocks/src/index.js:551
 msgid "Settings"
 msgstr ""
 
@@ -2005,8 +2005,8 @@ msgstr ""
 #: src/Frontend/Adapters/Elementor/Tags/AbstractProductTag.php:87
 #: src/Frontend/Components/AbstractProductComponent.php:58
 #: src/Frontend/Components/BuyButton.php:100
-#: templates/components/cart-summary.php:79
-#: templates/components/cart-summary.php:92
+#: templates/components/cart-summary.php:73
+#: templates/components/cart-summary.php:86
 #: assets/admin/build/index.js:4
 #: assets/admin/build/index.js:31
 #: assets/admin/build/index.js:34
@@ -2069,34 +2069,34 @@ msgid "Cannot update a customer that has no id."
 msgstr ""
 
 #. translators: %s: the submitted email address.
-#: src/Customers/CustomerService.php:142
+#: src/Customers/CustomerService.php:143
 #, php-format
 msgid "The email \"%s\" is already associated with another account."
 msgstr ""
 
 #. translators: %d: the WordPress user ID.
-#: src/Customers/CustomerService.php:171
-#: src/Customers/CustomerService.php:713
+#: src/Customers/CustomerService.php:172
+#: src/Customers/CustomerService.php:731
 #, php-format
 msgid "WordPress user %d is already linked to another customer."
 msgstr ""
 
-#: src/Customers/CustomerService.php:299
+#: src/Customers/CustomerService.php:300
 msgid "A check on this customer could not be completed, so the delete was stopped."
 msgstr ""
 
-#: src/Customers/CustomerService.php:632
+#: src/Customers/CustomerService.php:650
 msgid "A customer email address is required."
 msgstr ""
 
 #. translators: %s: the submitted email address.
-#: src/Customers/CustomerService.php:639
+#: src/Customers/CustomerService.php:657
 #, php-format
 msgid "\"%s\" is not a valid email address."
 msgstr ""
 
 #. translators: %s: the customer email address.
-#: src/Customers/CustomerService.php:669
+#: src/Customers/CustomerService.php:687
 #, php-format
 msgid "A customer with the email \"%s\" already exists."
 msgstr ""
@@ -2290,13 +2290,11 @@ msgstr ""
 
 #: src/Frontend/CartNotices.php:86
 #: src/Frontend/Components/Checkout.php:682
-#: templates/components/cart-summary.php:31
 msgid "That item could not be added to the cart."
 msgstr ""
 
 #: src/Frontend/CartNotices.php:87
 #: src/Frontend/Components/Checkout.php:684
-#: templates/components/cart-summary.php:32
 msgid "Something went wrong updating your cart. Please try again."
 msgstr ""
 
@@ -2352,33 +2350,34 @@ msgstr ""
 msgid "Show the licenses panel."
 msgstr ""
 
-#: src/Frontend/Components/AccountDashboard.php:268
-#: src/Frontend/Components/AccountDashboard.php:383
+#: src/Frontend/Components/AccountDashboard.php:269
+#: src/Frontend/Components/AccountDashboard.php:384
 #: assets/admin/build/index.js:39
 #: assets/admin/src/screens/Customers.js:709
 msgid "Purchases"
 msgstr ""
 
-#: src/Frontend/Components/AccountDashboard.php:275
-#: src/Frontend/Components/AccountDashboard.php:390
+#: src/Frontend/Components/AccountDashboard.php:276
+#: src/Frontend/Components/AccountDashboard.php:391
 msgid "Downloads"
 msgstr ""
 
 #. translators: %s: the customer's display name.
-#: src/Frontend/Components/AccountDashboard.php:304
-#: src/Frontend/Components/AccountDashboard.php:436
+#: src/Frontend/Components/AccountDashboard.php:305
+#: src/Frontend/Components/AccountDashboard.php:435
+#: src/Frontend/Components/AccountDashboard.php:459
 #, php-format
 msgid "Hi, %s"
 msgstr ""
 
-#: src/Frontend/Components/AccountDashboard.php:305
+#: src/Frontend/Components/AccountDashboard.php:306
 msgid "Sample customer"
 msgstr ""
 
-#: src/Frontend/Components/AccountDashboard.php:326
+#: src/Frontend/Components/AccountDashboard.php:327
 #: src/Frontend/Components/DownloadsList.php:145
 #: src/Frontend/Components/DownloadsList.php:156
-#: src/Frontend/Components/LicenseManager.php:162
+#: src/Frontend/Components/LicenseManager.php:172
 #: src/Frontend/Components/PurchaseConfirmation.php:451
 #: src/Frontend/Components/PurchaseConfirmation.php:461
 #: src/Frontend/Components/PurchaseConfirmation.php:467
@@ -2387,8 +2386,8 @@ msgstr ""
 msgid "Sample product"
 msgstr ""
 
-#: src/Frontend/Components/AccountDashboard.php:332
-#: src/Frontend/Components/AccountDashboard.php:725
+#: src/Frontend/Components/AccountDashboard.php:333
+#: src/Frontend/Components/AccountDashboard.php:748
 #: assets/admin/build/index.js:2
 #: assets/admin/build/index.js:31
 #: assets/admin/build/index.js:34
@@ -2398,7 +2397,7 @@ msgstr ""
 msgid "Completed"
 msgstr ""
 
-#: src/Frontend/Components/AccountDashboard.php:726
+#: src/Frontend/Components/AccountDashboard.php:749
 #: assets/admin/build/index.js:2
 #: assets/admin/build/index.js:31
 #: assets/admin/src/screens/Orders.js:63
@@ -2474,7 +2473,7 @@ msgstr ""
 
 #: src/Frontend/Components/CartSummary.php:200
 #: src/Privacy/PersonalDataExporter.php:263
-#: templates/components/cart-summary.php:162
+#: templates/components/cart-summary.php:156
 #: templates/components/checkout.php:556
 #: templates/components/purchase-confirmation.php:121
 #: templates/emails/purchase-receipt.php:52
@@ -2618,15 +2617,15 @@ msgstr ""
 msgid "Show the active-sites list and the activate/deactivate controls."
 msgstr ""
 
-#: src/Frontend/Components/LicenseManager.php:165
-#: src/Frontend/Components/LicenseManager.php:284
+#: src/Frontend/Components/LicenseManager.php:175
+#: src/Frontend/Components/LicenseManager.php:294
 #: assets/admin/build/index.js:26
 #: assets/admin/build/index.js:39
 #: assets/admin/build/index.js:43
 #: assets/admin/build/index.js:61
 #: assets/admin/build/index.js:64
 #: assets/admin/build/index.js:79
-#: assets/admin/src/products/PricingPanel.js:332
+#: assets/admin/src/products/PricingPanel.js:335
 #: assets/admin/src/screens/Discounts.js:925
 #: assets/admin/src/screens/Discounts.js:1228
 #: assets/admin/src/screens/Discounts.js:1358
@@ -2638,22 +2637,22 @@ msgstr ""
 msgid "Active"
 msgstr ""
 
-#: src/Frontend/Components/LicenseManager.php:166
-#: src/Frontend/Components/LicenseManager.php:300
+#: src/Frontend/Components/LicenseManager.php:176
+#: src/Frontend/Components/LicenseManager.php:310
 #: assets/admin/build/index.js:24
 #: assets/admin/src/products/PricingPanel.js:136
 msgid "Lifetime"
 msgstr ""
 
-#: src/Frontend/Components/LicenseManager.php:239
+#: src/Frontend/Components/LicenseManager.php:249
 msgid "Unavailable product"
 msgstr ""
 
-#: src/Frontend/Components/LicenseManager.php:267
+#: src/Frontend/Components/LicenseManager.php:277
 msgid "unlimited"
 msgstr ""
 
-#: src/Frontend/Components/LicenseManager.php:285
+#: src/Frontend/Components/LicenseManager.php:295
 #: assets/admin/build/index.js:39
 #: assets/admin/build/index.js:43
 #: assets/admin/src/screens/LicenseDetail.js:40
@@ -2662,7 +2661,7 @@ msgstr ""
 msgid "Expired"
 msgstr ""
 
-#: src/Frontend/Components/LicenseManager.php:286
+#: src/Frontend/Components/LicenseManager.php:296
 #: assets/admin/build/index.js:39
 #: assets/admin/build/index.js:43
 #: assets/admin/src/screens/LicenseDetail.js:41
@@ -2671,32 +2670,32 @@ msgstr ""
 msgid "Disabled"
 msgstr ""
 
-#: src/Frontend/Components/LoginForm.php:70
+#: src/Frontend/Components/LoginForm.php:71
 msgid "Redirect URL"
 msgstr ""
 
-#: src/Frontend/Components/LoginForm.php:71
+#: src/Frontend/Components/LoginForm.php:72
 msgid "Where to send the visitor after logging in or out. Leave empty to stay on the current page."
 msgstr ""
 
-#: src/Frontend/Components/LoginForm.php:77
+#: src/Frontend/Components/LoginForm.php:78
 msgid "Show registration link"
 msgstr ""
 
-#: src/Frontend/Components/LoginForm.php:78
+#: src/Frontend/Components/LoginForm.php:79
 msgid "Show a \"Create an account\" link when site registration is open."
 msgstr ""
 
-#: src/Frontend/Components/LoginForm.php:84
+#: src/Frontend/Components/LoginForm.php:85
 msgid "Registration URL"
 msgstr ""
 
-#: src/Frontend/Components/LoginForm.php:85
+#: src/Frontend/Components/LoginForm.php:86
 msgid "A specific registration page. When set, the create-account link points here and shows even if open registration is off."
 msgstr ""
 
 #: src/Frontend/Components/PasswordResetForm.php:96
-#: src/Frontend/Components/RegistrationForm.php:77
+#: src/Frontend/Components/RegistrationForm.php:78
 msgid "Sign-in URL"
 msgstr ""
 
@@ -2709,13 +2708,13 @@ msgid "We could not process that request. Please check the address and try again
 msgstr ""
 
 #: src/Frontend/Components/PasswordResetForm.php:257
-#: src/Frontend/Components/RegistrationForm.php:192
+#: src/Frontend/Components/RegistrationForm.php:200
 #: templates/components/license-manager.php:24
 msgid "Something went wrong. Please try again."
 msgstr ""
 
 #: src/Frontend/Components/PasswordResetForm.php:258
-#: src/Frontend/Components/RegistrationForm.php:194
+#: src/Frontend/Components/RegistrationForm.php:202
 msgid "Too many attempts. Please wait a few minutes and try again."
 msgstr ""
 
@@ -2897,7 +2896,7 @@ msgstr ""
 #: templates/components/product-meta.php:63
 #: assets/admin/build/index.js:27
 #: assets/admin/build/index.js:30
-#: assets/admin/src/products/TermsPanel.js:180
+#: assets/admin/src/products/TermsPanel.js:181
 #: assets/admin/src/screens/Terms.js:634
 #: assets/admin/src/screens/Terms.js:637
 msgid "Tags"
@@ -3107,24 +3106,24 @@ msgstr ""
 msgid "Your purchase"
 msgstr ""
 
-#: src/Frontend/Components/RegistrationForm.php:70
+#: src/Frontend/Components/RegistrationForm.php:71
 msgid "Show the name field"
 msgstr ""
 
-#: src/Frontend/Components/RegistrationForm.php:71
+#: src/Frontend/Components/RegistrationForm.php:72
 msgid "Collect an optional display name alongside the email."
 msgstr ""
 
-#: src/Frontend/Components/RegistrationForm.php:78
+#: src/Frontend/Components/RegistrationForm.php:79
 msgid "Where the \"already have an account\" link points. Falls back to the sign-in page."
 msgstr ""
 
-#: src/Frontend/Components/RegistrationForm.php:191
+#: src/Frontend/Components/RegistrationForm.php:199
 msgid "We could not complete your registration. Please check your details and try again."
 msgstr ""
 
-#: src/Frontend/Components/RegistrationForm.php:193
-#: templates/components/registration-form.php:43
+#: src/Frontend/Components/RegistrationForm.php:201
+#: templates/components/registration-form.php:44
 msgid "Registration is currently closed."
 msgstr ""
 
@@ -3170,12 +3169,12 @@ msgstr ""
 msgid "Show how many sites each plan may activate."
 msgstr ""
 
-#: src/Frontend/Components/Support/TierMetaPresenter.php:137
+#: src/Frontend/Components/Support/TierMetaPresenter.php:149
 msgid "Lifetime license"
 msgstr ""
 
 #. translators: %d: number of days. The plural form exists for locales that inflect the compound; English keeps the unit singular.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:153
+#: src/Frontend/Components/Support/TierMetaPresenter.php:165
 #, php-format
 msgid "%d-day license"
 msgid_plural "%d-day license"
@@ -3183,7 +3182,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of weeks. The plural form exists for locales that inflect the compound; English keeps the unit singular.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:156
+#: src/Frontend/Components/Support/TierMetaPresenter.php:168
 #, php-format
 msgid "%d-week license"
 msgid_plural "%d-week license"
@@ -3191,7 +3190,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of months. The plural form exists for locales that inflect the compound; English keeps the unit singular.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:159
+#: src/Frontend/Components/Support/TierMetaPresenter.php:171
 #, php-format
 msgid "%d-month license"
 msgid_plural "%d-month license"
@@ -3199,19 +3198,19 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of years. The plural form exists for locales that inflect the compound; English keeps the unit singular.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:163
+#: src/Frontend/Components/Support/TierMetaPresenter.php:175
 #, php-format
 msgid "%d-year license"
 msgid_plural "%d-year license"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Frontend/Components/Support/TierMetaPresenter.php:177
+#: src/Frontend/Components/Support/TierMetaPresenter.php:189
 msgid "Unlimited activations"
 msgstr ""
 
 #. translators: %d: number of site activations the license allows.
-#: src/Frontend/Components/Support/TierMetaPresenter.php:181
+#: src/Frontend/Components/Support/TierMetaPresenter.php:193
 #, php-format
 msgid "%d activation"
 msgid_plural "%d activations"
@@ -4353,7 +4352,7 @@ msgstr ""
 msgid "A flat map describing the client environment (PHP, WordPress, product version)."
 msgstr ""
 
-#: src/REST/LicenseRouteGuard.php:115
+#: src/REST/LicenseRouteGuard.php:117
 msgid "Too many licensing requests. Please wait and try again."
 msgstr ""
 
@@ -4593,17 +4592,17 @@ msgid "Bypass the version monotonicity check for a deliberate re-publish."
 msgstr ""
 
 #: src/REST/ReportsController.php:109
-#: src/REST/ReportsExportController.php:450
+#: src/REST/ReportsExportController.php:416
 msgid "Inclusive start date (YYYY-MM-DD, UTC). Defaults to 29 days before \"to\"."
 msgstr ""
 
 #: src/REST/ReportsController.php:115
-#: src/REST/ReportsExportController.php:456
+#: src/REST/ReportsExportController.php:422
 msgid "Inclusive end date (YYYY-MM-DD, UTC). Defaults to the current UTC date."
 msgstr ""
 
 #. translators: %s: the maximum number of rows an orders export may hold.
-#: src/REST/ReportsExportController.php:217
+#: src/REST/ReportsExportController.php:197
 #, php-format
 msgid "This range holds more than %s orders. Narrow the date range and export again."
 msgstr ""
@@ -4743,11 +4742,11 @@ msgstr ""
 msgid "Cannot change release status from \"%1$s\" to \"%2$s\"."
 msgstr ""
 
-#: src/Updates/UpdateService.php:193
+#: src/Updates/UpdateService.php:201
 msgid "Your license has expired. To receive this update, buy a new license and use its key."
 msgstr ""
 
-#: src/Updates/UpdateService.php:194
+#: src/Updates/UpdateService.php:202
 msgid "A valid license is required to receive this update."
 msgstr ""
 
@@ -4776,7 +4775,7 @@ msgid "Issue a numbered PDF invoice for every order and let buyers download it f
 msgstr ""
 
 #: src/Upsell/ProFeatures.php:50
-msgid "PayPal checkout"
+msgid "PayPal payments"
 msgstr ""
 
 #: src/Upsell/ProFeatures.php:51
@@ -4916,18 +4915,18 @@ msgstr ""
 msgid "You have no purchases yet."
 msgstr ""
 
-#: templates/components/cart-summary.php:46
+#: templates/components/cart-summary.php:40
 #: templates/components/partials/cart-notice.php:22
 msgid "Go to checkout"
 msgstr ""
 
-#: templates/components/cart-summary.php:72
+#: templates/components/cart-summary.php:66
 #: templates/components/checkout.php:65
 msgid "Your cart is empty."
 msgstr ""
 
-#: templates/components/cart-summary.php:80
-#: templates/components/cart-summary.php:110
+#: templates/components/cart-summary.php:74
+#: templates/components/cart-summary.php:104
 #: templates/components/partials/cart-line-controls.php:42
 #: templates/components/partials/product-purchase-form.php:98
 #: templates/components/partials/product-purchase-form.php:114
@@ -4935,8 +4934,8 @@ msgstr ""
 msgid "Quantity"
 msgstr ""
 
-#: templates/components/cart-summary.php:81
-#: templates/components/cart-summary.php:113
+#: templates/components/cart-summary.php:75
+#: templates/components/cart-summary.php:107
 #: assets/admin/build/index.js:16
 #: assets/admin/build/index.js:34
 #: assets/admin/src/screens/OrderDetail.js:542
@@ -4944,8 +4943,8 @@ msgstr ""
 msgid "Price"
 msgstr ""
 
-#: templates/components/cart-summary.php:82
-#: templates/components/cart-summary.php:116
+#: templates/components/cart-summary.php:76
+#: templates/components/cart-summary.php:110
 #: templates/emails/purchase-receipt.php:66
 #: assets/admin/build/index.js:34
 #: assets/admin/src/screens/OrderDetail.js:544
@@ -4953,7 +4952,7 @@ msgstr ""
 msgid "Subtotal"
 msgstr ""
 
-#: templates/components/cart-summary.php:84
+#: templates/components/cart-summary.php:78
 #: assets/admin/build/index.js:39
 #: assets/admin/build/index.js:46
 #: assets/admin/build/index.js:64
@@ -4965,7 +4964,7 @@ msgstr ""
 msgid "Actions"
 msgstr ""
 
-#: templates/components/cart-summary.php:173
+#: templates/components/cart-summary.php:167
 msgid "Proceed to checkout"
 msgstr ""
 
@@ -5032,7 +5031,7 @@ msgid "Contact"
 msgstr ""
 
 #: templates/components/checkout.php:131
-#: templates/components/registration-form.php:70
+#: templates/components/registration-form.php:71
 msgid "Email address"
 msgstr ""
 
@@ -5307,7 +5306,7 @@ msgid "You are signed in."
 msgstr ""
 
 #: templates/components/password-reset-form.php:59
-#: templates/components/registration-form.php:35
+#: templates/components/registration-form.php:36
 msgid "Go to your account"
 msgstr ""
 
@@ -5332,7 +5331,7 @@ msgid "Email address or username"
 msgstr ""
 
 #: templates/components/password-reset-form.php:121
-#: templates/components/registration-form.php:88
+#: templates/components/registration-form.php:91
 msgid "Leave this field empty"
 msgstr ""
 
@@ -5419,27 +5418,27 @@ msgstr ""
 msgid "Your license keys"
 msgstr ""
 
-#: templates/components/registration-form.php:32
+#: templates/components/registration-form.php:33
 msgid "You are already signed in."
 msgstr ""
 
-#: templates/components/registration-form.php:49
+#: templates/components/registration-form.php:50
 msgid "Thanks for registering. Check your email for a link to set your password."
 msgstr ""
 
-#: templates/components/registration-form.php:52
+#: templates/components/registration-form.php:53
 msgid "Go to sign in"
 msgstr ""
 
-#: templates/components/registration-form.php:76
+#: templates/components/registration-form.php:77
 msgid "Name (optional)"
 msgstr ""
 
-#: templates/components/registration-form.php:93
+#: templates/components/registration-form.php:96
 msgid "Create account"
 msgstr ""
 
-#: templates/components/registration-form.php:100
+#: templates/components/registration-form.php:103
 msgid "Already have an account? Sign in"
 msgstr ""
 
@@ -5853,7 +5852,7 @@ msgstr ""
 #: assets/admin/build/index.js:13
 #: assets/admin/build/index.js:26
 #: assets/admin/build/index.js:28
-#: assets/admin/src/products/PricingPanel.js:336
+#: assets/admin/src/products/PricingPanel.js:339
 #: assets/admin/src/products/PublishSidebar.js:64
 #: assets/admin/src/screens/Products.js:77
 #: assets/admin/src/screens/Products.js:433
@@ -6005,7 +6004,7 @@ msgstr ""
 #: assets/admin/build/index.js:28
 #: assets/admin/build/index.js:29
 #: assets/admin/src/products/PublishSidebar.js:97
-#: assets/admin/src/screens/ProductEdit.js:528
+#: assets/admin/src/screens/ProductEdit.js:530
 #: assets/admin/src/screens/Products.js:91
 msgid "Bundle"
 msgstr ""
@@ -6256,26 +6255,26 @@ msgstr ""
 
 #: assets/admin/build/index.js:26
 #: assets/admin/src/products/PricingPanel.js:270
-msgid "Activation limit"
+msgid "Activation limit (0 = unlimited)"
 msgstr ""
 
 #: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:285
+#: assets/admin/src/products/PricingPanel.js:288
 msgid "Minimum quantity"
 msgstr ""
 
 #: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:299
+#: assets/admin/src/products/PricingPanel.js:302
 msgid "Maximum quantity (0 = unlimited)"
 msgstr ""
 
 #: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:328
+#: assets/admin/src/products/PricingPanel.js:331
 msgid "Price status"
 msgstr ""
 
 #: assets/admin/build/index.js:26
-#: assets/admin/src/products/PricingPanel.js:358
+#: assets/admin/src/products/PricingPanel.js:361
 msgid "Remove price"
 msgstr ""
 
@@ -6314,7 +6313,7 @@ msgid "Product categories"
 msgstr ""
 
 #: assets/admin/build/index.js:27
-#: assets/admin/src/products/TermsPanel.js:189
+#: assets/admin/src/products/TermsPanel.js:190
 msgid "Add a new tag"
 msgstr ""
 
@@ -6327,13 +6326,13 @@ msgstr ""
 
 #: assets/admin/build/index.js:28
 #: assets/admin/build/index.js:30
-#: assets/admin/src/products/TermsPanel.js:207
+#: assets/admin/src/products/TermsPanel.js:208
 #: assets/admin/src/screens/Terms.js:691
 msgid "Add tag"
 msgstr ""
 
 #: assets/admin/build/index.js:28
-#: assets/admin/src/products/TermsPanel.js:221
+#: assets/admin/src/products/TermsPanel.js:222
 msgid "Product tags"
 msgstr ""
 
@@ -6413,7 +6412,7 @@ msgstr ""
 #: assets/admin/build/index.js:28
 #: assets/admin/build/index.js:29
 #: assets/admin/src/products/ReleasesPanel.js:558
-#: assets/admin/src/screens/ProductEdit.js:530
+#: assets/admin/src/screens/ProductEdit.js:532
 msgid "Releases"
 msgstr ""
 
@@ -6489,45 +6488,45 @@ msgstr ""
 
 #. translators: %s: the field label.
 #: assets/admin/build/index.js:29
-#: assets/admin/src/screens/ProductEdit.js:301
+#: assets/admin/src/screens/ProductEdit.js:303
 #, js-format
 msgid "The \"%s\" field needs an extension that is not active."
 msgstr ""
 
 #: assets/admin/build/index.js:29
-#: assets/admin/src/screens/ProductEdit.js:644
-#: assets/admin/src/screens/ProductEdit.js:722
+#: assets/admin/src/screens/ProductEdit.js:646
+#: assets/admin/src/screens/ProductEdit.js:724
 msgid "Edit product"
 msgstr ""
 
 #: assets/admin/build/index.js:29
-#: assets/admin/src/screens/ProductEdit.js:526
+#: assets/admin/src/screens/ProductEdit.js:528
 msgid "Pricing"
 msgstr ""
 
 #: assets/admin/build/index.js:29
-#: assets/admin/src/screens/ProductEdit.js:629
+#: assets/admin/src/screens/ProductEdit.js:631
 msgid "Save the product before you can manage releases."
 msgstr ""
 
 #: assets/admin/build/index.js:29
-#: assets/admin/src/screens/ProductEdit.js:643
+#: assets/admin/src/screens/ProductEdit.js:645
 msgid "Add product"
 msgstr ""
 
 #: assets/admin/build/index.js:29
-#: assets/admin/src/screens/ProductEdit.js:648
+#: assets/admin/src/screens/ProductEdit.js:650
 msgid "Back to products"
 msgstr ""
 
 #: assets/admin/build/index.js:29
-#: assets/admin/src/screens/ProductEdit.js:665
+#: assets/admin/src/screens/ProductEdit.js:667
 msgid "Please fix the errors below."
 msgstr ""
 
 #. translators: %d: the position of the price in the list, starting at 1.
 #: assets/admin/build/index.js:30
-#: assets/admin/src/screens/ProductEdit.js:505
+#: assets/admin/src/screens/ProductEdit.js:507
 #, js-format
 msgid "Price %d needs a license length. Pick Lifetime or Duration."
 msgstr ""
@@ -7312,13 +7311,13 @@ msgid "Confirm delete"
 msgstr ""
 
 #: assets/admin/build/index.js:65
-#: assets/admin/src/components/ExportMenu.js:74
-#: assets/admin/src/components/ExportMenu.js:80
+#: assets/admin/src/components/ExportMenu.js:99
+#: assets/admin/src/components/ExportMenu.js:105
 msgid "Export CSV"
 msgstr ""
 
 #: assets/admin/build/index.js:65
-#: assets/admin/src/components/ExportMenu.js:54
+#: assets/admin/src/components/ExportMenu.js:39
 msgid "The export could not be downloaded."
 msgstr ""
 
@@ -7610,7 +7609,7 @@ msgid "Current product (from page URL)"
 msgstr ""
 
 #: assets/blocks/build/index.js:1
-#: assets/blocks/src/index.js:501
+#: assets/blocks/src/index.js:502
 msgid "Comma-separated list."
 msgstr ""
 

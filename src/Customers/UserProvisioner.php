@@ -179,7 +179,7 @@ final class UserProvisioner implements Hookable {
 			'user_login' => $this->uniqueLogin( $email ),
 			'user_email' => $email,
 			'user_pass'  => wp_generate_password( 24 ),
-			'role'       => (string) get_option( 'default_role' ),
+			'role'       => AccountRole::resolve( get_option( 'default_role' ) ),
 		);
 
 		$name  = null !== $customer ? (string) $customer->name() : '';
@@ -201,6 +201,8 @@ final class UserProvisioner implements Hookable {
 		/**
  * Filter wp_insert_user arguments for a completed guest order.
 		 *
+		 * The role cannot go beyond read. A role that can do more becomes subscriber.
+		 *
 		 * @since 1.0.0
 		 *
 		 * @param array<string, mixed> $args  The wp_insert_user arguments.
@@ -211,6 +213,8 @@ final class UserProvisioner implements Hookable {
 		if ( ! is_array( $args ) ) {
 			return;
 		}
+
+		$args['role'] = AccountRole::resolve( $args['role'] ?? '' );
 
 		$userId = wp_insert_user( $args );
 

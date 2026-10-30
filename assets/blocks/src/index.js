@@ -379,6 +379,7 @@ function TermPicker( { control, value, setAttributes } ) {
 	return (
 		<FormTokenField
 			__nextHasNoMarginBottom
+			__next40pxDefaultSize
 			__experimentalExpandOnFocus
 			label={ control.label }
 			value={ tokens }

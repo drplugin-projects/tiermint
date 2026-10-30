@@ -22,6 +22,7 @@ use DrPlugin\WP\TierMint\Licensing\ValidationResult;
 use DrPlugin\WP\TierMint\Products\Product;
 use DrPlugin\WP\TierMint\Products\ProductNotFoundException;
 use DrPlugin\WP\TierMint\Products\ProductRepository;
+use DrPlugin\WP\TierMint\Products\ProductStatus;
 
 /**
  * Builds update-check responses.
@@ -71,7 +72,8 @@ class UpdateService {
 	 *                                                 `tiermint_update_check_release` filter.
 	 * @return array<string, mixed> The assembled payload, after the `tiermint_update_check_response` filter.
 	 *
-	 * @throws ProductNotFoundException    When no product carries the slug (controller: generic 404).
+	 * @throws ProductNotFoundException    When no product carries the slug, or the product is not
+	 *                                     published and the key is not valid for it (controller: generic 404).
 	 * @throws LicensePersistenceException When license validation faults with nothing
 	 *                                     in the grace store (controller: generic 500,
 	 *                                     the client's own 72-hour grace takes over).
@@ -84,7 +86,13 @@ class UpdateService {
 			throw new ProductNotFoundException( 'No product for update-check slug.' );
 		}
 
-		$result   = $this->validator->validate( $licenseKey, $siteUrl, null, $productSlug, $now );
+		$result = $this->validator->validate( $licenseKey, $siteUrl, null, $productSlug, $now );
+
+		// A draft or archived product shows its version only to a valid key.
+		if ( ProductStatus::Published !== $product->status() && ! $result->isValid() ) {
+			throw new ProductNotFoundException( 'No published product for update-check slug.' );
+		}
+
 		$siteHash = $this->siteHash( $siteUrl );
 
 		// Core serves its latest published release unless an extension changes it.

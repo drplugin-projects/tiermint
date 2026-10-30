@@ -8,6 +8,7 @@
  *     State-specific view data.
  *
  *     @type string       $state          Form state.
+ *     @type string       $core_fields    Fields other plugins added through register_form, scripts removed.
  *     @type string|null  $account_url    Account URL.
  *     @type string|null  $login_url      Sign-in URL.
  *     @type array         $error          Error data.
@@ -77,6 +78,8 @@ defined( 'ABSPATH' ) || exit;
 					<input type="text" class="tiermint-input" id="tiermint-register-name" name="<?php echo esc_attr( $data['name_field'] ); ?>" autocomplete="name" />
 				</p>
 			<?php endif; ?>
+
+			<?php echo wp_kses( $data['core_fields'], \DrPlugin\WP\TierMint\Frontend\Kses::allowed() ); ?>
 
 			<?php
 			// The honeypot: hidden from people, tempting to bots. A real visitor

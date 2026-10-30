@@ -848,7 +848,7 @@ class Checkout extends AbstractComponent {
 			$subtotal = $unit * $quantity;
 
 			// The presenter needs a live tier.
-			$meta = ( $showPlanDetails && null !== $price ) ? TierMetaPresenter::lines( $price, $flags ) : array();
+			$meta = ( $showPlanDetails && null !== $price ) ? TierMetaPresenter::lines( $price, $flags, $this->isLicensed( $line->productId() ) ) : array();
 
 			$lines[] = array(
 				'product_id'     => $line->productId(),
@@ -910,6 +910,18 @@ class Checkout extends AbstractComponent {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Whether the product issues licenses, so its license facts apply.
+	 *
+	 * @param int $productId The cart line's product id.
+	 * @return bool
+	 */
+	private function isLicensed( int $productId ): bool {
+		$product = $this->products->get( $productId );
+
+		return null !== $product && $product->isLicensed();
 	}
 
 	/**

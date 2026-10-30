@@ -24,16 +24,10 @@ use DrPlugin\WP\TierMint\Frontend\CartNotices;
 
 defined( 'ABSPATH' ) || exit;
 
-// Read the redirect marker without changing state.
-$tiermint_cart_error_code = isset( $_GET['tiermint_cart_error'] ) ? sanitize_key( wp_unslash( $_GET['tiermint_cart_error'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display of a redirect marker; no state change.
-
-$tiermint_cart_error_messages = array(
-	'invalid' => __( 'That item could not be added to the cart.', 'tiermint' ),
-	'failed'  => __( 'Something went wrong updating your cart. Please try again.', 'tiermint' ),
-);
-
-// Show the shared success notice.
-$tiermint_success = CartNotices::view()['success'];
+// The shared success and error notices.
+$tiermint_notices = CartNotices::view();
+$tiermint_success = $tiermint_notices['success'];
+$tiermint_error   = $tiermint_notices['error'];
 
 // Keep mutation forms off the error-marker URL.
 $tiermint_form_action_raw = remove_query_arg( 'tiermint_cart_error' );
@@ -48,9 +42,9 @@ $tiermint_form_action_raw = remove_query_arg( 'tiermint_cart_error' );
 		</div>
 	<?php endif; ?>
 
-	<?php if ( isset( $tiermint_cart_error_messages[ $tiermint_cart_error_code ] ) ) : ?>
+	<?php if ( ! empty( $tiermint_error['show'] ) ) : ?>
 		<div class="tiermint-cart-summary__error tiermint-notice tiermint-notice--error" role="alert">
-			<?php echo esc_html( $tiermint_cart_error_messages[ $tiermint_cart_error_code ] ); ?>
+			<?php echo esc_html( (string) ( $tiermint_error['text'] ?? '' ) ); ?>
 		</div>
 	<?php endif; ?>
 

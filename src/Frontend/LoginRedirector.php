@@ -75,7 +75,8 @@ class LoginRedirector implements Hookable {
 	 */
 	public function hooks(): void {
 		add_action( 'login_init', array( $this, 'maybeRedirect' ) );
-		add_action( 'wp_login_failed', array( $this, 'onLoginFailed' ) );
+		// Last, since it redirects and exits: plugins that count failed logins run first.
+		add_action( 'wp_login_failed', array( $this, 'onLoginFailed' ), PHP_INT_MAX );
 		add_filter( 'login_url', array( $this, 'filterLoginUrl' ), 10, 3 );
 		add_filter( 'logout_redirect', array( $this, 'filterLogoutRedirect' ), 10, 2 );
 		add_filter( 'register_url', array( $this, 'filterRegisterUrl' ) );

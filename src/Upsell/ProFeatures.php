@@ -47,7 +47,7 @@ final class ProFeatures {
 			),
 			array(
 				'key'   => 'paypal',
-				'title' => __( 'PayPal checkout', 'tiermint' ),
+				'title' => __( 'PayPal payments', 'tiermint' ),
 				'blurb' => __( 'Take payments through PayPal alongside Stripe.', 'tiermint' ),
 			),
 			array(

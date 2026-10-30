@@ -237,7 +237,7 @@ export async function getList( path, query ) {
  *
  * Uses api-fetch for nonce-protected downloads and short paths.
  *
- * @param {string} path    The short REST path, e.g. `/reports/sales/export`.
+ * @param {string} path    The short REST path, e.g. `/products/12/releases/3/package`.
  * @param {Object} [query] Optional query params.
  * @return {Promise<{blob: Blob, header: Function}>} The body and a header reader.
  */

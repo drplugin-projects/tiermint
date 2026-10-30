@@ -21,12 +21,12 @@ defined( 'ABSPATH' ) || exit;
  * cookie, and set the new password.
  *
  * The request POST is enumeration-safe: every outcome ends in one byte-identical
- * "sent" redirect. On the set POST the CSRF boundary is the cookie/rp_key binding
- * plus check_password_reset_key, never the (shared, logged-out) nonce, and both
- * are hard requirements. Passwords go to reset_password raw and slashed, the same
- * string wp_signon later checks, so a password with a backslash or quote can sign
- * in afterwards. Unlike core, validate_password_reset runs only on the set POST,
- * not on the link GET. A reset never signs the user in.
+ * "sent" redirect. The set POST checks its nonce first, but a logged-out nonce is
+ * the same for every visitor, so the real CSRF boundary is the cookie/rp_key
+ * binding plus check_password_reset_key. Passwords go to reset_password raw and
+ * slashed, the same string wp_signon later checks, so a password with a backslash
+ * or quote can sign in afterwards. Unlike core, validate_password_reset runs only
+ * on the set POST, not on the link GET. A reset never signs the user in.
  *
  * @since 1.0.0
  */
@@ -225,15 +225,7 @@ class PasswordResetActionListener implements Hookable {
 	public function maybeHandle(): void {
 		$this->maybeSendNoCacheHeaders();
 
-		if ( isset( $_POST[ self::REQUEST_ACTION_FIELD ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Routing only; the nonce is verified in handleRequest().
-			$this->handleRequest();
-
-			return;
-		}
-
-		if ( isset( $_POST[ self::RESET_ACTION_FIELD ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Routing only; the nonce is verified in handleSet().
-			$this->handleSet();
-
+		if ( $this->handleRequest() || $this->handleSet() ) {
 			return;
 		}
 
@@ -278,37 +270,44 @@ class PasswordResetActionListener implements Hookable {
 	/**
 	 * Handle a request-a-link POST, ending in the enumeration-safe sent state.
 	 *
-	 * @return void
+	 * @return bool Whether this request was a request-a-link POST.
 	 */
-	private function handleRequest(): void {
-		if ( ! $this->verifyNonce( self::NONCE_REQUEST_FIELD, self::NONCE_REQUEST_ACTION ) ) {
+	private function handleRequest(): bool {
+		if ( ! isset( $_POST[ self::REQUEST_ACTION_FIELD ] ) ) {
+			return false;
+		}
+
+		$nonce = isset( $_POST[ self::NONCE_REQUEST_FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::NONCE_REQUEST_FIELD ] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, self::NONCE_REQUEST_ACTION ) ) {
 			// Keep the cookie: a genuine retry should still work.
 			$this->redirect( 'failed', null );
 
-			return;
+			return true;
 		}
 
 		if ( $this->throttled( self::SCOPE_REQUEST, $this->clientIp() ) ) {
 			$this->redirect( 'throttled', null );
 
-			return;
+			return true;
 		}
 
 		// Every path from here ends in the sent state, so drop any stale cookie.
 		$this->cookie->clear();
 
 		// Mimic success for bot submissions, with no lookup.
-		if ( '' !== $this->honeypotValue() ) {
+		$honeypot = isset( $_POST[ self::HONEYPOT_FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::HONEYPOT_FIELD ] ) ) : '';
+		if ( '' !== $honeypot ) {
 			$this->redirect( null, 'sent' );
 
-			return;
+			return true;
 		}
 
-		$login = $this->requestLogin();
+		$login = isset( $_POST[ self::LOGIN_FIELD ] ) && is_string( $_POST[ self::LOGIN_FIELD ] ) ? sanitize_user( wp_unslash( $_POST[ self::LOGIN_FIELD ] ) ) : '';
+		$login = strlen( $login ) > 254 ? substr( $login, 0, 254 ) : $login;
 		if ( '' === $login ) {
 			$this->redirect( 'invalid', null );
 
-			return;
+			return true;
 		}
 
 		// A spent per-target window still fakes success: 'throttled' would leak the
@@ -316,7 +315,7 @@ class PasswordResetActionListener implements Hookable {
 		if ( $this->throttled( self::SCOPE_TARGET, strtolower( $login ) ) ) {
 			$this->redirect( null, 'sent' );
 
-			return;
+			return true;
 		}
 
 		$result = $this->links->withBrandedLinks( static fn () => retrieve_password( $login ) );
@@ -326,6 +325,8 @@ class PasswordResetActionListener implements Hookable {
 		}
 
 		$this->redirect( null, 'sent' );
+
+		return true;
 	}
 
 	/**
@@ -353,20 +354,25 @@ class PasswordResetActionListener implements Hookable {
 	/**
 	 * Handle a set-new-password POST.
 	 *
-	 * @return void
+	 * @return bool Whether this request was a set-new-password POST.
 	 */
-	private function handleSet(): void {
-		if ( ! $this->verifyNonce( self::NONCE_SET_FIELD, self::NONCE_SET_ACTION ) ) {
+	private function handleSet(): bool {
+		if ( ! isset( $_POST[ self::RESET_ACTION_FIELD ] ) ) {
+			return false;
+		}
+
+		$nonce = isset( $_POST[ self::NONCE_SET_FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::NONCE_SET_FIELD ] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, self::NONCE_SET_ACTION ) ) {
 			// Keep the cookie: the user is mid-flow and may resubmit.
 			$this->redirect( 'failed', null );
 
-			return;
+			return true;
 		}
 
 		if ( $this->throttled( self::SCOPE_SET, $this->clientIp() ) ) {
 			$this->redirect( 'throttled', null );
 
-			return;
+			return true;
 		}
 
 		$creds = $this->cookie->read();
@@ -374,7 +380,7 @@ class PasswordResetActionListener implements Hookable {
 			$this->cookie->clear();
 			$this->redirect( 'invalidkey', null );
 
-			return;
+			return true;
 		}
 
 		$user = $this->cookie->user();
@@ -383,35 +389,40 @@ class PasswordResetActionListener implements Hookable {
 			$this->cookie->clear();
 			$this->redirect( $marker, null );
 
-			return;
+			return true;
 		}
 
 		// CSRF boundary: the posted rp_key must match the cookie key. Never skipped.
-		if ( ! hash_equals( $creds['key'], $this->postedKey() ) ) {
+		$key = isset( $_POST[ self::KEY_FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::KEY_FIELD ] ) ) : '';
+		if ( ! hash_equals( $creds['key'], PasswordResetCookie::cleanKey( $key ) ) ) {
 			$this->redirect( 'invalidkey', null );
 
-			return;
+			return true;
 		}
 
-		$pass1 = $this->postedPass( self::PASS1_FIELD );
-		$pass2 = $this->postedPass( self::PASS2_FIELD );
+		// Only the two password fields are read raw: sanitizing would change a
+		// valid password. They stay slashed and are trimmed, as sign-in checks them.
+		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$pass1 = isset( $_POST[ self::PASS1_FIELD ] ) && is_string( $_POST[ self::PASS1_FIELD ] ) ? trim( $_POST[ self::PASS1_FIELD ] ) : '';
+		$pass2 = isset( $_POST[ self::PASS2_FIELD ] ) && is_string( $_POST[ self::PASS2_FIELD ] ) ? trim( $_POST[ self::PASS2_FIELD ] ) : '';
+		// phpcs:enable
 
 		if ( $pass1 !== $pass2 ) {
 			$this->redirect( 'mismatch', null );
 
-			return;
+			return true;
 		}
 
 		if ( ! $this->lengthAllowed( $pass1 ) ) {
 			$this->redirect( 'short', null );
 
-			return;
+			return true;
 		}
 
 		if ( $this->policyBlocks( $user ) ) {
 			$this->redirect( 'policy', null );
 
-			return;
+			return true;
 		}
 
 		// Pass the raw slashed value: the same string wp_signon() later checks from
@@ -419,6 +430,8 @@ class PasswordResetActionListener implements Hookable {
 		reset_password( $user, $pass1 );
 		$this->cookie->clear();
 		$this->redirect( null, 'done' );
+
+		return true;
 	}
 
 	/**
@@ -465,19 +478,6 @@ class PasswordResetActionListener implements Hookable {
 		$stream = 'retrieve_password_email_failure' === $code ? 'error' : 'auth';
 
 		$this->logger->log( $stream, 'Password reset request could not be completed.', array( 'code' => $code ) );
-	}
-
-	/**
-	 * Verify a form nonce.
-	 *
-	 * @param string $field  The nonce field name.
-	 * @param string $action The nonce action.
-	 * @return bool
-	 */
-	private function verifyNonce( string $field, string $action ): bool {
-		$nonce = isset( $_POST[ $field ] ) ? sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) : '';
-
-		return (bool) wp_verify_nonce( $nonce, $action );
 	}
 
 	/**
@@ -533,42 +533,6 @@ class PasswordResetActionListener implements Hookable {
 	}
 
 	/**
-	 * The submitted email or username, sanitized and capped.
-	 *
-	 * @return string
-	 */
-	private function requestLogin(): string {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handleRequest.
-		$login = isset( $_POST[ self::LOGIN_FIELD ] ) && is_string( $_POST[ self::LOGIN_FIELD ] ) ? sanitize_user( wp_unslash( $_POST[ self::LOGIN_FIELD ] ) ) : '';
-
-		return strlen( $login ) > 254 ? substr( $login, 0, 254 ) : $login;
-	}
-
-	/**
-	 * A posted password: trimmed, otherwise raw and slashed (never unslashed, for
-	 * parity with what wp_signon later checks).
-	 *
-	 * @param string $field The field name.
-	 * @return string
-	 */
-	private function postedPass( string $field ): string {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Passwords stay raw, as in WordPress core: sanitizing would change valid passwords.
-		return isset( $_POST[ $field ] ) && is_string( $_POST[ $field ] ) ? trim( $_POST[ $field ] ) : '';
-	}
-
-	/**
-	 * The posted rp_key, stripped to letters and digits.
-	 *
-	 * @return string
-	 */
-	private function postedKey(): string {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handleSet.
-		$key = isset( $_POST[ self::KEY_FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::KEY_FIELD ] ) ) : '';
-
-		return PasswordResetCookie::cleanKey( $key );
-	}
-
-	/**
 	 * Whether the password meets the minimum length (typed characters) and the
 	 * 4096-byte cap (what core hashes).
 	 *
@@ -605,16 +569,6 @@ class PasswordResetActionListener implements Hookable {
 		do_action( 'validate_password_reset', $errors, $user );
 
 		return $errors->has_errors();
-	}
-
-	/**
-	 * The honeypot field's sanitized value, or '' when absent.
-	 *
-	 * @return string
-	 */
-	private function honeypotValue(): string {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handleRequest.
-		return isset( $_POST[ self::HONEYPOT_FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::HONEYPOT_FIELD ] ) ) : '';
 	}
 
 	/**

@@ -14,7 +14,30 @@ import { Button, Dropdown } from '@wordpress/components';
 /**
  * Internal dependencies
  */
-import { getFile, saveBlob } from '../api/client';
+import { get, saveBlob } from '../api/client';
+
+/**
+ * The message for a failed export. Prefer the endpoint's validation details.
+ *
+ * @param {*} failure The rejected value from `get()`.
+ * @return {string} The message to show.
+ */
+function failureMessage( failure ) {
+	const details =
+		failure && Array.isArray( failure.errors )
+			? failure.errors.filter(
+					( entry ) => typeof entry === 'string' && entry !== ''
+			  )
+			: [];
+
+	if ( details.length > 0 ) {
+		return details.join( ' ' );
+	}
+
+	return failure && failure.message
+		? failure.message
+		: __( 'The export could not be downloaded.', 'tiermint' );
+}
 
 /**
  * Renders an export menu.
@@ -44,15 +67,17 @@ export default function ExportMenu( { items = [] } ) {
 		setError( '' );
 
 		try {
-			const { blob } = await getFile( item.path, item.params );
-			saveBlob( blob, item.filename );
+			// The route returns { filename, content }. Save under the item's own name.
+			const { content } = await get( item.path, item.params );
+			saveBlob(
+				new window.Blob( [ content ], {
+					type: 'text/csv;charset=utf-8',
+				} ),
+				item.filename
+			);
 			onClose();
 		} catch ( failure ) {
-			setError(
-				failure && failure.message
-					? failure.message
-					: __( 'The export could not be downloaded.', 'tiermint' )
-			);
+			setError( failureMessage( failure ) );
 		} finally {
 			setBusyId( null );
 		}

@@ -120,6 +120,16 @@ final class LicenseManager extends AbstractComponent {
 				return $this->renderSample( $this->sampleData( $attrs, $title ), $ctx );
 			}
 
+			// A signed-in user gets a customer record with their first purchase.
+			if ( is_user_logged_in() ) {
+				return $this->renderTemplate(
+					array(
+						'state' => 'empty',
+						'title' => $title,
+					)
+				);
+			}
+
 			return $this->renderTemplate( $this->loggedOutData( $title ) );
 		}
 

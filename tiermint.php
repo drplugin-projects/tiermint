@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       TierMint
  * Plugin URI:        https://github.com/drplugin-projects/tiermint
- * Description:       Sell digital products with licensing, updates, and Stripe checkout, right from WordPress.
+ * Description:       Sell digital products with licensing, updates, and Stripe payments, right from WordPress.
  * Version:           1.0.0
  * Requires at least: 6.9
  * Requires PHP:      8.1
@@ -37,7 +37,7 @@ define( 'TIERMINT_DB_VERSION', 4 );
 /**
  * Autoload TierMint classes.
  *
- * No Composer runtime dependencies.
+ * TierMint's own classes load without Composer's autoloader.
  *
  * @since 1.0.0
  *

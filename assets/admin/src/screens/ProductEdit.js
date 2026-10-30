@@ -192,12 +192,14 @@ function buildBody( form, currency ) {
 			const enteredMax = Number( price.max_quantity );
 			const minQuantity = Number( price.min_quantity ) || 1;
 			const maxQuantity = enteredMax > 0 ? enteredMax : null;
+			// Null limit means unlimited; a stored 0 would refuse every site.
+			const enteredLimit = Number( price.activation_limit );
 
 			const out = {
 				...extensionPriceKeys( price ),
 				name: price.name,
 				amount: decimalToMinor( price.amount, currency ),
-				activation_limit: Number( price.activation_limit ) || 0,
+				activation_limit: enteredLimit > 0 ? enteredLimit : null,
 				// Send the raw length value, or null for lifetime.
 				license_length:
 					price.license_length === '' ||
